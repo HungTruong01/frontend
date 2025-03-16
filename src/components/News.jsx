@@ -4,30 +4,29 @@ import newsbanner from "../assets/newsbanner.png";
 import newsbanner2 from "../assets/newsbanner2.png";
 import newsbanner3 from "../assets/newsbanner3.png";
 
+const newsItems = [
+  {
+    id: 1,
+    title: "Bí quyết tối ưu chi phí logistics trong hoạt động xuất nhập khẩu",
+    image: newsbanner,
+    link: "/news/logistics-optimization",
+  },
+  {
+    id: 2,
+    title:
+      "Xuất khẩu nguyên liệu trong và ngoài nước: Điều kiện, thủ tục & những lưu ý quan trọng",
+    image: newsbanner2,
+    link: "/news/china-exports",
+  },
+  {
+    id: 3,
+    title:
+      "Quy trình nhập khẩu thực phẩm vào Việt Nam: Hồ sơ và điều kiện cần biết",
+    image: newsbanner3,
+    link: "/news/cosmetics-import",
+  },
+];
 const News = () => {
-  const newsItems = [
-    {
-      id: 1,
-      title: "Bí quyết tối ưu chi phí logistics trong hoạt động xuất nhập khẩu",
-      image: newsbanner,
-      link: "/news/logistics-optimization",
-    },
-    {
-      id: 2,
-      title:
-        "Xuất khẩu nguyên liệu trong và ngoài nước: Điều kiện, thủ tục & những lưu ý quan trọng",
-      image: newsbanner2,
-      link: "/news/china-exports",
-    },
-    {
-      id: 3,
-      title:
-        "Quy trình nhập khẩu thực phẩm vào Việt Nam: Hồ sơ và điều kiện cần biết",
-      image: newsbanner3,
-      link: "/news/cosmetics-import",
-    },
-  ];
-
   return (
     <div className="w-full h-[660px] bg-white flex items-center">
       <div className="container mx-auto w-[1248px] px-6">

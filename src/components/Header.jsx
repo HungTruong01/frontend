@@ -12,7 +12,9 @@ const Header = () => {
   return (
     <div className="w-full bg-[#027DC3] py-4">
       <div className="container mx-auto w-[1248px] px-6 h-full flex justify-between items-center text-white text-sm tracking-wider">
-        <h4 className="font-semibold">Chào mừng đến với TNHH Minh Dương HP</h4>
+        <h4 className="font-semibold">
+          Chào mừng đến với TNHH TMDV & XNK Minh Dương HP
+        </h4>
 
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
@@ -26,14 +28,14 @@ const Header = () => {
             <span>
               <FaPhoneAlt size={14} />
             </span>
-            <p>0982908841 - 0123456789</p>
+            <p>0936886234</p>
           </div>
 
           <div className="flex items-center gap-2">
             <span>
               <IoIosMail size={16} />
             </span>
-            <p>info@gmail.com</p>
+            <p>congtyxnkminhduonghp@gmail.com</p>
           </div>
         </div>
 
