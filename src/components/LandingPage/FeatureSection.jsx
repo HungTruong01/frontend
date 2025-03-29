@@ -1,7 +1,7 @@
 import React from "react";
 import { IoDiamondOutline } from "react-icons/io5";
 import { FaDollarSign, FaPhoneAlt, FaUserShield } from "react-icons/fa";
-import image from "../assets/img.jpg";
+import image from "../../assets/img.jpg";
 const features = [
   {
     icon: <IoDiamondOutline />,

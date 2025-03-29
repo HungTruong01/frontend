@@ -1,5 +1,5 @@
 import React from "react";
-import overview from "../assets/overview.jpg";
+import overview from "../../assets/overview.jpg";
 import { FaCheckCircle } from "react-icons/fa";
 const Overview = () => {
   return (

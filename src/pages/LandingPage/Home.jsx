@@ -1,12 +1,12 @@
 import React from "react";
-import Header from "../components/Header";
-import Navbar from "../components/Navbar";
-import Banner from "../components/Banner";
-import Overview from "../components/Overview";
-import Service from "../components/Service";
-import News from "../components/News";
-import Contact from "../components/Contact";
-import Footer from "../components/Footer";
+import Header from "../../components/LandingPage/Header";
+import Navbar from "../../components/LandingPage/Navbar";
+import Banner from "../../components/LandingPage/Banner";
+import Overview from "../../components/LandingPage/Overview";
+import Service from "../../components/LandingPage/Service";
+import News from "../../components/LandingPage/News";
+import Contact from "../../components/LandingPage/Contact";
+import Footer from "../../components/LandingPage/Footer";
 
 const Home = () => {
   return (

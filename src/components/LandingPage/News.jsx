@@ -1,8 +1,8 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import newsbanner from "../assets/newsbanner.png";
-import newsbanner2 from "../assets/newsbanner2.png";
-import newsbanner3 from "../assets/newsbanner3.png";
+import newsbanner from "../../assets/newsbanner.png";
+import newsbanner2 from "../../assets/newsbanner2.png";
+import newsbanner3 from "../../assets/newsbanner3.png";
 
 const newsItems = [
   {

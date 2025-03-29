@@ -1,10 +1,10 @@
 import React from "react";
-import Header from "../components/Header";
-import Navbar from "../components/Navbar";
-import Banner from "../components/Banner";
-import FeatureSection from "../components/FeatureSection";
-import Contact from "../components/Contact";
-import Footer from "../components/Footer";
+import Header from "../../components/LandingPage/Header";
+import Navbar from "../../components/LandingPage/Navbar";
+import Banner from "../../components/LandingPage/Banner";
+import FeatureSection from "../../components/LandingPage/FeatureSection";
+import Contact from "../../components/LandingPage/Contact";
+import Footer from "../../components/LandingPage/Footer";
 const About = () => {
   return (
     <div className="flex flex-col min-h-screen">

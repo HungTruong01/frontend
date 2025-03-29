@@ -7,10 +7,10 @@ import {
   FaPlane,
   FaArrowRight,
 } from "react-icons/fa";
-import service1 from "../assets/service1.jpg";
-import service2 from "../assets/service2.jpg";
-import service3 from "../assets/service3.jpg";
-import service4 from "../assets/service4.jpg";
+import service1 from "../../assets/service1.jpg";
+import service2 from "../../assets/service2.jpg";
+import service3 from "../../assets/service3.jpg";
+import service4 from "../../assets/service4.jpg";
 
 const services = [
   {
