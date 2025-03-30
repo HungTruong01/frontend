@@ -7,7 +7,7 @@ const AddPartnerModal = ({ isOpen, onClose, onSubmit }) => {
     phone: "",
     email: "",
     address: "",
-    type: "customer", // customer hoặc supplier
+    type: "customer",
   });
 
   const handleSubmit = (e) => {

@@ -1,5 +1,3 @@
-export * from "@/data/statistics-cards-data";
-export * from "@/data/statistics-charts-data";
 export * from "@/data/userTableData";
 export * from "@/data/accountsTableData";
 export * from "@/data/partnerTypesTableData";

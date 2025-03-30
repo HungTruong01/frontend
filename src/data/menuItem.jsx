@@ -9,7 +9,6 @@ import {
   FiRepeat,
   FiDollarSign,
   FiCreditCard,
-  FiFileMinus,
   FiArchive,
 } from "react-icons/fi";
 import {
@@ -23,6 +22,7 @@ import {
   FaExchangeAlt,
   FaExclamationTriangle,
   FaBalanceScale,
+  FaRegNewspaper,
 } from "react-icons/fa";
 import {
   MdAccountCircle,
@@ -105,8 +105,20 @@ const menuItem = [
   },
   {
     icon: <MdListAlt {...iconStyles} />,
-    name: "Bài đăng",
+    name: "Quảng bá",
     path: "/dashboard/posts",
+    subpages: [
+      {
+        name: "Tin tức",
+        path: "/dashboard/post-list",
+        icon: <FaRegNewspaper {...iconStyles} />,
+      },
+      {
+        name: "Dịch vụ",
+        path: "/dashboard/business/services",
+        icon: <FiShoppingCart {...iconStyles} />,
+      },
+    ],
   },
   {
     icon: <FaChartLine {...iconStyles} />,
@@ -124,14 +136,9 @@ const menuItem = [
         icon: <FiShoppingCart {...iconStyles} />,
       },
       {
-        name: "Phiếu thu",
-        path: "/dashboard/business/receipt-management",
+        name: "Hoá đơn",
+        path: "/dashboard/business/invoice-management",
         icon: <FiDollarSign {...iconStyles} />,
-      },
-      {
-        name: "Phiếu chi",
-        path: "/dashboard/business/payment-management",
-        icon: <FiCreditCard {...iconStyles} />,
       },
     ],
   },

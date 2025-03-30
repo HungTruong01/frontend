@@ -6,7 +6,7 @@ export const partnersTableData = [
     Email: "alpha@company.com",
     "Địa chỉ": "123 Đường Lê Lợi, TP. HCM",
     "Công nợ": 15000000, // Công nợ tính bằng VNĐ
-    "Mã loại đối tác": "PT01", // Mã loại đối tác
+    "Loại đối tác": "Khách hàng", // Loại đối tác
   },
   {
     "Mã đối tác": "PT002",
@@ -15,7 +15,7 @@ export const partnersTableData = [
     Email: "beta@company.com",
     "Địa chỉ": "456 Đường Nguyễn Huệ, Hà Nội",
     "Công nợ": 0,
-    "Mã loại đối tác": "PT02",
+    "Loại đối tác": "Nhà cung cấp",
   },
   {
     "Mã đối tác": "PT003",
@@ -24,7 +24,7 @@ export const partnersTableData = [
     Email: "gamma@company.com",
     "Địa chỉ": "789 Đường Trần Phú, Đà Nẵng",
     "Công nợ": 5000000,
-    "Mã loại đối tác": "PT01",
+    "Loại đối tác": "Khách hàng",
   },
 ];
 
@@ -35,5 +35,5 @@ export const partnerColumns = [
   "Email",
   "Địa chỉ",
   "Công nợ",
-  "Mã loại đối tác",
+  "Loại đối tác",
 ];

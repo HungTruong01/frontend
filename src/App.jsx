@@ -4,32 +4,39 @@ import Home from "./pages/LandingPage/Home";
 import About from "./pages/LandingPage/About";
 import Service from "./pages/LandingPage/Service";
 import Products from "./pages/LandingPage/Products";
+
 import DashBoardHome from "./pages/Dashboard/DashBoardHome";
-import AccountList from "./pages/Dashboard/AccountList";
-import RoleUser from "./pages/Dashboard/RoleUser";
+
+import AccountList from "./pages/Dashboard/system/AccountList";
+import RoleUser from "./pages/Dashboard/system/RoleUser";
+
 import TypeProduct from "./pages/Dashboard/TypeProduct";
 import UnitPage from "./pages/Dashboard/UnitPage";
 import TypePartner from "./pages/Dashboard/TypePartner";
 import TypeOrder from "./pages/Dashboard/TypeOrder";
 import OrderStatus from "./pages/Dashboard/OrderStatus";
 import ReasonInventoryAdjust from "./pages/Dashboard/ReasonInventoryAdjust";
-import ListWarehouse from "./pages/Dashboard/ListWarehouse";
 import TypeTransactionWareHouse from "./pages/Dashboard/TypeTransactionWareHouse";
 import ListPost from "./pages/Dashboard/ListPost";
-import ListPartner from "./pages/Dashboard/ListPartner";
-import ListOrder from "./pages/Dashboard/ListOrder";
-import ListReceipt from "./pages/Dashboard/ListReceipt";
-import ListPayment from "./pages/Dashboard/ListPayment";
-import ListProduct from "./pages/Dashboard/ListProduct";
-import WarehouseTransaction from "./pages/Dashboard/WarehouseTransaction";
-import InventoryProduct from "./pages/Dashboard/InventoryProduct";
-import RevenueReport from "./pages/Dashboard/RevenueReport";
+import ListProduct from "./pages/Dashboard/warehouse/ListProduct";
 import OverviewDashboard from "./pages/Dashboard/OverviewDashboard";
-import IncomeReport from "./pages/Dashboard/IncomeReport";
-import DebtReport from "./pages/Dashboard/DebtReport";
+
+import ListWarehouse from "./pages/Dashboard/ListWarehouse";
+import WarehouseTransaction from "./pages/Dashboard/warehouse/WarehouseTransaction";
+import InventoryProduct from "./pages/Dashboard/warehouse/InventoryProduct";
+
+import RevenueReport from "./pages/Dashboard/reports/RevenueReport";
+import IncomeReport from "./pages/Dashboard/reports/IncomeReport";
+import DebtReport from "./pages/Dashboard/reports/DebtReport";
+
 import LoginPage from "./pages/auth/LoginPage";
-import AdjustInventory from "./pages/Dashboard/AdjustInventory";
-import AddOrder from "./pages/Dashboard/AddOrder";
+import AdjustInventory from "./pages/Dashboard/warehouse/AdjustInventory";
+
+import ListPartner from "./pages/Dashboard/bussiness/ListPartner";
+import ListOrder from "./pages/Dashboard/bussiness/ListOrder";
+import AddOrder from "./pages/Dashboard/bussiness/AddOrder";
+import EditOrder from "./pages/Dashboard/bussiness/EditOrder";
+import InvoiceList from "./pages/Dashboard/bussiness/InvoiceList";
 const App = () => {
   return (
     <Routes>
@@ -57,10 +64,13 @@ const App = () => {
           element={<TypeTransactionWareHouse />}
         />
         <Route path="posts" element={<ListPost />} />
+        <Route path="posts-list" element={<ListPost />} />
+
         <Route path="business/partner-list" element={<ListPartner />} />
         <Route path="business/order-management" element={<ListOrder />} />
-        <Route path="business/receipt-management" element={<ListReceipt />} />
-        <Route path="business/payment-management" element={<ListPayment />} />
+        <Route path="bussiness/add-order" element={<AddOrder />} />
+        <Route path="business/order-management/edit" element={<EditOrder />} />
+        <Route path="business/invoice-management" element={<InvoiceList />} />
         <Route path="warehouse/product-management" element={<ListProduct />} />
         <Route
           path="warehouse/warehouse-transaction"
@@ -80,7 +90,6 @@ const App = () => {
           element={<IncomeReport />}
         />
         <Route path="reports/debt-report" element={<DebtReport />} />
-        <Route path="add-order" element={<AddOrder />} />
       </Route>
     </Routes>
   );

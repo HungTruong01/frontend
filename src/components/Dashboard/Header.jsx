@@ -24,7 +24,7 @@ const Navbar = () => {
         <div className="flex items-center space-x-2">
           <UserCircleIcon className="h-7 w-7 text-gray-600" />
           <div className="hidden md:block">
-            <p className="text-xs font-medium text-gray-800">Admin User</p>
+            <p className="text-xs font-medium text-gray-800">Admin</p>
             <p className="text-[10px] text-gray-500">Quản lý</p>
           </div>
         </div>

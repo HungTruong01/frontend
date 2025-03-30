@@ -11,7 +11,7 @@ const MainLayout = () => {
         <SideNav menuItems={menuItem} />
       </div>
       <div className="flex-1 flex flex-col">
-        <div className="sticky top-0 z-10 mx-4 mt-2 bg-white rounded-lg shadow px-6 py-4">
+        <div className="top-0 mx-4 mt-2 bg-white rounded-lg shadow px-6 py-4">
           <Header />
         </div>
         <main className="flex-1 container mx-auto p-4 bg-gray-200">

@@ -1,27 +1,27 @@
 import React, { useState } from "react";
 import tableConfig from "@/configs/tableConfig";
 import Table from "@/components/Dashboard/Table";
-
-const ListPost = () => {
-  const { title, tableData: initialData, columns } = tableConfig["posts-list"];
-
+const ListPartner = () => {
+  const {
+    title,
+    tableData: initialData,
+    columns,
+  } = tableConfig["partner-list"];
   const [tableData, setTableData] = useState(initialData);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [currentItem, setCurrentItem] = useState(null);
-
   const importantColumns = [
-    "Mã bài đăng",
-    "Tiêu đề",
-    "Ngày đăng bài",
-    "Cập nhật lần cuối",
+    "Mã đối tác",
+    "Tên đối tác",
+    "Địa chỉ",
+    "Công nợ",
+    "Loại đối tác",
   ];
 
   const formattedColumns = columns.map((col) => ({
     key: col,
     label: col.charAt(0).toUpperCase() + col.slice(1),
   }));
-
-  // Xử lý chỉnh sửa dữ liệu
   const handleEdit = (updatedItem) => {
     const updatedData = tableData.map((item) =>
       item.id === updatedItem.id ? updatedItem : item
@@ -57,7 +57,6 @@ const ListPost = () => {
 
     setTableData([...tableData, newItemWithId]);
   };
-
   return (
     <div>
       <Table
@@ -79,4 +78,4 @@ const ListPost = () => {
   );
 };
 
-export default ListPost;
+export default ListPartner;

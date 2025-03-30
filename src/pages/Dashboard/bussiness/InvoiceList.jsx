@@ -1,8 +1,9 @@
 import React from "react";
 import tableConfig from "@/configs/tableConfig";
 import Table from "@/components/Dashboard/Table";
-const ListPartner = () => {
-  const { title, tableData, columns } = tableConfig["partner-list"];
+
+const InvoiceList = () => {
+  const { title, tableData, columns } = tableConfig["receipt-management"];
 
   const formattedColumns = columns.map((col) => ({
     key: col,
@@ -15,4 +16,4 @@ const ListPartner = () => {
   );
 };
 
-export default ListPartner;
+export default InvoiceList;

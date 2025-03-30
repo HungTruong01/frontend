@@ -30,10 +30,9 @@ import {
   orderTypesTableData,
   orderTypeColumns,
 } from "@/data/orderTypesTableData";
-// import { ordersTableData, orderColumns } from "@/data/ordersTableData";
 import { listPostData, listPostColumns } from "@/data/index";
 import { orderTableData, orderColumns } from "@/data/orderList";
-import { receiptTableData, receiptColumns } from "@/data/receiptTableData";
+import { receiptTableData, receiptColumns } from "@/data/invoiceTableData";
 import { paymentTableData, paymentColumns } from "@/data/paymentTableData";
 import { productTableData, productColumns } from "@/data/productTableData";
 import {
@@ -112,7 +111,7 @@ export const tableConfig = {
     columns: orderColumns,
   },
   "receipt-management": {
-    title: "Quản lý phiếu thu",
+    title: "Quản lý hoá đơn",
     tableData: receiptTableData,
     columns: receiptColumns,
   },
