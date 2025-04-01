@@ -217,7 +217,7 @@ const ListPartner = () => {
         <div className="w-full overflow-x-auto">
           <table className="w-full table-auto border-collapse">
             <thead>
-              <tr className="bg-gray-100 text-gray-700">
+              <tr className="bg-gray-200 text-gray-700">
                 {columns.map((col) => (
                   <th
                     key={col.key}
@@ -235,7 +235,7 @@ const ListPartner = () => {
               {paginatedData.map((partner) => (
                 <tr
                   key={partner.id}
-                  className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                  className="border-b border-gray-100 hover:bg-gray-100 transition-colors"
                 >
                   {columns.map((col) => (
                     <td

@@ -168,7 +168,7 @@ const DebtReport = () => {
                 </tr>
               </tbody>
               {/* Dòng tổng cộng */}
-              {/* <tfoot>
+              <tfoot>
                 <tr className="bg-gray-100 font-semibold">
                   <td className="py-3 px-4 text-sm text-gray-800">
                     Công nợ ròng
@@ -177,7 +177,7 @@ const DebtReport = () => {
                     {netDebt.toLocaleString()}
                   </td>
                 </tr>
-              </tfoot> */}
+              </tfoot>
             </table>
           </div>
         </div>

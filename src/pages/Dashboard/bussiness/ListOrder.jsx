@@ -164,41 +164,41 @@ const ListOrder = () => {
           </div>
         </div>
 
-        <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
+        <div className="overflow-x-auto bg-white">
           <table className="w-full">
             <thead>
-              <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider w-1/7">
+              <tr className="bg-gray-200 ">
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 w-1/7">
                   <div className="flex items-center space-x-1">
                     <span>Mã đơn hàng</span>
                   </div>
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider w-1/7">
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 w-1/7">
                   <div className="flex items-center space-x-1">
                     <span>Ngày tạo đơn</span>
                   </div>
                 </th>
-                <th className="px-6 py-4 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider w-1/7">
+                <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700 w-1/7">
                   <div className="flex items-center justify-end space-x-1">
                     <span>Tổng tiền</span>
                   </div>
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider w-1/5">
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 w-1/5">
                   <div className="flex items-center space-x-1">
                     <span>Đối tác</span>
                   </div>
                 </th>
-                <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider w-1/7">
+                <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700 w-1/7">
                   <div className="flex items-center justify-center space-x-1">
                     <span>Trạng thái</span>
                   </div>
                 </th>
-                <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider w-1/7">
+                <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700 w-1/7">
                   <div className="flex items-center justify-center space-x-1">
                     <span>Loại đơn</span>
                   </div>
                 </th>
-                <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider w-1/7">
+                <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700 w-1/7">
                   <div className="flex items-center justify-center space-x-1">
                     <span>Hành động</span>
                   </div>
@@ -209,7 +209,7 @@ const ListOrder = () => {
               {filteredOrders.map((order) => (
                 <tr
                   key={order.id}
-                  className="hover:bg-gray-50 transition-colors"
+                  className="hover:bg-gray-100 transition-colors"
                 >
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">

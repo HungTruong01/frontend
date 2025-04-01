@@ -98,12 +98,12 @@ const OverviewDashboard = () => {
       </div>
 
       {/* Biểu đồ doanh thu */}
-      {/* <div className="bg-white p-6 rounded-lg shadow-md mb-6">
+      <div className="bg-white p-6 rounded-lg shadow-md mb-6">
         <h2 className="text-xl font-semibold text-gray-800 mb-4">
           Doanh thu theo tháng (2025)
         </h2>
         <Line data={revenueData} options={chartOptions} />
-      </div> */}
+      </div>
 
       {/* Bảng đơn hàng gần đây */}
       <div className="bg-white p-6 rounded-lg shadow-md">

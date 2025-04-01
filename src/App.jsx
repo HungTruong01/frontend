@@ -19,9 +19,8 @@ import TypeOrder from "./pages/Dashboard/TypeOrder";
 import TypePartner from "./pages/Dashboard/TypePartner";
 import TypeProduct from "./pages/Dashboard/TypeProduct";
 import TypeTransactionWareHouse from "./pages/Dashboard/TypeTransactionWareHouse";
-import ListPost from "./pages/Dashboard/ListPost";
 import ListProduct from "./pages/Dashboard/warehouse/ListProduct";
-import OverviewDashboard from "./pages/Dashboard/OverviewDashboard";
+import UnitPage from "./pages/Dashboard/UnitPage";
 
 import ListWarehouse from "./pages/Dashboard/ListWarehouse";
 import InventoryProduct from "./pages/Dashboard/warehouse/InventoryProduct";
@@ -30,13 +29,15 @@ import WarehouseTransaction from "./pages/Dashboard/warehouse/WarehouseTransacti
 import DebtReport from "./pages/Dashboard/reports/DebtReport";
 import IncomeReport from "./pages/Dashboard/reports/IncomeReport";
 import RevenueReport from "./pages/Dashboard/reports/RevenueReport";
+import ListPartner from "./pages/Dashboard/bussiness/ListPartner";
+import ListOrder from "./pages/Dashboard/bussiness/ListOrder";
 
 import LoginPage from "./pages/auth/LoginPage";
 import AdjustInventory from "./pages/Dashboard/warehouse/AdjustInventory";
 
 import AddOrder from "./pages/Dashboard/bussiness/AddOrder";
 import EditOrder from "./pages/Dashboard/bussiness/EditOrder";
-import InvoiceList from "./pages/Dashboard/bussiness/InvoiceList";
+import ListInvoice from "./pages/Dashboard/bussiness/ListInvoice";
 const App = () => {
   return (
     <>

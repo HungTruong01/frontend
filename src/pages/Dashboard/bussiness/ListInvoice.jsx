@@ -210,29 +210,29 @@ const ListInvoice = () => {
           </div>
         </div>
 
-        <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm mt-6">
+        <div className="overflow-x-auto  bg-white mt-6">
           <table className="w-full">
             <thead>
-              <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 tracking-wider w-1/7">
+              <tr className="bg-gray-200">
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700  w-1/7">
                   Mã hóa đơn
                 </th>
-                <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700 tracking-wider w-1/7">
+                <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700  w-1/7">
                   Số tiền
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 tracking-wider w-1/7">
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700  w-1/7">
                   Ngày lập
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 tracking-wider w-1/7">
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700  w-1/7">
                   Đơn hàng
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 tracking-wider w-1/7">
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700  w-1/7">
                   Tên đối tác
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 tracking-wider w-1/7">
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700  w-1/7">
                   Loại hóa đơn
                 </th>
-                <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700 tracking-wider w-1/7">
+                <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700  w-1/7">
                   Hành động
                 </th>
               </tr>
@@ -241,7 +241,7 @@ const ListInvoice = () => {
               {paginatedData.map((invoice) => (
                 <tr
                   key={invoice.id}
-                  className="hover:bg-gray-50 transition-colors"
+                  className="hover:bg-gray-100 transition-colors"
                 >
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">
