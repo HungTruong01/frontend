@@ -15,7 +15,8 @@ const newsItems = [
   },
   {
     id: 2,
-    title: "Xu hướng nhập khẩu thực phẩm: Các mặt hàng tiềm năng & quy trình bảo quản",
+    title:
+      "Xu hướng nhập khẩu thực phẩm: Các mặt hàng tiềm năng & quy trình bảo quản",
     date: "23/02/2025",
     image: newsbanner2, // Cập nhật hình ảnh phù hợp
     excerpt: "Trong hoạt động xuất nhập khẩu, chi phí logistics chiếm...",
@@ -23,7 +24,8 @@ const newsItems = [
   },
   {
     id: 3,
-    title: "Chính sách kiểm định thực phẩm nhập khẩu: Những điều doanh nghiệp cần biết",
+    title:
+      "Chính sách kiểm định thực phẩm nhập khẩu: Những điều doanh nghiệp cần biết",
     date: "23/02/2025",
     image: newsbanner3, // Cập nhật hình ảnh phù hợp
     excerpt: "Trong hoạt động xuất nhập khẩu, chi phí logistics chiếm...",
@@ -31,7 +33,7 @@ const newsItems = [
   },
 ];
 const News = () => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   return (
     <div className="w-full h-[660px] bg-white flex items-center">
       <div className="container mx-auto w-[1248px] px-6">
@@ -70,9 +72,7 @@ const News = () => {
                   <h3 className="text-lg font-medium text-gray-800 hover:text-blue-600 transition-colors duration-300">
                     {item.title}
                   </h3>
-                  <p className="text-sm text-gray-500 mt-2">
-                    {item.date}
-                  </p>
+                  <p className="text-sm text-gray-500 mt-2">{item.date}</p>
                   <p className="text-gray-600 mt-2">{item.excerpt}</p>
                   <p className="mt-3 text-blue-600 font-semibold">Đọc thêm →</p>
                 </div>

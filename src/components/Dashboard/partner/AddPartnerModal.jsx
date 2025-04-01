@@ -23,7 +23,6 @@ const AddPartnerModal = ({ isOpen, onClose, onSubmit }) => {
         debt: partnerData.debt === "" ? 0 : parseFloat(partnerData.debt),
       };
       await onSubmit(submittedData);
-      // Reset form sau khi thêm thành công
       setPartnerData({
         name: "",
         phone: "",

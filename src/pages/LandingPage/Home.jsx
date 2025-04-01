@@ -4,7 +4,7 @@ import Navbar from "../../components/LandingPage/Navbar";
 import Banner from "../../components/LandingPage/Banner";
 import Overview from "../../components/LandingPage/Overview";
 import Service from "../../components/LandingPage/Service";
-import News from "../../components/LandingPage/News";
+import NewsCard from "../../components/LandingPage/NewsCard";
 import Contact from "../../components/LandingPage/Contact";
 import Footer from "../../components/LandingPage/Footer";
 
@@ -26,7 +26,7 @@ const Home = () => {
       />
       <Overview />
       <Service />
-      <News />
+      <NewsCard />
       <Contact />
       <Footer />
     </div>

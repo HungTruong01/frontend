@@ -14,7 +14,6 @@ const PartnerDetailModal = ({ isOpen, onClose, partner }) => {
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
       <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-2xl">
-        {/* Header */}
         <div className="flex justify-between items-center mb-6 border-b pb-3">
           <h2 className="text-xl font-semibold text-gray-800">
             Chi tiết đối tác
@@ -27,7 +26,6 @@ const PartnerDetailModal = ({ isOpen, onClose, partner }) => {
           </button>
         </div>
 
-        {/* Body */}
         <div className="space-y-4 text-gray-700">
           <div className="grid grid-cols-3 gap-2 items-start">
             <label className="col-span-1 font-medium text-sm text-gray-600">
@@ -89,7 +87,6 @@ const PartnerDetailModal = ({ isOpen, onClose, partner }) => {
           </div>
         </div>
 
-        {/* Footer */}
         <div className="flex justify-end mt-6">
           <button
             onClick={onClose}

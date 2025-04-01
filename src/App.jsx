@@ -5,6 +5,7 @@ import About from "./pages/LandingPage/About";
 import Home from "./pages/LandingPage/Home";
 import Products from "./pages/LandingPage/Products";
 import Service from "./pages/LandingPage/Service";
+import News from "./pages/LandingPage/News";
 
 import DashBoardHome from "./pages/Dashboard/DashBoardHome";
 
@@ -47,6 +48,8 @@ const App = () => {
         <Route path="/about" element={<About />} />
         <Route path="/service" element={<Service />} />
         <Route path="/products" element={<Products />} />
+        <Route path="/news" element={<News />} />
+
         <Route path="/login" element={<LoginPage />} />
         <Route path="/dashboard" element={<DashBoardHome />}>
           <Route index element={<OverviewDashboard />} />
