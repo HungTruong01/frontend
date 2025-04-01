@@ -123,6 +123,18 @@ const EditOrder = () => {
 
   return (
     <div className="w-full bg-white shadow-lg rounded-lg overflow-hidden">
+      <AddPartnerModal
+        isOpen={isPartnerModalOpen}
+        onClose={() => setIsPartnerModalOpen(false)}
+        onSubmit={handleAddPartner}
+      />
+
+      <ProductSelectionModal
+        isOpen={isProductModalOpen}
+        onClose={() => setIsProductModalOpen(false)}
+        onSelect={handleProductSelect}
+        selectedProducts={orderItems}
+      />
       <div className="p-6">
         <div className="flex items-center mb-6">
           <button
@@ -199,7 +211,6 @@ const EditOrder = () => {
             </div>
           </div>
 
-          {/* Danh sách sản phẩm */}
           <div className="mt-8">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-semibold text-gray-800">
@@ -301,7 +312,6 @@ const EditOrder = () => {
             )}
           </div>
 
-          {/* Tổng tiền và nút lưu */}
           <div className="flex justify-between items-center mt-6">
             <div className="text-lg font-semibold">
               Tổng tiền:{" "}
@@ -327,21 +337,6 @@ const EditOrder = () => {
           </div>
         </form>
       </div>
-
-      {/* Modal thêm đối tác */}
-      <AddPartnerModal
-        isOpen={isPartnerModalOpen}
-        onClose={() => setIsPartnerModalOpen(false)}
-        onSubmit={handleAddPartner}
-      />
-
-      {/* Modal chọn sản phẩm */}
-      <ProductSelectionModal
-        isOpen={isProductModalOpen}
-        onClose={() => setIsProductModalOpen(false)}
-        onSelect={handleProductSelect}
-        selectedProducts={orderItems}
-      />
     </div>
   );
 };

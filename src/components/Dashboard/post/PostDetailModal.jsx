@@ -19,7 +19,6 @@ const PostDetailModal = ({ isOpen, onClose, post }) => {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl transform transition-all max-h-[90vh] flex flex-col">
-        {/* Header */}
         <div className="px-6 py-2 border-b border-gray-200">
           <div className="flex justify-between items-center">
             <h2 className="text-xl font-bold text-gray-800">
@@ -34,12 +33,9 @@ const PostDetailModal = ({ isOpen, onClose, post }) => {
           </div>
         </div>
 
-        {/* Content */}
         <div className="p-4 flex-1 overflow-y-auto">
           <div className="grid grid-cols-2 gap-4">
-            {/* Cột trái */}
             <div className="space-y-3">
-              {/* Mã bài đăng */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Mã bài đăng
@@ -49,7 +45,6 @@ const PostDetailModal = ({ isOpen, onClose, post }) => {
                 </div>
               </div>
 
-              {/* Tiêu đề */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Tiêu đề
@@ -59,7 +54,6 @@ const PostDetailModal = ({ isOpen, onClose, post }) => {
                 </div>
               </div>
 
-              {/* Ảnh/Video */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Ảnh/Video
@@ -81,7 +75,6 @@ const PostDetailModal = ({ isOpen, onClose, post }) => {
                 )}
               </div>
 
-              {/* Ngày đăng bài */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Ngày đăng bài
@@ -91,7 +84,6 @@ const PostDetailModal = ({ isOpen, onClose, post }) => {
                 </div>
               </div>
 
-              {/* Ngày cập nhật */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Ngày cập nhật
@@ -102,9 +94,7 @@ const PostDetailModal = ({ isOpen, onClose, post }) => {
               </div>
             </div>
 
-            {/* Cột phải */}
             <div>
-              {/* Nội dung */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Nội dung
@@ -117,7 +107,6 @@ const PostDetailModal = ({ isOpen, onClose, post }) => {
           </div>
         </div>
 
-        {/* Footer */}
         <div className="px-6 py-3 bg-gray-50 rounded-b-xl">
           <div className="flex justify-end">
             <button
