@@ -36,10 +36,6 @@ const Banner = ({
               <button className="w-full sm:w-auto px-4 sm:px-6 py-2 text-black bg-white rounded-xl font-semibold uppercase hover:bg-blue-500 hover:text-white transition duration-300 text-sm md:text-base shadow-md">
                 Xem thêm
               </button>
-
-              <button className="w-full sm:w-auto mt-2 sm:mt-0 px-4 sm:px-6 py-2 text-black bg-white rounded-xl font-semibold uppercase hover:bg-blue-500 hover:text-white transition duration-300 text-sm md:text-base shadow-md">
-                Profile
-              </button>
             </div>
           )}
         </div>

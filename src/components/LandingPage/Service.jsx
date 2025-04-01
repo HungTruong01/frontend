@@ -1,12 +1,12 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
 import {
+  FaArrowRight,
+  FaPlane,
   FaShip,
   FaTruck,
   FaWarehouse,
-  FaPlane,
-  FaArrowRight,
 } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 import service1 from "../../assets/service1.jpg";
 import service2 from "../../assets/service2.jpg";
 import service3 from "../../assets/service3.jpg";
@@ -14,33 +14,36 @@ import service4 from "../../assets/service4.jpg";
 
 const services = [
   {
-    name: "Vận tải đường biển",
+    name: "Vận tải đường bộ",
     description:
-      "Dịch vụ vận chuyển hàng hóa qua đường biển quốc tế và nội địa.",
-    imageUrl: service1,
-    category: "Vận tải",
-    icon: <FaShip />,
-  },
-  {
-    name: "Vận chuyển đường bộ",
-    description: "Giải pháp vận tải đường bộ toàn diện cho mọi loại hàng hóa.",
+      "Dịch vụ vận chuyển hàng hóa đường bộ nhanh chóng, an toàn, phù hợp với mọi loại thực phẩm.",
     imageUrl: service2,
     category: "Vận tải",
     icon: <FaTruck />,
   },
   {
-    name: "Kho bãi & Phân phối",
-    description: "Hệ thống kho bãi hiện đại với dịch vụ phân phối nhanh chóng.",
-    imageUrl: service4,
-    category: "Logistics",
+    name: "Vận tải đường biển",
+    description:
+      "Giải pháp vận chuyển hàng hóa bằng đường biển, đảm bảo chất lượng và thời gian giao hàng.",
+    imageUrl: service1,
+    category: "Vận tải",
+    icon: <FaShip />,
+  },
+  {
+    name: "Cung cấp thực phẩm",
+    description:
+      "Chuyên cung cấp các loại thực phẩm như gia vị, đồ đông lạnh, thực phẩm chế biến sẵn.",
+    imageUrl: service3,
+    category: "Thực phẩm",
     icon: <FaWarehouse />,
   },
   {
-    name: "Vận chuyển hàng không",
-    description: "Dịch vụ vận chuyển hàng không nhanh chóng và an toàn.",
-    imageUrl: service3,
-    category: "Vận tải",
-    icon: <FaPlane />,
+    name: "Bảo quản thực phẩm",
+    description:
+      "Đảm bảo bảo quản thực phẩm tuyệt đối với hệ thống kho lạnh, nhằm hương tới an toàn và chất lượng.",
+    imageUrl: service4,
+    category: "Hỗ trợ",
+    icon: <FaWarehouse />,
   },
 ];
 
@@ -90,15 +93,15 @@ const Service = () => {
                 <p className="text-gray-600 mb-4 flex-grow">
                   {service.description}
                 </p>
-                <button className="mt-auto bg-transparent hover:bg-blue-700 text-blue-700 hover:text-white border border-blue-700 py-2 px-4 rounded transition-colors duration-300 text-sm font-medium flex items-center justify-center">
+                {/* <button className="mt-auto bg-transparent hover:bg-blue-700 text-blue-700 hover:text-white border border-blue-700 py-2 px-4 rounded transition-colors duration-300 text-sm font-medium flex items-center justify-center">
                   Tìm hiểu thêm
-                </button>
+                </button> */}
               </div>
             </div>
           ))}
         </div>
 
-        <button
+        {/* <button
           onClick={() => navigate("/services")}
           className="px-8 py-3 mt-8 rounded-md font-semibold bg-yellow-500 hover:bg-yellow-400 text-blue-900 flex items-center gap-2 transition duration-300 shadow-lg hover:shadow-xl"
         >
@@ -106,7 +109,7 @@ const Service = () => {
           <span>
             <FaArrowRight />
           </span>
-        </button>
+        </button> */}
       </div>
     </div>
   );
