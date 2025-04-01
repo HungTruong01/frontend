@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiUpload } from "react-icons/fi";
 import { FaRegTrashAlt, FaEye, FaEdit, FaPlus } from "react-icons/fa";
-import OrderDetailModal from "@/components/Dashboard/OrderDetailModal";
+import OrderDetailModal from "@/components/Dashboard/order/OrderDetailModal";
 
 const ListOrder = () => {
   const navigate = useNavigate();
@@ -10,7 +10,8 @@ const ListOrder = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [searchStatus, setSearchStatus] = useState("");
   const [searchType, setSearchType] = useState("");
-
+  const [itemsPerPage] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
   const orders = [
     {
       id: "001",
@@ -19,7 +20,7 @@ const ListOrder = () => {
       totalAmount: 1800000,
       partner: "Nguyễn Văn A",
       status: "Hoàn thành",
-      orderType: "Đơn hàng nhập",
+      orderType: "Đơn mua",
       statusColor: "bg-green-100 text-green-800",
     },
     {
@@ -28,9 +29,9 @@ const ListOrder = () => {
       createdAt: "26-03-2025",
       totalAmount: 2000000,
       partner: "Nguyễn Văn B",
-      status: "Chờ xác nhận",
-      orderType: "Đơn hàng xuất",
-      statusColor: "bg-yellow-100 text-yellow-800",
+      status: "Hoàn thành",
+      orderType: "Đơn bán",
+      statusColor: "bg-green-100 text-green-800",
     },
     {
       id: "003",
@@ -38,9 +39,9 @@ const ListOrder = () => {
       createdAt: "27-03-2025",
       totalAmount: 1500000,
       partner: "Nguyễn Văn C",
-      status: "Chờ thanh toán",
-      orderType: "Đơn hàng nhập",
-      statusColor: "bg-blue-100 text-blue-800",
+      status: "Chưa thanh toán",
+      orderType: "Đơn mua",
+      statusColor: "bg-red-100 text-red-800",
     },
     {
       id: "004",
@@ -48,8 +49,8 @@ const ListOrder = () => {
       createdAt: "28-03-2025",
       totalAmount: 1100000,
       partner: "Nguyễn Văn D",
-      status: "Đã hủy",
-      orderType: "Đơn hàng xuất",
+      status: "Chưa thanh toán",
+      orderType: "Đơn bán",
       statusColor: "bg-red-100 text-red-800",
     },
     {
@@ -59,18 +60,13 @@ const ListOrder = () => {
       totalAmount: 2500000,
       partner: "Nguyễn Văn E",
       status: "Hoàn thành",
-      orderType: "Đơn hàng nhập",
+      orderType: "Đơn mua",
       statusColor: "bg-green-100 text-green-800",
     },
   ];
 
-  const orderStatuses = [
-    "Hoàn thành",
-    "Chờ xác nhận",
-    "Chờ thanh toán",
-    "Đã hủy",
-  ];
-  const orderTypes = ["Đơn hàng nhập", "Đơn hàng xuất"];
+  const orderStatuses = ["Hoàn thành", "Chưa thanh toán"];
+  const orderTypes = ["Đơn mua", "Đơn bán"];
 
   const filteredOrders = orders.filter((order) => {
     const matchStatus = searchStatus === "" || order.status === searchStatus;
@@ -78,7 +74,11 @@ const ListOrder = () => {
     return matchStatus && matchType;
   });
 
-  // Hàm xử lý khi click nút thêm mới
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+  const paginatedData = filteredOrders.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
   const handleAddClick = () => {
     navigate("/dashboard/bussiness/add-order");
   };
@@ -102,7 +102,6 @@ const ListOrder = () => {
 
   return (
     <div className="w-full bg-white shadow-lg rounded-lg overflow-hidden">
-      {/* Modal chi tiết đơn hàng */}
       <OrderDetailModal
         isOpen={isDetailModalOpen}
         onClose={() => setIsDetailModalOpen(false)}
@@ -231,17 +230,18 @@ const ListOrder = () => {
                     <div className="text-sm text-gray-900">{order.partner}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <div className="text-sm text-gray-900">
+                      {order.orderType}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center">
                     <span
                       className={`px-2 py-1 text-xs font-medium rounded-full ${order.statusColor}`}
                     >
                       {order.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-center">
-                    <div className="text-sm text-gray-900">
-                      {order.orderType}
-                    </div>
-                  </td>
+
                   <td className="px-6 py-4 whitespace-nowrap text-center">
                     <div className="flex justify-center space-x-3">
                       <button
@@ -270,6 +270,46 @@ const ListOrder = () => {
               ))}
             </tbody>
           </table>
+        </div>
+        <div className="flex items-center justify-between mt-6">
+          <p className="text-sm text-gray-600">
+            Hiển thị {(currentPage - 1) * itemsPerPage + 1} đến{" "}
+            {Math.min(currentPage * itemsPerPage, filteredOrders.length)} của{" "}
+            {filteredOrders.length} bản ghi
+          </p>
+          <div className="flex space-x-2">
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-600 hover:bg-gray-100 disabled:opacity-50 transition-all"
+            >
+              Trước
+            </button>
+            <div className="flex items-center space-x-2">
+              {[...Array(totalPages)].map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setCurrentPage(i + 1)}
+                  className={`w-8 h-8 rounded-md text-sm ${
+                    currentPage === i + 1
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  } transition-colors`}
+                >
+                  {i + 1}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+              }
+              disabled={currentPage === totalPages}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 disabled:opacity-50 transition-all"
+            >
+              Tiếp
+            </button>
+          </div>
         </div>
       </div>
     </div>

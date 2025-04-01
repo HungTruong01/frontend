@@ -14,13 +14,6 @@ const AccountList = () => {
 
   const addAccountFields = [
     {
-      key: "accountId",
-      label: "Mã người dùng",
-      type: "text",
-      required: true,
-      placeholder: "Nhập mã tài khoản",
-    },
-    {
       key: "username",
       label: "Tên đăng nhập",
       type: "text",
@@ -49,12 +42,6 @@ const AccountList = () => {
         },
         { value: "Nhân viên kho vận", label: "Nhân viên kho vận" },
       ],
-    },
-    {
-      key: "createdAt",
-      label: "Ngày tạo",
-      type: "date",
-      required: true,
     },
   ];
 

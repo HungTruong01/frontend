@@ -1,33 +1,33 @@
-export const receiptTableData = [
+export const invoiceTableData = [
   {
-    "Mã phiếu thu": "R001",
+    "Mã hoá đơn": "R001",
     "Số tiền": 500000,
-    "Ngày thu": "2025-03-26",
-    "Mã đối tác": "PT001",
+    "Ngày lập": "20-03-2025",
+    "Loại hoá đơn": "Hoá đơn thu",
   },
   {
-    "Mã phiếu thu": "R002",
+    "Mã hoá đơn": "R002",
     "Số tiền": 1200000,
-    "Ngày thu": "2025-03-25",
-    "Mã đối tác": "PT002",
+    "Ngày lập": "26-03-2025",
+    "Loại hoá đơn": "Hoá đơn chi",
   },
   {
-    "Mã phiếu thu": "R003",
+    "Mã hoá đơn": "R003",
     "Số tiền": 750000,
-    "Ngày thu": "2025-03-24",
-    "Mã đối tác": "PT001",
+    "Ngày lập": "24-03-2025",
+    "Loại hoá đơn": "Hoá đơn thu",
   },
   {
-    "Mã phiếu thu": "R004",
+    "Mã hoá đơn": "R004",
     "Số tiền": 2000000,
-    "Ngày thu": "2025-03-23",
-    "Mã đối tác": "PT002",
+    "Ngày lập": "25-03-2025",
+    "Loại hoá đơn": "Hoá đơn chi",
   },
 ];
 
-export const receiptColumns = [
-  "Mã phiếu thu",
+export const invoiceColumns = [
+  "Mã hoá đơn",
   "Số tiền",
-  "Ngày thu",
-  "Mã đối tác",
+  "Ngày lập",
+  "Loại hoá đơn",
 ];

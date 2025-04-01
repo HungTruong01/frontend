@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaArrowLeft, FaSearch, FaPlus, FaTrash } from "react-icons/fa";
-import AddPartnerModal from "@/components/Dashboard/AddPartnerModal";
+import AddPartnerModal from "@/components/Dashboard/partner/AddPartnerModal";
 import ProductSelectionModal from "@/components/Dashboard/ProductSelectionModal";
 
 const AddOrder = () => {
@@ -148,8 +148,8 @@ const AddOrder = () => {
                 Loại đơn hàng
               </label>
               <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="import">Đơn hàng nhập</option>
-                <option value="export">Đơn hàng xuất</option>
+                <option value="import">Đơn mua</option>
+                <option value="export">Đơn bán</option>
               </select>
             </div>
           </div>

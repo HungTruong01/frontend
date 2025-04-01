@@ -1,16 +1,16 @@
 export const productTypesTableData = [
   {
-    "Mã loại sản phẩm": "PT001",
-    "Tên loại sản phẩm": "Nguyên liệu",
+    "Mã loại": "PT001",
+    "Tên loại sản phẩm": "Nguyên liệu chế biến",
   },
   {
-    "Mã loại sản phẩm": "PT003",
+    "Mã loại": "PT003",
     "Tên loại sản phẩm": "Gia dụng",
   },
   {
-    "Mã loại sản phẩm": "PT004",
-    "Tên loại sản phẩm": "Thực phẩm",
+    "Mã loại": "PT004",
+    "Tên loại sản phẩm": "Lương thực thực phẩm",
   },
 ];
 
-export const productTypeColumns = ["Mã loại sản phẩm", "Tên loại sản phẩm"];
+export const productTypeColumns = ["Mã loại", "Tên loại sản phẩm"];

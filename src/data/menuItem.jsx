@@ -109,15 +109,15 @@ const menuItem = [
     path: "/dashboard/posts",
     subpages: [
       {
-        name: "Tin tức",
-        path: "/dashboard/post-list",
+        name: "Bài đăng",
+        path: "/dashboard/posts/post-list",
         icon: <FaRegNewspaper {...iconStyles} />,
       },
-      {
-        name: "Dịch vụ",
-        path: "/dashboard/business/services",
-        icon: <FiShoppingCart {...iconStyles} />,
-      },
+      // {
+      //   name: "Dịch vụ",
+      //   path: "/dashboard/business/services",
+      //   icon: <FiShoppingCart {...iconStyles} />,
+      // },
     ],
   },
   {

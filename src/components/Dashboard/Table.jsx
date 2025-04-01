@@ -10,7 +10,6 @@ const Table = ({
   visibleColumns,
   data,
   addFields,
-  onView,
   onEdit,
   onDelete,
   onAddNew,
@@ -142,11 +141,11 @@ const Table = ({
         <div className="w-full overflow-x-auto">
           <table className="w-full min-w-max">
             <thead>
-              <tr className="bg-gray-100 text-gray-700">
+              <tr className="bg-gray-200 text-gray-700">
                 {displayColumns.map((col) => (
                   <th
                     key={col.key}
-                    className={`py-3 px-4 font-semibold whitespace-nowrap text-center`}
+                    className={`py-3 px-4 font-semibold whitespace-nowrap text-left`}
                   >
                     {col.label}
                   </th>
@@ -160,12 +159,12 @@ const Table = ({
               {paginatedData.map((row) => (
                 <tr
                   key={row.id}
-                  className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                  className="border-b border-gray-300 hover:bg-gray-100 transition-colors"
                 >
                   {displayColumns.map((col) => (
                     <td
                       key={col.key}
-                      className="py-3 px-4 text-sm text-gray-600 whitespace-nowrap text-center"
+                      className="py-3 px-4 text-sm text-gray-600 whitespace-nowrap text-left"
                     >
                       {row[col.key]}
                     </td>
@@ -173,15 +172,8 @@ const Table = ({
                   <td className="py-3 px-4 text-center">
                     <div className="flex justify-center space-x-3">
                       <button
-                        onClick={() => onView && onView(row)}
-                        className="text-blue-500 hover:text-blue-700 transition-colors"
-                        title="Xem chi tiết"
-                      >
-                        <FaEye className="h-5 w-5" />
-                      </button>
-                      <button
                         onClick={() => handleEditClick(row)}
-                        className="text-green-500 hover:text-green-700 transition-colors"
+                        className="text-blue-500 hover:text-blue-700 transition-colors"
                         title="Sửa"
                       >
                         <FaRegEdit className="h-5 w-5" />

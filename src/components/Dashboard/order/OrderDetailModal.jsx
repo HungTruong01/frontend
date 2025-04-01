@@ -25,7 +25,7 @@ const OrderDetailModal = ({ isOpen, onClose, orderData }) => {
       type: "customer",
     },
     orderType: "Đơn hàng nhập",
-    status: "Chờ thanh toán",
+    status: "Chưa thanh toán",
     items: [
       {
         id: 1,
@@ -220,58 +220,14 @@ const OrderDetailModal = ({ isOpen, onClose, orderData }) => {
             </div>
           </div>
 
-          {/* Phần thanh toán */}
-          {mockOrderData.paymentStatus !== "Đã thanh toán" && (
-            <div className="bg-gray-50 p-6 rounded-xl">
-              <div className="flex items-center mb-4">
-                <FaMoneyBillWave className="h-5 w-5 text-blue-500 mr-2" />
-                <h3 className="text-lg font-semibold text-gray-800">
-                  Thanh toán
-                </h3>
-              </div>
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Số tiền thanh toán
-                    </label>
-                    <input
-                      type="number"
-                      value={paymentAmount}
-                      onChange={handlePaymentChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="Nhập số tiền thanh toán"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Số tiền còn lại
-                    </label>
-                    <div
-                      className={`w-full px-3 py-2 border border-gray-300 rounded-md ${
-                        remainingAmount > 0 ? "text-red-600" : "text-green-600"
-                      }`}
-                    >
-                      {remainingAmount.toLocaleString()} VNĐ
-                    </div>
-                  </div>
-                </div>
-                <div className="flex justify-end">
-                  <button
-                    onClick={handlePaymentSubmit}
-                    disabled={!paymentAmount || paymentAmount <= 0}
-                    className={`px-6 py-2 rounded-md font-medium ${
-                      !paymentAmount || paymentAmount <= 0
-                        ? "bg-gray-300 cursor-not-allowed"
-                        : "bg-blue-600 hover:bg-blue-700 text-white"
-                    }`}
-                  >
-                    Xác nhận thanh toán
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
+          <div className="flex justify-end">
+            <button
+              onClick={handlePaymentSubmit}
+              className="px-6 py-2 rounded-md font-medium bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
+            >
+              Lập hoá đơn
+            </button>
+          </div>
         </div>
       </div>
     </div>

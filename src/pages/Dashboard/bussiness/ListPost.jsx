@@ -7,9 +7,9 @@ import {
   FaPlus,
 } from "react-icons/fa";
 import { postApi } from "@/api/postApi";
-import AddPostModal from "@/components/Dashboard/post/AddPostModal";
-import EditPostModal from "@/components/Dashboard/post/EditPostModal";
-import PostDetailModal from "@/components/Dashboard/post/PostDetailModal";
+import AddPostModal from "@/components/Dashboard/AddPostModal";
+import EditPostModal from "@/components/Dashboard/EditPostModal";
+import PostDetailModal from "@/components/Dashboard/PostDetailModal";
 import { toast } from "react-toastify";
 
 const ListPost = () => {
@@ -23,12 +23,10 @@ const ListPost = () => {
   const [currentPost, setCurrentPost] = useState(null);
 
   const columns = [
-    { key: "id", label: "Mã bài đăng" },
+    { key: "id", label: "Mã bài viết" },
     { key: "title", label: "Tiêu đề" },
-    // { key: "content", label: "Nội dung" },
-    // { key: "thumbnail", label: "Ảnh/Video" },
-    { key: "posted_at", label: "Ngày đăng" },
-    { key: "updated_at", label: "Ngày cập nhật" },
+    { key: "postedDate", label: "Ngày đăng" },
+    { key: "updatedDate", label: "Ngày cập nhật" },
   ];
 
   const fetchPosts = async () => {
@@ -36,7 +34,7 @@ const ListPost = () => {
       const data = await postApi.getAllPosts();
       setPosts(data.content || data);
     } catch (error) {
-      toast.error("Không thể tải danh sách bài đăng");
+      toast.error("Không thể tải danh sách bài viết");
       console.error("Error fetching posts:", error);
       setPosts([]);
     }
@@ -64,11 +62,11 @@ const ListPost = () => {
   const handleAddNew = async (newPost) => {
     try {
       await postApi.addPost(newPost);
-      toast.success("Thêm bài đăng thành công");
+      toast.success("Thêm bài viết thành công");
       await fetchPosts();
       setIsAddModalOpen(false);
     } catch (error) {
-      toast.error("Không thể thêm bài đăng");
+      toast.error("Không thể thêm bài viết");
       console.error("Error adding post:", error);
     }
   };
@@ -80,14 +78,14 @@ const ListPost = () => {
 
   const handleEditSubmit = async (updatedPost) => {
     try {
-      const response = await postApi.updatePost(updatedPost.id, updatedPost);
-      toast.success("Cập nhật bài đăng thành công");
+      await postApi.updatePost(updatedPost.id, updatedPost);
+      toast.success("Cập nhật bài viết thành công");
       await fetchPosts();
       setIsEditModalOpen(false);
       setCurrentPost(null);
     } catch (error) {
-      toast.error("Không thể cập nhật bài đăng");
-      console.error("Error updating post:", error.response?.data || error);
+      toast.error("Không thể cập nhật bài viết");
+      console.error("Error updating post:", error);
     }
   };
 
@@ -97,13 +95,13 @@ const ListPost = () => {
   };
 
   const handleDelete = async (post) => {
-    if (window.confirm(`Bạn có chắc chắn muốn xóa bài đăng "${post.title}"?`)) {
+    if (window.confirm(`Bạn có chắc chắn muốn xóa bài viết "${post.title}"?`)) {
       try {
         await postApi.deletePost(post.id);
-        toast.success("Xóa bài đăng thành công");
+        toast.success("Xóa bài viết thành công");
         fetchPosts();
       } catch (error) {
-        toast.error("Không thể xóa bài đăng");
+        toast.error("Không thể xóa bài viết");
         console.error("Error deleting post:", error);
       }
     }
@@ -148,7 +146,7 @@ const ListPost = () => {
       <div className="p-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-gray-800">
-            Danh sách bài đăng
+            Danh sách bài viết
           </h1>
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-4">
@@ -206,9 +204,13 @@ const ListPost = () => {
                       key={col.key}
                       className="py-3 px-4 text-sm text-gray-600 text-left truncate max-w-[200px]"
                     >
-                      <span title={post[col.key] || "-"}>
-                        {post[col.key] || "-"}
-                      </span>
+                      {col.key === "posted_at" || col.key === "updated_at" ? (
+                        new Date(post[col.key]).toLocaleDateString("vi-VN")
+                      ) : (
+                        <span title={post[col.key] || "-"}>
+                          {post[col.key] || "-"}
+                        </span>
+                      )}
                     </td>
                   ))}
                   <td className="py-3 px-4 text-center">
