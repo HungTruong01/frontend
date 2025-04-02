@@ -1,10 +1,8 @@
 import React from "react";
 
-const Product = ({ product }) => {
-  const { name, description, imageUrl, category } = product;
-
+const ProductCard = ({ id, name, description, imageUrl, category }) => {
   return (
-    <div className="max-w-xs rounded-md overflow-hidden shadow-lg hover:scale-105 transition duration-500 cursor-pointer bg-white">
+    <div key={id} className="max-w-xs rounded-md overflow-hidden shadow-lg hover:scale-105 transition duration-500 cursor-pointer bg-white">
       <img className="w-full h-44 object-cover" src={imageUrl} alt={name} />
       <div className="px-6 py-4">
         <div className="font-bold text-xl mb-2">{name}</div>
@@ -18,4 +16,4 @@ const Product = ({ product }) => {
     </div>
   );
 };
-export default Product;
+export default ProductCard;
