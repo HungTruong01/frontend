@@ -62,7 +62,7 @@ const SideNav = ({ menuItems, onLogout, onToggle }) => {
       >
         <button
           onClick={toggleSidebar}
-          className="absolute top-8 -right-4 bg-white border border-gray-200 rounded-full p-2 shadow-md z-10"
+          className="absolute top-5 -right-4 bg-white border border-gray-200 rounded-full p-2 shadow-md z-10"
           aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           {isCollapsed ? (
