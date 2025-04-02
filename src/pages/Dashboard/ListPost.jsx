@@ -34,6 +34,7 @@ const ListPost = () => {
   const fetchPosts = async () => {
     try {
       const data = await postApi.getAllPosts();
+      console.log(data.content);
       setPosts(data.content || data);
     } catch (error) {
       toast.error("Không thể tải danh sách bài đăng");
@@ -206,9 +207,13 @@ const ListPost = () => {
                       key={col.key}
                       className="py-3 px-4 text-sm text-gray-600 text-left truncate max-w-[200px]"
                     >
-                      <span title={post[col.key] || "-"}>
-                        {post[col.key] || "-"}
-                      </span>
+                      {col.key === "posted_at" || col.key === "updated_at" ? (
+                        post[col.key] || "-"
+                      ) : (
+                        <span title={post[col.key] || "-"}>
+                          {post[col.key] || "-"}
+                        </span>
+                      )}
                     </td>
                   ))}
                   <td className="py-3 px-4 text-center">

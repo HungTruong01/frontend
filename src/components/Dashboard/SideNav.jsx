@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import logo from "@/assets/logo.png";
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/24/outline";
 import {
@@ -11,6 +11,7 @@ import {
 const SideNav = ({ menuItems, onLogout, onToggle }) => {
   const [openSubmenu, setOpenSubmenu] = useState({});
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const location = useLocation();
 
   const handleSubmenuToggle = (name) => {
     setOpenSubmenu((prev) => ({
@@ -28,30 +29,48 @@ const SideNav = ({ menuItems, onLogout, onToggle }) => {
   };
 
   useEffect(() => {
+    menuItems.forEach((item) => {
+      if (
+        item.subpages &&
+        item.subpages.some((subpage) => location.pathname === subpage.path)
+      ) {
+        setOpenSubmenu((prev) => ({ ...prev, [item.name]: true }));
+      }
+    });
+  }, [location.pathname, menuItems]);
+
+  useEffect(() => {
     if (onToggle) {
       onToggle(isCollapsed);
     }
   }, [isCollapsed, onToggle]);
 
+  const isRouteActive = (path) => {
+    return location.pathname === path;
+  };
+
+  const hasActiveChild = (subpages) => {
+    return subpages && subpages.some((subpage) => isRouteActive(subpage.path));
+  };
+
   return (
     <div className="relative h-full">
-      <button
-        onClick={toggleSidebar}
-        className="absolute top-8 -right-4 bg-white border border-gray-200 rounded-full p-2 shadow-md z-10"
-        aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-      >
-        {isCollapsed ? (
-          <MdOutlineZoomOutMap className="h-4 w-4 text-gray-600" />
-        ) : (
-          <MdOutlineZoomInMap className="h-4 w-4 text-gray-600" />
-        )}
-      </button>
-
       <aside
-        className={`fixed inset-y-0 left-0 bg-white border-r border-gray-200 h-screen flex flex-col rounded-r-2xl mt-2 transition-all duration-300 ${
+        className={`fixed inset-y-0 left-0  bg-white border-r border-gray-200 h-screen flex flex-col rounded-r-2xl mt-2 transition-all duration-300 ${
           isCollapsed ? "w-20" : "w-64"
         }`}
       >
+        <button
+          onClick={toggleSidebar}
+          className="absolute top-8 -right-4 bg-white border border-gray-200 rounded-full p-2 shadow-md z-10"
+          aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          {isCollapsed ? (
+            <MdOutlineZoomOutMap className="h-4 w-4 text-gray-600" />
+          ) : (
+            <MdOutlineZoomInMap className="h-4 w-4 text-gray-600" />
+          )}
+        </button>
         <div className="px-6 py-4 border-b border-gray-300 flex items-center justify-center">
           {isCollapsed ? (
             <img src={logo} alt="Logo" className="h-10 w-10 object-contain" />
@@ -69,6 +88,10 @@ const SideNav = ({ menuItems, onLogout, onToggle }) => {
                       onClick={() => handleSubmenuToggle(item.name)}
                       className={`flex items-center justify-between w-full px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-md transition-colors group ${
                         isCollapsed ? "justify-center" : ""
+                      } ${
+                        hasActiveChild(item.subpages)
+                          ? "bg-blue-100 text-blue-600"
+                          : ""
                       }`}
                     >
                       <div
@@ -95,6 +118,7 @@ const SideNav = ({ menuItems, onLogout, onToggle }) => {
                         {item.subpages.map((subItem) => (
                           <li key={subItem.name}>
                             <NavLink
+                              end
                               to={subItem.path}
                               className={({ isActive }) =>
                                 `flex items-center gap-4 px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md transition-colors text-sm ml-4 ${
@@ -114,6 +138,7 @@ const SideNav = ({ menuItems, onLogout, onToggle }) => {
                   </div>
                 ) : (
                   <NavLink
+                    end
                     to={item.path}
                     className={({ isActive }) =>
                       `flex items-center ${

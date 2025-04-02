@@ -26,6 +26,7 @@ import UnitPage from "./pages/Dashboard/UnitPage";
 import ListWarehouse from "./pages/Dashboard/ListWarehouse";
 import InventoryProduct from "./pages/Dashboard/warehouse/InventoryProduct";
 import WarehouseTransaction from "./pages/Dashboard/warehouse/WarehouseTransaction";
+import WarehouseTransactionDetail from "./pages/Dashboard/warehouse/WarehouseTransactionDetail";
 
 import DebtReport from "./pages/Dashboard/reports/DebtReport";
 import IncomeReport from "./pages/Dashboard/reports/IncomeReport";
@@ -86,6 +87,10 @@ const App = () => {
           <Route
             path="warehouse/warehouse-transaction"
             element={<WarehouseTransaction />}
+          />
+          <Route
+            path="warehouse/warehouse-transaction-detail"
+            element={<WarehouseTransactionDetail />}
           />
           <Route
             path="warehouse/inventory-products"

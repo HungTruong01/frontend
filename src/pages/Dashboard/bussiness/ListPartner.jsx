@@ -34,11 +34,9 @@ const ListPartner = () => {
   const fetchPartners = async () => {
     try {
       const data = await partnerApi.getAllPartners();
-      console.log("Danh sách đối tác từ API:", data);
       setPartners(data.content || data);
     } catch (error) {
       toast.error("Không thể tải danh sách đối tác");
-      console.error("Error fetching partners:", error);
       setPartners([]);
     }
   };
