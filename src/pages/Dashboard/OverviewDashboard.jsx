@@ -53,7 +53,7 @@ const OverviewDashboard = () => {
   ];
 
   return (
-    <div className="bg-gray-100 min-h-screen p-6">
+    <div className="bg-gray-100 min-h-screen w-auto p-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
         <div className="bg-white p-6 rounded-lg shadow-md flex items-center">
           <FaDollarSign className="text-blue-500 text-3xl mr-4" />
@@ -97,7 +97,6 @@ const OverviewDashboard = () => {
         </div>
       </div>
 
-      {/* Biểu đồ doanh thu */}
       <div className="bg-white p-6 rounded-lg shadow-md mb-6">
         <h2 className="text-xl font-semibold text-gray-800 mb-4">
           Doanh thu theo tháng (2025)
@@ -105,7 +104,6 @@ const OverviewDashboard = () => {
         <Line data={revenueData} options={chartOptions} />
       </div>
 
-      {/* Bảng đơn hàng gần đây */}
       <div className="bg-white p-6 rounded-lg shadow-md">
         <h2 className="text-xl font-semibold text-gray-800 mb-4">
           Đơn hàng gần đây

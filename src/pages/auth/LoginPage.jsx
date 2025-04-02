@@ -2,7 +2,7 @@ import React, { useState } from "react";
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({
-    email: "",
+    username: "",
     password: "",
   });
 
@@ -16,9 +16,8 @@ const LoginPage = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Xử lý logic đăng nhập ở đây (ví dụ: gọi API)
     console.log("Thông tin đăng nhập:", formData);
-    alert("Đăng nhập thành công! (Đây là demo)");
+    alert("Đăng nhập thành công!");
   };
 
   return (
@@ -28,27 +27,25 @@ const LoginPage = () => {
           Đăng nhập
         </h2>
         <form onSubmit={handleSubmit}>
-          {/* Trường Email */}
           <div className="mb-4">
             <label
-              htmlFor="email"
+              htmlFor="username"
               className="block text-sm font-medium text-gray-700 mb-2"
             >
-              Email
+              Tên đăng nhập
             </label>
             <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
+              type="text"
+              id="username"
+              name="username"
+              value={formData.username}
               onChange={handleChange}
-              placeholder="Nhập email của bạn"
+              placeholder="Nhập tên đăng nhập"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
               required
             />
           </div>
 
-          {/* Trường Mật khẩu */}
           <div className="mb-6">
             <label
               htmlFor="password"
@@ -68,7 +65,6 @@ const LoginPage = () => {
             />
           </div>
 
-          {/* Nút Đăng nhập */}
           <button
             type="submit"
             className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -77,7 +73,6 @@ const LoginPage = () => {
           </button>
         </form>
 
-        {/* Liên kết quên mật khẩu hoặc đăng ký (tùy chọn) */}
         <div className="mt-4 text-center">
           <a href="#" className="text-sm text-blue-600 hover:underline">
             Quên mật khẩu?
