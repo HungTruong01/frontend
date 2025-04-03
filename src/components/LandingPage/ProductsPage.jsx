@@ -7,28 +7,28 @@ const ProductsItem = [
         id: 1,
         name: "Gạo ST25",
         description: "Gạo tươi ngon, đảm bảo chất lượng và an toàn thực phẩm.",
-        imageUrl: "public/default-store-350x350.jpg",
+        imageUrl: "assets/default-store-350x350.jpg",
         category: "Lương thực"
     },
     {
         id: 2,
         name: "Nước mắm Cát Hải",
         description: "Mắm thơm ngon từ các nguồn chăn nuôi an toàn, đảm bảo vệ sinh thực phẩm.",
-        imageUrl: "public/default-store-350x350.jpg",
+        imageUrl: "assets/default-store-350x350.jpg",
         category: "Gia vị"
     },
     {
         id: 3,
         name: "Dầu ăn cao cấp Tường An",
         description: "Dầu ăn cao cấp, đảm bảo an toàn sức khỏe.",
-        imageUrl: "public/default-store-350x350.jpg",
+        imageUrl: "assets/default-store-350x350.jpg",
         category: "Gia vị"
     },
     {
         id: 4,
         name: "Trái Cây Tươi",
         description: "Hoa quả tươi ngon, nhập khẩu và nội địa với chất lượng cao.",
-        imageUrl: "public/default-store-350x350.jpg",
+        imageUrl: "assets/default-store-350x350.jpg",
         category: "Trái cây"
     },
 ];
