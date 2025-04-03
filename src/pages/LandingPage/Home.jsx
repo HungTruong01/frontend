@@ -1,12 +1,12 @@
 import React from "react";
-import Header from "../../components/LandingPage/Header";
-import Navbar from "../../components/LandingPage/Navbar";
 import Banner from "../../components/LandingPage/Banner";
-import Overview from "../../components/LandingPage/Overview";
-import Service from "../../components/LandingPage/Service";
-import NewsCard from "../../components/LandingPage/NewsCard";
 import Contact from "../../components/LandingPage/Contact";
 import Footer from "../../components/LandingPage/Footer";
+import Header from "../../components/LandingPage/Header";
+import Navbar from "../../components/LandingPage/Navbar";
+import { default as News, default as NewsCard } from "../../components/LandingPage/NewsSection";
+import Overview from "../../components/LandingPage/Overview";
+import Service from "../../components/LandingPage/Service";
 
 const Home = () => {
   return (
@@ -26,7 +26,7 @@ const Home = () => {
       />
       <Overview />
       <Service />
-      <NewsCard />
+      <News />
       <Contact />
       <Footer />
     </div>

@@ -1,11 +1,12 @@
 import React from "react";
-import { ToastContainer } from "react-toastify";
 import { Route, Routes } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
 import About from "./pages/LandingPage/About";
 import Home from "./pages/LandingPage/Home";
+import NewDetail from "./pages/LandingPage/NewDetail";
+import News from "./pages/LandingPage/News";
 import Products from "./pages/LandingPage/Products";
 import Service from "./pages/LandingPage/Service";
-import News from "./pages/LandingPage/News";
 
 import DashBoardHome from "./pages/Dashboard/DashBoardHome";
 
@@ -20,26 +21,24 @@ import TypeOrder from "./pages/Dashboard/TypeOrder";
 import TypePartner from "./pages/Dashboard/TypePartner";
 import TypeProduct from "./pages/Dashboard/TypeProduct";
 import TypeTransactionWareHouse from "./pages/Dashboard/TypeTransactionWareHouse";
-import DeliveryStatus from "./pages/Dashboard/DeliveryStatus";
-
 import ListProduct from "./pages/Dashboard/warehouse/ListProduct";
 import UnitPage from "./pages/Dashboard/UnitPage";
-import InvoiceType from "./pages/Dashboard/InvoiceType";
 
 import ListWarehouse from "./pages/Dashboard/ListWarehouse";
 import InventoryProduct from "./pages/Dashboard/warehouse/InventoryProduct";
 import WarehouseTransaction from "./pages/Dashboard/warehouse/WarehouseTransaction";
 import WarehouseTransactionDetail from "./pages/Dashboard/warehouse/WarehouseTransactionDetail";
 
+import ListOrder from "./pages/Dashboard/bussiness/ListOrder";
+import ListPartner from "./pages/Dashboard/bussiness/ListPartner";
 import DebtReport from "./pages/Dashboard/reports/DebtReport";
 import IncomeReport from "./pages/Dashboard/reports/IncomeReport";
 import RevenueReport from "./pages/Dashboard/reports/RevenueReport";
-import ListPartner from "./pages/Dashboard/bussiness/ListPartner";
-import ListOrder from "./pages/Dashboard/bussiness/ListOrder";
 
 import LoginPage from "./pages/auth/LoginPage";
 import AdjustInventory from "./pages/Dashboard/warehouse/AdjustInventory";
-
+import InvoiceType from "./pages/Dashboard/InvoiceType";
+import DeliveryStatus from "./pages/Dashboard/DeliveryStatus";
 import AddOrder from "./pages/Dashboard/bussiness/AddOrder";
 import EditOrder from "./pages/Dashboard/bussiness/EditOrder";
 import ListInvoice from "./pages/Dashboard/bussiness/ListInvoice";
@@ -56,6 +55,10 @@ const App = () => {
         <Route path="/service" element={<Service />} />
         <Route path="/products" element={<Products />} />
         <Route path="/news" element={<News />} />
+        <Route
+          path="/news/food-logistics-optimization"
+          element={<NewDetail />}
+        />
 
         <Route path="/login" element={<LoginPage />} />
         <Route path="/error" element={<ErrorPopup />} />

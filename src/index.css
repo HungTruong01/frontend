@@ -6,6 +6,7 @@
   --breakpoint-md: 768px;
   --breakpoint-lg: 976px;
 }
+
 @utility container {
   padding-inline: 10px;
 

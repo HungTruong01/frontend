@@ -171,14 +171,16 @@ const Table = ({
                         onClick={() => handleDeleteClick(row)}
                         className={`text-red-500 hover:text-red-700 transition-colors ${
                           row["Vai trò"] === "Admin" ||
-                          row["Tên vai trò"] === "Admin"
+                          row["Tên vai trò"] === "Admin" ||
+                          title === "Sản phẩm tồn kho"
                             ? "opacity-50 cursor-not-allowed"
                             : ""
                         }`}
                         title="Xóa"
                         disabled={
                           row["Vai trò"] === "Admin" ||
-                          row["Tên vai trò"] === "Admin"
+                          row["Tên vai trò"] === "Admin" ||
+                          title === "Sản phẩm tồn kho"
                         }
                       >
                         <FaRegTrashAlt className="h-5 w-5" />

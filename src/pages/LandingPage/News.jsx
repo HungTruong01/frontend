@@ -1,14 +1,18 @@
-import React from "react";
 import Header from "@/components/LandingPage/Header";
 import Navbar from "@/components/LandingPage/Navbar";
-import NewsCard from "@/components/LandingPage/NewsCard";
+import NewsPage from "@/components/LandingPage/NewsPage";
+import React from "react";
+import Contact from "../../components/LandingPage/Contact";
+import Footer from "../../components/LandingPage/Footer";
 
 const News = () => {
   return (
     <div className="w-full h-screen">
       <Header />
       <Navbar />
-      <NewsCard />
+      <NewsPage />
+      <Contact />
+      <Footer />
     </div>
   );
 };

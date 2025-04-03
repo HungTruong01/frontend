@@ -1,21 +1,26 @@
 import React from "react";
 
-const Product = ({ product }) => {
-  const { name, description, imageUrl, category } = product;
-
+const ProductCard = ({ id, name, description, imageUrl, category }) => {
   return (
-    <div className="max-w-xs rounded-md overflow-hidden shadow-lg hover:scale-105 transition duration-500 cursor-pointer bg-white">
+    <div
+      key={id}
+      className="relative max-w-xs rounded-md overflow-hidden shadow-lg hover:scale-105 transition duration-500 cursor-pointer bg-white"
+    >
+      {/* Hình ảnh sản phẩm */}
       <img className="w-full h-44 object-cover" src={imageUrl} alt={name} />
-      <div className="px-6 py-4">
-        <div className="font-bold text-xl mb-2">{name}</div>
-        <p className="text-gray-700 text-base">{description}</p>
+
+      {/* Nội dung sản phẩm */}
+      <div className="px-6 py-4 pb-16">
+        <h3 className="font-bold text-lg mb-1">{name}</h3>
+        <p className="text-gray-600 text-sm">{description}</p>
       </div>
-      <div className="px-6 pt-4 pb-2">
-        <span className="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2">
-          {category}
-        </span>
+
+      {/* Category */}
+      <div className="absolute bottom-4 left-6 bg-blue-500 text-white text-xs font-semibold px-3 py-1 rounded-md shadow-md">
+        {category}
       </div>
     </div>
   );
 };
-export default Product;
+
+export default ProductCard;
