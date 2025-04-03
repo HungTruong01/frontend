@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { FaArrowLeft, FaPlus, FaTrash } from "react-icons/fa";
 import AddPartnerModal from "@/components/Dashboard/partner/AddPartnerModal";
-import ProductSelectionModal from "@/components/Dashboard/ProductSelectionModal";
+import ProductSelectionModal from "@/components/Dashboard/product/ProductSelectionModal";
 
 const EditOrder = () => {
   const navigate = useNavigate();

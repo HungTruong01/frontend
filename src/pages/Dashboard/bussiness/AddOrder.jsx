@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaArrowLeft, FaSearch, FaPlus, FaTrash } from "react-icons/fa";
 import AddPartnerModal from "@/components/Dashboard/partner/AddPartnerModal";
-import ProductSelectionModal from "@/components/Dashboard/ProductSelectionModal";
+import ProductSelectionModal from "@/components/Dashboard/product/ProductSelectionModal";
 
 const AddOrder = () => {
   const navigate = useNavigate();
@@ -10,20 +10,13 @@ const AddOrder = () => {
   const [isPartnerModalOpen, setIsPartnerModalOpen] = useState(false);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [selectedPartner, setSelectedPartner] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState("");
+  const [orderType, setOrderType] = useState("import"); // Thêm state để theo dõi loại đơn hàng
 
   const partners = [
     { id: 1, name: "Nguyễn Văn A", phone: "0123456789" },
     { id: 2, name: "Nguyễn Văn B", phone: "0987654321" },
     { id: 3, name: "Nguyễn Văn C", phone: "0369852147" },
     { id: 4, name: "Nguyễn Văn D", phone: "0147852369" },
-  ];
-
-  const orderStatuses = [
-    "Chờ xác nhận",
-    "Chờ thanh toán",
-    "Đã thanh toán",
-    "Đã hủy",
   ];
 
   const handleAddItem = () => {
@@ -98,6 +91,7 @@ const AddOrder = () => {
         onClose={() => setIsProductModalOpen(false)}
         onSelect={handleProductSelect}
         selectedProducts={orderItems}
+        orderType={orderType} // Truyền loại đơn hàng vào modal
       />
       <div className="p-6">
         <div className="flex items-center mb-6">
@@ -147,7 +141,11 @@ const AddOrder = () => {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Loại đơn hàng
               </label>
-              <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <select
+                value={orderType}
+                onChange={(e) => setOrderType(e.target.value)} // Cập nhật loại đơn hàng khi người dùng thay đổi
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
                 <option value="import">Đơn mua</option>
                 <option value="export">Đơn bán</option>
               </select>

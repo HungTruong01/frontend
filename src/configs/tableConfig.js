@@ -126,17 +126,17 @@ export const tableConfig = {
     columns: productColumns,
   },
   "warehouse-transaction": {
-    title: "Quản lý giao dịch kho",
+    title: "Giao dịch kho",
     tableData: warehouseTransactions,
     columns: warehouseTransactionColumns,
   },
   "adjust-inventory": {
-    title: "Quản lý điều chỉnh tồn kho",
+    title: "Điều chỉnh tồn kho",
     tableData: adjustmentsTableData,
     columns: adjustmentColumns,
   },
   "inventory-products": {
-    title: "Quản lý sản phẩm tồn kho",
+    title: "Sản phẩm tồn kho",
     tableData: inventoryProducts,
     columns: inventoryColumns,
   },

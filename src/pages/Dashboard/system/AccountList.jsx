@@ -46,15 +46,6 @@ const AccountList = () => {
   ];
 
   const handleAddNewAccount = (newAccount) => {
-    const isDuplicate = accounts.some(
-      (account) => account.accountId === newAccount.accountId
-    );
-
-    if (isDuplicate) {
-      alert("Mã tài khoản đã tồn tại. Vui lòng chọn mã khác.");
-      return;
-    }
-
     const accountToAdd = {
       ...newAccount,
       createdAt: newAccount.createdAt || new Date().toISOString().split("T")[0],
