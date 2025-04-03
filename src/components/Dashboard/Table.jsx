@@ -1,72 +1,53 @@
 import React, { useState } from "react";
 import { GoPlus } from "react-icons/go";
-import { FaSearch, FaRegEdit, FaRegTrashAlt, FaEye } from "react-icons/fa";
+import { FaSearch, FaRegEdit, FaRegTrashAlt } from "react-icons/fa";
 import AddModal from "./AddModal";
 import EditModal from "./EditModal";
+import DeleteModal from "./DeleteModal";
 
 const Table = ({
   title,
+  subtitle,
   columns,
   visibleColumns,
   data,
   addFields,
-  onEdit,
   onDelete,
-  onAddNew,
 }) => {
   const [filteredData, setFilteredData] = useState(data);
-  const [searchValue, setSearchValue] = useState("");
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [currentEditItem, setCurrentEditItem] = useState(null);
+  const [itemToDelete, setItemToDelete] = useState(null);
 
   const displayColumns = visibleColumns
     ? columns.filter((col) => visibleColumns.includes(col.key))
     : columns;
-
-  const handleSearch = () => {
-    const filtered = data.filter((item) =>
-      columns.some((col) => {
-        const value = item[col.key]?.toString().toLowerCase() || "";
-        return value.includes(searchValue.toLowerCase());
-      })
-    );
-    setFilteredData(filtered);
-    setCurrentPage(1);
-  };
-
-  const handleSearchChange = (e) => {
-    setSearchValue(e.target.value);
-  };
-
-  const handleAddNew = (newItem) => {
-    if (onAddNew) {
-      onAddNew(newItem);
-    }
-    setIsAddModalOpen(false);
-  };
 
   const handleEditClick = (item) => {
     setCurrentEditItem(item);
     setIsEditModalOpen(true);
   };
 
-  const handleEditSubmit = (updatedItem) => {
-    if (onEdit) {
-      onEdit(updatedItem);
-    }
+  const handleDeleteClick = (item) => {
+    setItemToDelete(item);
+    setIsDeleteModalOpen(true);
+  };
 
-    if (!onEdit) {
-      const updatedData = filteredData.map((item) =>
-        item.id === updatedItem.id ? updatedItem : item
+  const handleDeleteConfirm = () => {
+    if (onDelete && itemToDelete) {
+      onDelete(itemToDelete);
+      setFilteredData((prev) =>
+        prev.filter(
+          (item) => item["Mã người dùng"] !== itemToDelete["Mã người dùng"]
+        )
       );
-      setFilteredData(updatedData);
     }
-
-    setIsEditModalOpen(false);
-    setCurrentEditItem(null);
+    setIsDeleteModalOpen(false);
+    setItemToDelete(null);
   };
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
@@ -75,9 +56,7 @@ const Table = ({
     currentPage * itemsPerPage
   );
 
-  const isNumeric = (value) => {
-    return !isNaN(parseFloat(value)) && isFinite(value);
-  };
+  console.log(paginatedData);
 
   return (
     <div className="w-full bg-white shadow-lg rounded-lg overflow-hidden">
@@ -85,9 +64,8 @@ const Table = ({
         <AddModal
           isOpen={isAddModalOpen}
           onClose={() => setIsAddModalOpen(false)}
-          onSubmit={handleAddNew}
           fields={addFields}
-          title={`Thêm mới ${title}`}
+          title={`Thêm mới ${subtitle}`}
         />
       )}
 
@@ -98,14 +76,24 @@ const Table = ({
             setIsEditModalOpen(false);
             setCurrentEditItem(null);
           }}
-          onSubmit={handleEditSubmit}
           fields={columns.map((col) => ({
             id: col.key,
             label: col.label,
-            type: isNumeric(currentEditItem[col.key]) ? "number" : "text",
           }))}
           initialData={currentEditItem}
-          title={`Chỉnh sửa ${title}`}
+          title={`Chỉnh sửa ${subtitle}`}
+        />
+      )}
+
+      {itemToDelete && (
+        <DeleteModal
+          isOpen={isDeleteModalOpen}
+          onClose={() => {
+            setIsDeleteModalOpen(false);
+            setItemToDelete(null);
+          }}
+          onConfirm={handleDeleteConfirm}
+          itemToDelete={itemToDelete}
         />
       )}
 
@@ -117,14 +105,9 @@ const Table = ({
               <input
                 type="text"
                 placeholder="Tìm kiếm..."
-                value={searchValue}
-                onChange={handleSearchChange}
                 className="w-full px-4 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
               />
-              <button
-                onClick={handleSearch}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-              >
+              <button className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700">
                 <FaSearch className="h-4 w-4" />
               </button>
             </div>
@@ -158,7 +141,7 @@ const Table = ({
             <tbody>
               {paginatedData.map((row) => (
                 <tr
-                  key={row.id}
+                  key={row["Mã người dùng"]}
                   className="border-b border-gray-300 hover:bg-gray-100 transition-colors"
                 >
                   {displayColumns.map((col) => (
@@ -173,15 +156,30 @@ const Table = ({
                     <div className="flex justify-center space-x-3">
                       <button
                         onClick={() => handleEditClick(row)}
-                        className="text-blue-500 hover:text-blue-700 transition-colors"
+                        className={`text-blue-500 hover:text-blue-700 transition-colors ${
+                          title === "Sản phẩm tồn kho"
+                            ? "opacity-50 cursor-not-allowed"
+                            : ""
+                        }`}
                         title="Sửa"
+                        disabled={title === "Sản phẩm tồn kho"}
                       >
                         <FaRegEdit className="h-5 w-5" />
                       </button>
+
                       <button
-                        onClick={() => onDelete && onDelete(row)}
-                        className="text-red-500 hover:text-red-700 transition-colors"
+                        onClick={() => handleDeleteClick(row)}
+                        className={`text-red-500 hover:text-red-700 transition-colors ${
+                          row["Vai trò"] === "Admin" ||
+                          row["Tên vai trò"] === "Admin"
+                            ? "opacity-50 cursor-not-allowed"
+                            : ""
+                        }`}
                         title="Xóa"
+                        disabled={
+                          row["Vai trò"] === "Admin" ||
+                          row["Tên vai trò"] === "Admin"
+                        }
                       >
                         <FaRegTrashAlt className="h-5 w-5" />
                       </button>

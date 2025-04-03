@@ -131,20 +131,7 @@ const EditPartnerModal = ({ isOpen, onClose, onSubmit, partner }) => {
               <option value="Nhà cung cấp">Nhà cung cấp</option>
             </select>
           </div>
-          <div className="col-span-2 sm:col-span-1">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Công nợ
-            </label>
-            <input
-              type="number"
-              name="debt"
-              value={formData.debt}
-              step="100000"
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
-            />
-          </div>
+
           <div className="col-span-2 flex justify-end space-x-4">
             <button
               type="button"

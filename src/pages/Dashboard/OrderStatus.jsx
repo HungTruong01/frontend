@@ -1,16 +1,30 @@
-import React from "react";
-import tableConfig from "@/configs/tableConfig";
+import React, { useState } from "react";
 import Table from "@/components/Dashboard/Table";
+import { orderStatusesTableData, orderStatusColumns } from "@/data";
 const OrderStatus = () => {
-  const { title, tableData, columns } = tableConfig["order-status"];
-
-  const formattedColumns = columns.map((col) => ({
+  const [orderStatus, setOrderStatus] = useState(orderStatusesTableData);
+  const addAccountFields = [
+    {
+      key: "orderStatus",
+      label: "Trạng thái đơn hàng",
+      type: "text",
+      required: true,
+      placeholder: "Nhập trạng thái đơn hàng",
+    },
+  ];
+  const formattedColumns = orderStatusColumns.map((col) => ({
     key: col,
     label: col.charAt(0).toUpperCase() + col.slice(1),
   }));
   return (
     <div>
-      <Table title={title} data={tableData} columns={formattedColumns} />
+      <Table
+        title={"Trạng thái đơn hàng"}
+        subtitle={"trạng thái đơn hàng"}
+        data={orderStatus}
+        addFields={addAccountFields}
+        columns={formattedColumns}
+      />
     </div>
   );
 };

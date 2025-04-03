@@ -1,4 +1,3 @@
-export * from "@/data/userTableData";
 export * from "@/data/accountsTableData";
 export * from "@/data/partnerTypesTableData";
 export * from "@/data/partnerTableData";
@@ -10,5 +9,4 @@ export * from "@/data/warehouseTransactionTypesTableData";
 export * from "@/data/orderStatusesTableData";
 export * from "@/data/orderTypesTableData";
 export * from "@/data/ordersTableData";
-// export * from "@/data/menuItems";
 export * from "@/data/listPostData";

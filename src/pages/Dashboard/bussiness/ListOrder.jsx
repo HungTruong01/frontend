@@ -18,6 +18,7 @@ const ListOrder = () => {
       orderCode: "DH001",
       createdAt: "25-03-2025",
       totalAmount: 1800000,
+      paymentAmount: 1000000,
       partner: "Nguyễn Văn A",
       status: "Hoàn thành",
       orderType: "Đơn mua",
@@ -28,6 +29,7 @@ const ListOrder = () => {
       orderCode: "DH002",
       createdAt: "26-03-2025",
       totalAmount: 2000000,
+      paymentAmount: 1000000,
       partner: "Nguyễn Văn B",
       status: "Hoàn thành",
       orderType: "Đơn bán",
@@ -38,6 +40,7 @@ const ListOrder = () => {
       orderCode: "DH003",
       createdAt: "27-03-2025",
       totalAmount: 1500000,
+      paymentAmount: 1000000,
       partner: "Nguyễn Văn C",
       status: "Chưa thanh toán",
       orderType: "Đơn mua",
@@ -48,6 +51,7 @@ const ListOrder = () => {
       orderCode: "DH004",
       createdAt: "28-03-2025",
       totalAmount: 1100000,
+      paymentAmount: 1000000,
       partner: "Nguyễn Văn D",
       status: "Chưa thanh toán",
       orderType: "Đơn bán",
@@ -58,14 +62,30 @@ const ListOrder = () => {
       orderCode: "DH005",
       createdAt: "29-03-2025",
       totalAmount: 2500000,
+      paymentAmount: 1000000,
       partner: "Nguyễn Văn E",
       status: "Hoàn thành",
       orderType: "Đơn mua",
       statusColor: "bg-green-100 text-green-800",
     },
+    {
+      id: "006",
+      orderCode: "DH006",
+      createdAt: "25-03-2025",
+      totalAmount: 1800000,
+      paymentAmount: 1000000,
+      partner: "Nguyễn Văn Hưng",
+      status: "Thanh toán một phần",
+      orderType: "Đơn bán",
+      statusColor: "bg-yellow-100 text-yellow-800",
+    },
   ];
 
-  const orderStatuses = ["Hoàn thành", "Chưa thanh toán"];
+  const orderStatuses = [
+    "Hoàn thành",
+    "Chưa thanh toán",
+    "Thanh toán một phần",
+  ];
   const orderTypes = ["Đơn mua", "Đơn bán"];
 
   const filteredOrders = orders.filter((order) => {
@@ -113,10 +133,6 @@ const ListOrder = () => {
             Danh sách đơn hàng
           </h1>
           <div className="flex items-center space-x-4">
-            <button className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
-              <FiUpload className="h-5 w-5 mr-2" />
-              Xuất file
-            </button>
             <button
               onClick={handleAddClick}
               className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
@@ -170,19 +186,15 @@ const ListOrder = () => {
               <tr className="bg-gray-200 ">
                 <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 w-1/7">
                   <div className="flex items-center space-x-1">
-                    <span>Mã đơn hàng</span>
+                    <span>Mã đơn</span>
                   </div>
                 </th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 w-1/7">
                   <div className="flex items-center space-x-1">
-                    <span>Ngày tạo đơn</span>
+                    <span>Ngày tạo</span>
                   </div>
                 </th>
-                <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700 w-1/7">
-                  <div className="flex items-center justify-end space-x-1">
-                    <span>Tổng tiền</span>
-                  </div>
-                </th>
+
                 <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 w-1/5">
                   <div className="flex items-center space-x-1">
                     <span>Đối tác</span>
@@ -190,12 +202,23 @@ const ListOrder = () => {
                 </th>
                 <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700 w-1/7">
                   <div className="flex items-center justify-center space-x-1">
-                    <span>Trạng thái</span>
+                    <span>Loại đơn</span>
+                  </div>
+                </th>
+
+                <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700 w-1/7">
+                  <div className="flex items-center justify-end space-x-1">
+                    <span>Tổng tiền</span>
+                  </div>
+                </th>
+                <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700 w-1/7">
+                  <div className="flex items-center justify-end space-x-1">
+                    <span>Đã trả</span>
                   </div>
                 </th>
                 <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700 w-1/7">
                   <div className="flex items-center justify-center space-x-1">
-                    <span>Loại đơn</span>
+                    <span>Trạng thái</span>
                   </div>
                 </th>
                 <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700 w-1/7">
@@ -221,17 +244,24 @@ const ListOrder = () => {
                       {order.createdAt}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right">
-                    <div className="text-sm text-gray-900">
-                      {formatCurrency(order.totalAmount)}
-                    </div>
-                  </td>
+
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">{order.partner}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-center">
                     <div className="text-sm text-gray-900">
                       {order.orderType}
+                    </div>
+                  </td>
+
+                  <td className="px-6 py-4 whitespace-nowrap text-right">
+                    <div className="text-sm text-gray-900">
+                      {formatCurrency(order.totalAmount)}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right">
+                    <div className="text-sm text-gray-900">
+                      {formatCurrency(order.paymentAmount)}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-center">

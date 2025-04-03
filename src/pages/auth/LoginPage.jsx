@@ -72,12 +72,6 @@ const LoginPage = () => {
             Đăng nhập
           </button>
         </form>
-
-        <div className="mt-4 text-center">
-          <a href="#" className="text-sm text-blue-600 hover:underline">
-            Quên mật khẩu?
-          </a>
-        </div>
       </div>
     </div>
   );

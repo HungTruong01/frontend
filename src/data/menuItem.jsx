@@ -24,6 +24,7 @@ import {
   FaBalanceScale,
   FaRegNewspaper,
 } from "react-icons/fa";
+import { TbTruckDelivery, TbInvoice } from "react-icons/tb";
 import {
   MdAccountCircle,
   MdManageAccounts,
@@ -72,10 +73,16 @@ const menuItem = [
         icon: <FiClipboard {...iconStyles} />,
       },
       {
+        name: "Loại hoá đơn",
+        path: "/dashboard/categories/invoice-type",
+        icon: <TbInvoice {...iconStyles} />,
+      },
+      {
         name: "Loại đối tác",
         path: "/dashboard/categories/partner",
         icon: <FiUsers {...iconStyles} />,
       },
+
       {
         name: "Loại đơn hàng",
         path: "/dashboard/categories/order",
@@ -100,6 +107,11 @@ const menuItem = [
         name: "Loại giao dịch kho",
         path: "/dashboard/categories/warehouse-transaction-type",
         icon: <FiRepeat {...iconStyles} />,
+      },
+      {
+        name: "Trạng thái vận chuyển",
+        path: "/dashboard/categories/delivery-status",
+        icon: <TbTruckDelivery {...iconStyles} />,
       },
     ],
   },

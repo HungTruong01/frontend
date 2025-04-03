@@ -1,16 +1,33 @@
-import React from "react";
-import tableConfig from "@/configs/tableConfig";
+import React, { useState } from "react";
 import Table from "@/components/Dashboard/Table";
+import {
+  productTypesTableData,
+  productTypeColumns,
+} from "@/data/productTypesTableData";
 const TypeProduct = () => {
-  const { title, tableData, columns } = tableConfig["type-products"];
-
-  const formattedColumns = columns.map((col) => ({
+  const [typeProduct, setTypeProduct] = useState(productTypesTableData);
+  const addAccountFields = [
+    {
+      key: "productTypeName",
+      label: "Tên loại sản phẩm",
+      type: "text",
+      required: true,
+      placeholder: "Nhập tên loại sản phẩm",
+    },
+  ];
+  const formattedColumns = productTypeColumns.map((col) => ({
     key: col,
     label: col.charAt(0).toUpperCase() + col.slice(1),
   }));
   return (
     <div>
-      <Table title={title} columns={formattedColumns} data={tableData} />
+      <Table
+        title={"Loại sản phẩm"}
+        subtitle={"loại sản phẩm"}
+        addFields={addAccountFields}
+        columns={formattedColumns}
+        data={typeProduct}
+      />
     </div>
   );
 };

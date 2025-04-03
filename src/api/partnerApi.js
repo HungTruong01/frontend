@@ -53,10 +53,9 @@ export const partnerApi = {
       let partnerTypeId;
       switch (partnerData.type) {
         case "Khách hàng":
-          partnerTypeId = 1; // Mã cho khách hàng
-          break;
+          partnerTypeId = 1;
         case "Nhà cung cấp":
-          partnerTypeId = 2; // Mã cho nhà cung cấp
+          partnerTypeId = 2;
           break;
         default:
           throw new Error("Loại đối tác không hợp lệ");

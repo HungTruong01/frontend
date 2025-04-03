@@ -1,13 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-const EditModal = ({
-  isOpen,
-  onClose,
-  onSubmit,
-  fields,
-  initialData,
-  title,
-}) => {
+const EditModal = ({ isOpen, onClose, fields, initialData, title }) => {
   const [formData, setFormData] = useState({});
 
   useEffect(() => {
@@ -17,17 +10,14 @@ const EditModal = ({
   }, [initialData, isOpen]);
 
   const handleChange = (e) => {
-    const { name, value, type } = e.target;
-    const processedValue = type === "number" ? parseFloat(value) : value;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: processedValue,
-    }));
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    console.log("Dữ liệu đã chỉnh sửa:", formData);
+    onClose();
   };
 
   if (!isOpen) return null;
@@ -51,7 +41,8 @@ const EditModal = ({
                 name={field.id}
                 value={formData[field.id] || ""}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={field.id.startsWith("Mã") || field.id === "Ngày tạo"}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500"
               />
             </div>
           ))}

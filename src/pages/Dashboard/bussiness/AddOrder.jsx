@@ -213,14 +213,9 @@ const AddOrder = () => {
                           />
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <input
-                            type="number"
-                            value={item.price}
-                            onChange={(e) =>
-                              handlePriceChange(item.id, e.target.value)
-                            }
-                            className="w-32 px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                          />
+                          <div className="text-sm font-medium text-blue-600">
+                            {item.price}
+                          </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-medium text-blue-600">

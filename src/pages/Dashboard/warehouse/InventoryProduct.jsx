@@ -1,17 +1,21 @@
-import React from "react";
-import tableConfig from "@/configs/tableConfig";
+import React, { useState } from "react";
 import Table from "@/components/Dashboard/Table";
+import { inventoryProducts, inventoryColumns } from "@/data/inventoryProduct";
 
 const ListReceipt = () => {
-  const { title, tableData, columns } = tableConfig["inventory-products"];
-
-  const formattedColumns = columns.map((col) => ({
+  const [inventoryProduct, setInventoryProducts] = useState(inventoryProducts);
+  const formattedColumns = inventoryColumns.map((col) => ({
     key: col,
     label: col.charAt(0).toUpperCase() + col.slice(1),
   }));
   return (
     <div>
-      <Table title={title} data={tableData} columns={formattedColumns} />
+      <Table
+        title={"Sản phẩm tồn kho"}
+        subtitle={"Sản phẩm tồn kho"}
+        data={inventoryProduct}
+        columns={formattedColumns}
+      />
     </div>
   );
 };

@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import tableConfig from "@/configs/tableConfig";
-import { FaSearch, FaRegTrashAlt, FaEye } from "react-icons/fa";
+import { FaSearch, FaRegTrashAlt, FaEye, FaEdit } from "react-icons/fa";
 import { GoPlus } from "react-icons/go";
-import EditModal from "@/components/Dashboard/EditModal";
 import { useNavigate } from "react-router-dom";
-
+import AddWarehouseTransactionModal from "@/components/Dashboard/warehouse/AddWarehouseTransactionModal";
+import EditWarehouseTransactionModal from "@/components/Dashboard/warehouse/EditWarehouseTransactionModal";
 const WarehouseTransaction = ({ onAddNew, onEdit, onDelete }) => {
   const { title, tableData, columns } = tableConfig["warehouse-transaction"];
 
@@ -21,6 +21,7 @@ const WarehouseTransaction = ({ onAddNew, onEdit, onDelete }) => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [currentEditItem, setCurrentEditItem] = useState(null);
   const navigate = useNavigate();
@@ -56,6 +57,11 @@ const WarehouseTransaction = ({ onAddNew, onEdit, onDelete }) => {
     navigate("/dashboard/warehouse/warehouse-transaction-detail");
   };
 
+  const handleEdit = (item) => {
+    setCurrentEditItem(item);
+    setIsEditModalOpen(true);
+  };
+
   const handleEditSubmit = (updatedItem) => {
     if (onEdit) {
       onEdit(updatedItem);
@@ -78,14 +84,10 @@ const WarehouseTransaction = ({ onAddNew, onEdit, onDelete }) => {
     currentPage * itemsPerPage
   );
 
-  const isNumeric = (value) => {
-    return !isNaN(parseFloat(value)) && isFinite(value);
-  };
-
   return (
     <div className="w-full bg-white shadow-lg rounded-lg overflow-hidden">
       {currentEditItem && (
-        <EditModal
+        <EditWarehouseTransactionModal
           isOpen={isEditModalOpen}
           onClose={() => {
             setIsEditModalOpen(false);
@@ -95,7 +97,6 @@ const WarehouseTransaction = ({ onAddNew, onEdit, onDelete }) => {
           fields={displayColumns.map((col) => ({
             id: col.key,
             label: col.label,
-            type: isNumeric(currentEditItem[col.key]) ? "number" : "text",
           }))}
           initialData={currentEditItem}
           title={`Chỉnh sửa ${title}`}
@@ -103,7 +104,7 @@ const WarehouseTransaction = ({ onAddNew, onEdit, onDelete }) => {
       )}
 
       {isAddModalOpen && (
-        <EditModal
+        <AddWarehouseTransactionModal
           isOpen={isAddModalOpen}
           onClose={() => setIsAddModalOpen(false)}
           onSubmit={handleAddNew}
@@ -128,7 +129,6 @@ const WarehouseTransaction = ({ onAddNew, onEdit, onDelete }) => {
                 value={searchValue}
                 onChange={handleSearchChange}
                 className="w-full px-4 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                onKeyPress={(e) => e.key === "Enter" && handleSearch()}
               />
               <button
                 onClick={handleSearch}
@@ -184,9 +184,16 @@ const WarehouseTransaction = ({ onAddNew, onEdit, onDelete }) => {
                         <button
                           onClick={handleViewDetail}
                           className="text-blue-500 hover:text-blue-700 transition-colors"
-                          title="Sửa"
+                          title="Xem"
                         >
                           <FaEye className="h-5 w-5" />
+                        </button>
+                        <button
+                          onClick={() => handleEdit(row)}
+                          className="text-blue-500 hover:text-blue-700 transition-colors"
+                          title="Sửa"
+                        >
+                          <FaEdit className="h-5 w-5" />
                         </button>
                         <button
                           onClick={() => onDelete && onDelete(row)}

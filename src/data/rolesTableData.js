@@ -1,4 +1,4 @@
-export const usersTableData = [
+export const rolesTableData = [
   {
     "Mã vai trò": "R001",
     "Tên vai trò": "Admin",
@@ -21,4 +21,4 @@ export const usersTableData = [
   },
 ];
 
-export const userColumns = ["Mã vai trò", "Tên vai trò"];
+export const rolesColumns = ["Mã vai trò", "Tên vai trò"];

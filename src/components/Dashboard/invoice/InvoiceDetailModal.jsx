@@ -1,8 +1,65 @@
-import React from "react";
+import React, { useState } from "react";
 import { FaTimes } from "react-icons/fa";
 
 const InvoiceDetailModal = ({ isOpen, onClose, invoice }) => {
   if (!isOpen || !invoice) return null;
+  const [formData, setFormData] = useState({
+    partnerId: "",
+    invoiceTypeId: "",
+    totalAmount: "",
+    paidAmount: "",
+    invoiceDetails: [{ orderId: "", amount: "" }],
+  });
+  const mockOrderData = {
+    orderId: "001",
+    orderDate: "25-03-2025",
+    partner: {
+      name: "Nguyễn Văn A",
+      phone: "0123456789",
+      email: "nguyenvana@email.com",
+      address: "123 Đường ABC, Quận 1, TP.HCM",
+      type: "customer",
+    },
+    orderType: "Đơn hàng nhập",
+    status: "Chưa thanh toán",
+    items: [
+      {
+        id: 1,
+        productName: "Sản phẩm A",
+        quantity: 10,
+        unitPrice: 180000,
+        total: 1800000,
+      },
+      {
+        id: 2,
+        productName: "Sản phẩm B",
+        quantity: 5,
+        unitPrice: 250000,
+        total: 1250000,
+      },
+    ],
+    totalAmount: 3050000,
+    paymentStatus: "Chưa thanh toán",
+    paidAmount: 0,
+  };
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    // Chỉ cho phép nhập số và định dạng với dấu chấm
+    if (name === "paidAmount") {
+      const numericValue = value.replace(/[^0-9]/g, "");
+      setFormData((prev) => ({
+        ...prev,
+        [name]: numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, "."),
+      }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
+  };
+  const calculateRemainingAmount = () => {
+    const paid = parseFloat(invoice.paidAmount?.replace(/\./g, "") || 0);
+    const total = invoice.totalAmount || 0;
+    return Math.max(total - paid, 0);
+  };
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -27,22 +84,19 @@ const InvoiceDetailModal = ({ isOpen, onClose, invoice }) => {
         </div>
 
         <div className="p-6 flex-1 overflow-y-auto">
-          <div className="grid grid-cols-3 gap-8">
+          <div className="grid grid-cols gap-8">
             <div className="col-span-2 space-y-6">
               <div className="bg-white rounded-lg border border-gray-200 p-6">
                 <h3 className="text-lg font-semibold text-gray-800 mb-4">
                   Thông tin chung
                 </h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-1">
-                      Đối tác
+                      Mã hóa đơn
                     </label>
-                    <p className="text-gray-800 font-medium">
-                      {invoice.partnerName}
-                    </p>
+                    <p className="text-gray-800 font-medium">{invoice.id}</p>
                   </div>
-
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-1">
                       Loại hóa đơn
@@ -53,102 +107,108 @@ const InvoiceDetailModal = ({ isOpen, onClose, invoice }) => {
                         : "Hóa đơn mua"}
                     </p>
                   </div>
-
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-1">
                       Ngày lập
                     </label>
                     <p className="text-gray-800 font-medium">{invoice.date}</p>
                   </div>
+                </div>
+              </div>
 
+              <div className="border border-gray-200 p-6 rounded-xl">
+                <div className="flex items-center mb-4">
+                  <h3 className="text-lg font-semibold text-gray-800">
+                    Thông tin đối tác
+                  </h3>
+                </div>
+                <div className="grid grid-cols-3 space-y-3">
                   <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-1">
-                      Tổng tiền
-                    </label>
-                    <p className=" font-medium text-blue-600">
-                      {new Intl.NumberFormat("vi-VN", {
-                        style: "currency",
-                        currency: "VND",
-                      }).format(invoice.totalAmount)}
+                    <span className="text-gray-600">Tên đối tác:</span>
+                    <p className="font-medium">{mockOrderData.partner.name}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Số điện thoại:</span>
+                    <p className="font-medium">{mockOrderData.partner.phone}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Email:</span>
+                    <p className="font-medium">{mockOrderData.partner.email}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Địa chỉ:</span>
+                    <p className="font-medium">
+                      {mockOrderData.partner.address}
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                  Chi tiết hoá đơn
-                </h3>
-                <div className="space-y-4">
-                  {invoice.invoiceDetails.map((detail, index) => (
-                    <div
-                      key={index}
-                      className="p-4 border-2 border-gray-200 rounded-lg bg-gray-50 hover:border-blue-300 transition-colors duration-200"
-                    >
-                      <div className="flex justify-between items-center mb-3">
-                        <h4 className="text-sm font-medium text-gray-700">
-                          Đơn hàng #{index + 1}
-                        </h4>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-600 mb-1">
-                            Mã đơn hàng
-                          </label>
-                          <p className="text-gray-800 font-medium">
-                            {detail.orderCode}
-                          </p>
-                        </div>
-
-                        <div>
-                          <label className="block text-sm font-medium text-gray-600 mb-1">
-                            Số tiền
-                          </label>
-                          <p className="text-blue-600 font-medium ">
-                            {new Intl.NumberFormat("vi-VN", {
-                              style: "currency",
-                              currency: "VND",
-                            }).format(detail.amount)}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+              <div className="border border-gray-200 p-6 rounded-xl">
+                <div className="flex items-center mb-4">
+                  <h3 className="text-lg font-semibold text-gray-800">
+                    Chi tiết đơn hàng
+                  </h3>
                 </div>
-              </div>
-            </div>
-
-            {/* Cột phải - Tổng kết */}
-            <div className="col-span-1">
-              <div className="bg-white rounded-lg border border-gray-200 p-6 sticky top-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                  Tổng kết
-                </h3>
-                <div className="space-y-4">
-                  <div>
-                    <p className="text-sm text-gray-600">Tổng số đơn hàng</p>
-                    <p className="text-xl font-semibold text-gray-800">
-                      {invoice.invoiceDetails.length}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Tổng tiền</p>
-                    <p className="text-xl font-semibold text-blue-600">
-                      {new Intl.NumberFormat("vi-VN", {
-                        style: "currency",
-                        currency: "VND",
-                      }).format(invoice.totalAmount)}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Loại hóa đơn</p>
-                    <p className="text-xl font-semibold text-gray-800">
-                      {invoice.invoiceTypeId === 1
-                        ? "Hóa đơn bán"
-                        : "Hóa đơn mua"}
-                    </p>
-                  </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-white">
+                        <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">
+                          Sản phẩm
+                        </th>
+                        <th className="px-4 py-3 text-right text-sm font-semibold text-gray-600">
+                          Số lượng
+                        </th>
+                        <th className="px-4 py-3 text-right text-sm font-semibold text-gray-600">
+                          Đơn giá
+                        </th>
+                        <th className="px-4 py-3 text-right text-sm font-semibold text-gray-600">
+                          Thành tiền
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {mockOrderData.items.map((item) => (
+                        <tr key={item.id} className="border-t border-gray-200">
+                          <td className="px-4 py-3">{item.productName}</td>
+                          <td className="px-4 py-3 text-right">
+                            {item.quantity}
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            {item.unitPrice.toLocaleString()} VNĐ
+                          </td>
+                          <td className="px-4 py-3 text-right font historic">
+                            {item.total.toLocaleString()} VNĐ
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot>
+                      <tr className="bg-white border-t-2 border-gray-200">
+                        <td
+                          colSpan="3"
+                          className="px-3 py-1 text-right font-semibold text-gray-800"
+                        >
+                          Tổng cộng:
+                        </td>
+                        <td className="px-3 py-1 text-right font-bold text-blue-600 text-lg">
+                          3,050,000 VNĐ
+                        </td>
+                      </tr>
+                      <tr className="bg-white">
+                        <td
+                          colSpan="3"
+                          className="px-3 py-1 text-right font-semibold text-gray-800"
+                        >
+                          Tổng tiền đã thanh toán:
+                        </td>
+                        <td className="px-3 py-1 text-right font-bold text-green-600 text-lg">
+                          {calculateRemainingAmount().toLocaleString()} VNĐ
+                        </td>
+                      </tr>
+                    </tfoot>
+                  </table>
                 </div>
               </div>
             </div>

@@ -6,7 +6,7 @@ import {
   FaRegTrashAlt,
   FaPlus,
 } from "react-icons/fa";
-import { postApi } from "@/api/postApi";
+import { getPostById, getAllPosts } from "@/api/postApi";
 import AddPostModal from "@/components/Dashboard/post/AddPostModal";
 import EditPostModal from "@/components/Dashboard/post/EditPostModal";
 import PostDetailModal from "@/components/Dashboard/post/PostDetailModal";
@@ -19,6 +19,7 @@ const ListPost = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isToggleModalOpen, setIsToggleModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [currentPost, setCurrentPost] = useState(null);
 
@@ -31,21 +32,18 @@ const ListPost = () => {
     { key: "updated_at", label: "Ngày cập nhật" },
   ];
 
-  const fetchPosts = async () => {
-    try {
-      const data = await postApi.getAllPosts();
-      console.log(data.content);
-      setPosts(data.content || data);
-    } catch (error) {
-      toast.error("Không thể tải danh sách bài đăng");
-      console.error("Error fetching posts:", error);
-      setPosts([]);
-    }
-  };
-
   useEffect(() => {
-    fetchPosts();
+    listPosts();
   }, []);
+
+  const listPosts = () => {
+    getAllPosts(0, 10, "id", "asc")
+      .then((res) => {
+        setPosts(res.data.content);
+        console.log(res.data.content);
+      })
+      .catch((error) => console.error(error));
+  };
 
   const filterPosts = () => {
     return posts.filter((post) =>
@@ -90,6 +88,17 @@ const ListPost = () => {
       toast.error("Không thể cập nhật bài đăng");
       console.error("Error updating post:", error.response?.data || error);
     }
+  };
+  const formatDate = (dateString) => {
+    if (!dateString) return "Invalid Date"; // Xử lý giá trị null hoặc undefined
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "Invalid Date"; // Xử lý định dạng ngày không hợp lệ
+
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0"); // Tháng trong JS bắt đầu từ 0
+    const year = date.getFullYear();
+
+    return `${day}/${month}/${year}`;
   };
 
   const handleViewDetail = (post) => {
@@ -197,25 +206,20 @@ const ListPost = () => {
               </tr>
             </thead>
             <tbody>
-              {paginatedData.map((post) => (
+              {posts.map((post) => (
                 <tr
                   key={post.id}
                   className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
                 >
-                  {columns.map((col) => (
-                    <td
-                      key={col.key}
-                      className="py-3 px-4 text-sm text-gray-600 text-left truncate max-w-[200px]"
-                    >
-                      {col.key === "posted_at" || col.key === "updated_at" ? (
-                        post[col.key] || "-"
-                      ) : (
-                        <span title={post[col.key] || "-"}>
-                          {post[col.key] || "-"}
-                        </span>
-                      )}
-                    </td>
-                  ))}
+                  <td className="py-3 px-4 text-left">{post.id}</td>
+                  <td className="py-3 px-4 text-left">{post.title}</td>
+                  <td className="py-3 px-4 text-left">
+                    {formatDate(post.postedAt)}
+                  </td>
+                  <td className="py-3 px-4 text-left">
+                    {formatDate(post.updatedAt)}
+                  </td>
+
                   <td className="py-3 px-4 text-center">
                     <div className="flex justify-center space-x-3">
                       <button

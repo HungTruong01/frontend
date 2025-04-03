@@ -1,41 +1,33 @@
 export const warehouseTransactions = [
   {
     "Mã giao dịch": "GTK001",
-    "Số lượng": 50,
-    "Ngày giao dịch": "26-03-2025",
+    "Trạng thái": "Đã hoàn thành",
+    "Ngày giao dịch": "26/03/2025",
     "Mã đơn hàng": "DH001",
     "Loại giao dịch": "Nhập kho",
     "Kho bãi": "Kho An Lão",
   },
   {
     "Mã giao dịch": "GTK002",
-    "Số lượng": 30,
-    "Ngày giao dịch": "25-03-2025",
+    "Trạng thái": "Chưa hoàn thành",
+    "Ngày giao dịch": "25/03/2025",
     "Mã đơn hàng": "DH002",
     "Loại giao dịch": "Xuất kho",
     "Kho bãi": "Kho Cát Hải",
   },
   {
     "Mã giao dịch": "GTK003",
-    "Số lượng": 75,
-    "Ngày giao dịch": "24-03-2025",
+    "Trạng thái": "Đã hoàn thành",
+    "Ngày giao dịch": "24/03/2025",
     "Mã đơn hàng": "DH003",
     "Loại giao dịch": "Chuyển kho",
     "Kho bãi": "Kho An Lão",
-  },
-  {
-    "Mã giao dịch": "GTK004",
-    "Số lượng": 20,
-    "Ngày giao dịch": "13-03-2025",
-    "Mã đơn hàng": "DH004",
-    "Loại giao dịch": "Nhập kho",
-    "Kho bãi": "Kho Cát Hải",
   },
 ];
 
 export const warehouseTransactionColumns = [
   "Mã giao dịch",
-  "Số lượng",
+  "Trạng thái",
   "Ngày giao dịch",
   "Mã đơn hàng",
   "Loại giao dịch",

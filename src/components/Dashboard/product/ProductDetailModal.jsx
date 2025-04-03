@@ -56,7 +56,7 @@ const ProductDetailModal = ({ isOpen, onClose, product }) => {
                 <label className="block text-sm font-medium text-gray-600 mb-1">
                   Giá tiền
                 </label>
-                <p className="text-gray-800 font-medium text-blue-600">
+                <p className=" font-medium text-blue-600">
                   {formatCurrency(product.price)}
                 </p>
               </div>
@@ -83,21 +83,6 @@ const ProductDetailModal = ({ isOpen, onClose, product }) => {
                 </label>
                 <p className="text-gray-800 font-medium">{product.unit}</p>
               </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
-                Trạng thái
-              </label>
-              <p
-                className={`font-medium ${
-                  product.status === "Còn hàng"
-                    ? "text-green-600"
-                    : "text-red-600"
-                }`}
-              >
-                {product.status}
-              </p>
             </div>
           </div>
         </div>

@@ -20,8 +20,11 @@ import TypeOrder from "./pages/Dashboard/TypeOrder";
 import TypePartner from "./pages/Dashboard/TypePartner";
 import TypeProduct from "./pages/Dashboard/TypeProduct";
 import TypeTransactionWareHouse from "./pages/Dashboard/TypeTransactionWareHouse";
+import DeliveryStatus from "./pages/Dashboard/DeliveryStatus";
+
 import ListProduct from "./pages/Dashboard/warehouse/ListProduct";
 import UnitPage from "./pages/Dashboard/UnitPage";
+import InvoiceType from "./pages/Dashboard/InvoiceType";
 
 import ListWarehouse from "./pages/Dashboard/ListWarehouse";
 import InventoryProduct from "./pages/Dashboard/warehouse/InventoryProduct";
@@ -40,6 +43,9 @@ import AdjustInventory from "./pages/Dashboard/warehouse/AdjustInventory";
 import AddOrder from "./pages/Dashboard/bussiness/AddOrder";
 import EditOrder from "./pages/Dashboard/bussiness/EditOrder";
 import ListInvoice from "./pages/Dashboard/bussiness/ListInvoice";
+import FormEditAccount from "./pages/Dashboard/system/FormEditAccount";
+import ErrorPopup from "./components/Dashboard/ErrorPopUp";
+import SuccessPopup from "./components/Dashboard/SuccessPopup";
 const App = () => {
   return (
     <>
@@ -52,15 +58,22 @@ const App = () => {
         <Route path="/news" element={<News />} />
 
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/error" element={<ErrorPopup />} />
+        <Route path="/success" element={<SuccessPopup />} />
+
         <Route path="/dashboard" element={<DashBoardHome />}>
           <Route index element={<OverviewDashboard />} />
           <Route path="system/account" element={<AccountList />} />
           <Route path="system/role" element={<RoleUser />} />
+          <Route path="system/edit-account" element={<FormEditAccount />} />
+
           <Route path="categories/type-products" element={<TypeProduct />} />
           <Route path="categories/unit" element={<UnitPage />} />
           <Route path="categories/partner" element={<TypePartner />} />
           <Route path="categories/order" element={<TypeOrder />} />
           <Route path="categories/order-status" element={<OrderStatus />} />
+          <Route path="categories/invoice-type" element={<InvoiceType />} />
+
           <Route
             path="categories/reason-for-inventory-adjustment"
             element={<ReasonInventoryAdjust />}
@@ -70,6 +83,11 @@ const App = () => {
             path="categories/warehouse-transaction-type"
             element={<TypeTransactionWareHouse />}
           />
+          <Route
+            path="categories/delivery-status"
+            element={<DeliveryStatus />}
+          />
+
           <Route path="posts/post-list" element={<ListPost />} />
 
           <Route path="business/partner-list" element={<ListPartner />} />

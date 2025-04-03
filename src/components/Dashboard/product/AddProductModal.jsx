@@ -103,21 +103,6 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
                   </span>
                 </div>
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Tồn kho <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="number"
-                  name="stock"
-                  value={formData.stock}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
-                  placeholder="Nhập số lượng tồn"
-                  required
-                />
-              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -160,25 +145,6 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
                   ))}
                 </select>
               </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Trạng thái <span className="text-red-500">*</span>
-              </label>
-              <select
-                name="status"
-                value={formData.status}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 bg-white"
-                required
-              >
-                {productStatuses.map((status) => (
-                  <option key={status} value={status}>
-                    {status}
-                  </option>
-                ))}
-              </select>
             </div>
           </div>
         </form>

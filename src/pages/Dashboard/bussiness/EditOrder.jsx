@@ -179,25 +179,8 @@ const EditOrder = () => {
                 onChange={(e) => setOrderType(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="import">Đơn hàng nhập</option>
-                <option value="export">Đơn hàng xuất</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Trạng thái đơn hàng
-              </label>
-              <select
-                value={selectedStatus}
-                onChange={(e) => setSelectedStatus(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">Chọn trạng thái</option>
-                {orderStatuses.map((status) => (
-                  <option key={status} value={status}>
-                    {status}
-                  </option>
-                ))}
+                <option value="import">Đơn mua</option>
+                <option value="export">Đơn bán</option>
               </select>
             </div>
           </div>
@@ -263,14 +246,9 @@ const EditOrder = () => {
                           />
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <input
-                            type="number"
-                            value={item.price}
-                            onChange={(e) =>
-                              handlePriceChange(item.id, e.target.value)
-                            }
-                            className="w-32 px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                          />
+                          <div className="text-sm font-medium text-blue-600">
+                            {item.price}
+                          </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-medium text-blue-600">

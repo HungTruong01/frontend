@@ -8,7 +8,7 @@ const AccountList = () => {
   const formattedColumns = accountColumns.map((col) => ({
     key: col,
     label: col
-      .replace(/([A-Z])/g, " $1") // Handle camelCase
+      .replace(/([A-Z])/g, " $1")
       .replace(/^./, (str) => str.toUpperCase()),
   }));
 
@@ -45,32 +45,14 @@ const AccountList = () => {
     },
   ];
 
-  const handleAddNewAccount = (newAccount) => {
-    const accountToAdd = {
-      ...newAccount,
-      createdAt: newAccount.createdAt || new Date().toISOString().split("T")[0],
-    };
-
-    setAccounts((prevAccounts) => [...prevAccounts, accountToAdd]);
-  };
-
-  const handleDeleteAccount = (accountToDelete) => {
-    setAccounts((prevAccounts) =>
-      prevAccounts.filter(
-        (account) => account.accountId !== accountToDelete.accountId
-      )
-    );
-  };
-
   return (
     <div>
       <Table
         title="Danh sách tài khoản"
+        subtitle="tài khoản"
         columns={formattedColumns}
         data={accounts}
         addFields={addAccountFields}
-        onAddNew={handleAddNewAccount}
-        onDelete={handleDeleteAccount}
       />
     </div>
   );

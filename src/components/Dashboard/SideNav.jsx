@@ -2,11 +2,7 @@ import React, { useState, useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import logo from "@/assets/logo.png";
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/24/outline";
-import {
-  MdLogout,
-  MdOutlineZoomInMap,
-  MdOutlineZoomOutMap,
-} from "react-icons/md";
+import { MdLogout, MdOutlineMenu } from "react-icons/md";
 
 const SideNav = ({ menuItems, onLogout, onToggle }) => {
   const [openSubmenu, setOpenSubmenu] = useState({});
@@ -65,11 +61,7 @@ const SideNav = ({ menuItems, onLogout, onToggle }) => {
           className="absolute top-5 -right-4 bg-white border border-gray-200 rounded-full p-2 shadow-md z-10"
           aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
-          {isCollapsed ? (
-            <MdOutlineZoomOutMap className="h-4 w-4 text-gray-600" />
-          ) : (
-            <MdOutlineZoomInMap className="h-4 w-4 text-gray-600" />
-          )}
+          <MdOutlineMenu className="h-4 w-4 text-gray-600" />
         </button>
         <div className="px-6 py-4 border-b border-gray-300 flex items-center justify-center">
           {isCollapsed ? (
