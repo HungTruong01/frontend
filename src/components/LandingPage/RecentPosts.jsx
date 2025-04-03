@@ -1,15 +1,11 @@
 import React from "react";
 
 const recentPosts = [
-    "Máy hàn miệng túi Hualian FRM-980II",
-    "Máy ép cos thủy lực dùng pin mini Changyou CM-300",
-    "Hbs-380d Máy đánh dấu DOT Peen di động",
-    "Máy giũa Marathon M3 3500 RPM",
-    "Thước đo điện tử Dasqua 0-300mmx0.01",
-    "Đầm rung khí nén FP-100-M",
-    "Búa rung khí nén GT8",
-    "Máy khoan taro SWJ-12",
-    "Kìm hàn đa năng N1WP50",
+    "Hướng dẫn sử dụng máy đóng gói thực phẩm tự động",
+    "Máy sấy thực phẩm hiệu quả trong ngành xuất nhập khẩu",
+    "Quy trình kiểm tra chất lượng thực phẩm nhập khẩu",
+    "Giới thiệu máy hút chân không bảo quản thực phẩm",
+    "Phương pháp bảo quản thực phẩm tươi trong quá trình vận chuyển",
 ];
 
 const RecentPosts = () => {
