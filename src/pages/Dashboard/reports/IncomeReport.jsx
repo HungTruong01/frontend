@@ -189,21 +189,6 @@ const IncomeReport = () => {
                   </tr>
                 ))}
               </tbody>
-              {/* Dòng tổng cộng */}
-              <tfoot>
-                <tr className="bg-gray-100 font-semibold">
-                  <td className="py-3 px-4 text-sm text-gray-800">Tổng cộng</td>
-                  <td className="py-3 px-4 text-sm text-gray-800 text-right">
-                    {totalIncome.toLocaleString()}
-                  </td>
-                  <td className="py-3 px-4 text-sm text-gray-800 text-right">
-                    {totalExpense.toLocaleString()}
-                  </td>
-                  <td className="py-3 px-4 text-sm text-gray-800 text-right">
-                    {netProfit.toLocaleString()}
-                  </td>
-                </tr>
-              </tfoot>
             </table>
           </div>
         </div>

@@ -109,7 +109,6 @@ const EditOrder = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // TODO: Gọi API để cập nhật đơn hàng
     console.log("Cập nhật đơn hàng:", {
       id,
       partnerId: selectedPartner,

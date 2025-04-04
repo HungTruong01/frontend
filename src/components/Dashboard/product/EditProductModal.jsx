@@ -13,7 +13,7 @@ const EditProductModal = ({ isOpen, onClose, onSubmit, product }) => {
   });
 
   const productTypes = ["Thực phẩm"];
-  const productUnits = ["Kg", "Chai", "Hộp", "Gói"];
+  const productUnits = ["Kg", "Chai", "Hộp", "Gói", "Vỉ"];
 
   useEffect(() => {
     if (product) {

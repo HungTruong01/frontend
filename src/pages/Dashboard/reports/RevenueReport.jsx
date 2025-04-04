@@ -155,21 +155,6 @@ const RevenueReport = () => {
                 </tr>
               ))}
             </tbody>
-            {/* Dòng tổng cộng */}
-            <tfoot>
-              <tr className="bg-gray-100 font-semibold">
-                <td className="py-3 px-4 text-sm text-gray-800">Tổng cộng</td>
-                <td className="py-3 px-4 text-sm text-gray-800 text-right">
-                  {totalRevenue.toLocaleString()}
-                </td>
-                <td className="py-3 px-4 text-sm text-gray-800 text-right">
-                  {totalProfit.toLocaleString()}
-                </td>
-                <td className="py-3 px-4 text-sm text-gray-800 text-right">
-                  {profitMargin}%
-                </td>
-              </tr>
-            </tfoot>
           </table>
         </div>
       </div>

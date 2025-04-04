@@ -19,14 +19,13 @@ const ListProduct = () => {
 
   const [products, setProducts] = useState([
     {
-      id: "SP004",
-      name: "Gạo ST25",
-      description: "Gạo thơm ST25 đạt giải nhất thế giới",
+      id: "SP006",
+      name: "Trứng gà",
+      description: "Trứng gà ta tươi ngon, giàu dinh dưỡng",
       price: 35000,
-      stock: 200,
+      stock: 80,
       type: "Thực phẩm",
-      unit: "Kg",
-      status: "Còn hàng",
+      unit: "Vỉ",
     },
     {
       id: "SP007",
@@ -36,7 +35,24 @@ const ListProduct = () => {
       stock: 150,
       type: "Thực phẩm",
       unit: "Chai",
-      status: "Còn hàng",
+    },
+    {
+      id: "SP008",
+      name: "Mì ăn liền Hảo Hảo",
+      description: "Mì tôm chua cay thơm ngon, thương hiệu nổi tiếng",
+      price: 5000,
+      stock: 150,
+      type: "Thực phẩm",
+      unit: "Gói",
+    },
+    {
+      id: "SP009",
+      name: "Sữa tươi Vinamilk không đường",
+      description: "Sữa tươi thanh trùng tốt cho sức khỏe",
+      price: 32000,
+      stock: 300,
+      type: "Thực phẩm",
+      unit: "Hộp",
     },
     {
       id: "SP010",
@@ -46,7 +62,6 @@ const ListProduct = () => {
       stock: 0,
       type: "Thực phẩm",
       unit: "Chai",
-      status: "Hết hàng",
     },
   ]);
 
@@ -145,6 +160,20 @@ const ListProduct = () => {
               />
               <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             </div>
+            <div className="w-48">
+              <select
+                value={searchType}
+                onChange={(e) => setSearchType(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">Loại sản phẩm</option>
+                {productTypes.map((type) => (
+                  <option key={type} value={type}>
+                    {type}
+                  </option>
+                ))}
+              </select>
+            </div>
             <button
               onClick={handleAddClick}
               className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
@@ -152,43 +181,6 @@ const ListProduct = () => {
               <FaPlus className="h-5 w-5 mr-2" />
               Thêm mới
             </button>
-          </div>
-        </div>
-
-        <div className="flex items-center space-x-4 mb-6">
-          <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Trạng thái sản phẩm
-            </label>
-            <select
-              value={searchStatus}
-              onChange={(e) => setSearchStatus(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">Tất cả</option>
-              {productStatuses.map((status) => (
-                <option key={status} value={status}>
-                  {status}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Loại sản phẩm
-            </label>
-            <select
-              value={searchType}
-              onChange={(e) => setSearchType(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">Tất cả</option>
-              {productTypes.map((type) => (
-                <option key={type} value={type}>
-                  {type}
-                </option>
-              ))}
-            </select>
           </div>
         </div>
 

@@ -9,9 +9,17 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
     partnerName: "",
     invoiceTypeId: 1,
     note: "",
-    paidAmount: "", // Thêm số tiền trả
+    paidAmount: "",
     invoiceDetails: [],
+    // Thêm thông tin đối tác để có thể chỉnh sửa
+    partner: {
+      name: "",
+      phone: "",
+      email: "",
+      address: "",
+    },
   });
+
   const mockOrderData = {
     orderId: "001",
     orderDate: "25-03-2025",
@@ -44,6 +52,7 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
     paymentStatus: "Chưa thanh toán",
     paidAmount: 0,
   };
+
   useEffect(() => {
     if (invoice) {
       setFormData({
@@ -53,8 +62,15 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
         partnerName: invoice.partnerName,
         invoiceTypeId: invoice.invoiceTypeId,
         note: invoice.note || "",
-        paidAmount: invoice.paidAmount || "", // Thêm số tiền trả từ invoice
+        paidAmount: invoice.paidAmount || "",
         invoiceDetails: invoice.invoiceDetails || [],
+        // Khởi tạo thông tin đối tác từ mockOrderData khi modal mở
+        partner: {
+          name: mockOrderData.partner.name,
+          phone: mockOrderData.partner.phone,
+          email: mockOrderData.partner.email,
+          address: mockOrderData.partner.address,
+        },
       });
     }
   }, [invoice]);
@@ -77,6 +93,18 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
+  };
+
+  // Xử lý thay đổi thông tin đối tác
+  const handlePartnerChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      partner: {
+        ...prev.partner,
+        [name]: value,
+      },
+    }));
   };
 
   const handleDetailChange = (index, field, value) => {
@@ -166,30 +194,62 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
                 </div>
               </div>
 
+              {/* Phần thông tin đối tác đã được chuyển thành form có thể chỉnh sửa */}
               <div className="border border-gray-200 p-6 rounded-xl">
                 <div className="flex items-center mb-4">
                   <h3 className="text-lg font-semibold text-gray-800">
                     Thông tin đối tác
                   </h3>
                 </div>
-                <div className="grid grid-cols-3 space-y-3">
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <span className="text-gray-600">Tên đối tác:</span>
-                    <p className="font-medium">{mockOrderData.partner.name}</p>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Tên đối tác <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.partner.name}
+                      onChange={handlePartnerChange}
+                      className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
+                      required
+                    />
                   </div>
                   <div>
-                    <span className="text-gray-600">Số điện thoại:</span>
-                    <p className="font-medium">{mockOrderData.partner.phone}</p>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Số điện thoại
+                    </label>
+                    <input
+                      type="text"
+                      name="phone"
+                      value={formData.partner.phone}
+                      onChange={handlePartnerChange}
+                      className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
+                    />
                   </div>
                   <div>
-                    <span className="text-gray-600">Email:</span>
-                    <p className="font-medium">{mockOrderData.partner.email}</p>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.partner.email}
+                      onChange={handlePartnerChange}
+                      className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
+                    />
                   </div>
                   <div>
-                    <span className="text-gray-600">Địa chỉ:</span>
-                    <p className="font-medium">
-                      {mockOrderData.partner.address}
-                    </p>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Địa chỉ
+                    </label>
+                    <input
+                      type="text"
+                      name="address"
+                      value={formData.partner.address}
+                      onChange={handlePartnerChange}
+                      className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
+                    />
                   </div>
                 </div>
               </div>

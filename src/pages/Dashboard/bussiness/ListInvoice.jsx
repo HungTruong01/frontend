@@ -19,7 +19,7 @@ const ListInvoice = () => {
     {
       id: "HD001",
       totalAmount: 1500000,
-      date: "31-03-2025",
+      date: "31/03/2025",
       partnerName: "Nguyễn Văn A",
       invoiceTypeId: 1,
       note: "Hóa đơn bán hàng tháng 3",
@@ -33,7 +33,7 @@ const ListInvoice = () => {
     {
       id: "HD002",
       totalAmount: 2500000,
-      date: "30-03-2025",
+      date: "30/03/2025",
       partnerName: "Phạm Tiến Mạnh",
       invoiceTypeId: 2,
       note: "Hóa đơn mua hàng tháng 3",
@@ -47,7 +47,7 @@ const ListInvoice = () => {
     {
       id: "HD003",
       totalAmount: 1800000,
-      date: "29-03-2025",
+      date: "29/03/2025",
       partnerName: "Nguyễn Trung Đức",
       invoiceTypeId: 1,
       note: "Hóa đơn bán hàng tháng 3",
@@ -55,6 +55,34 @@ const ListInvoice = () => {
         {
           orderCode: "DH003",
           amount: 1800000,
+        },
+      ],
+    },
+    {
+      id: "HD004",
+      totalAmount: 1500000,
+      date: "31/03/2025",
+      partnerName: "Phạm Thị Hằng",
+      invoiceTypeId: 1,
+      note: "Hóa đơn bán hàng tháng 3",
+      invoiceDetails: [
+        {
+          orderCode: "DH001",
+          amount: 1500000,
+        },
+      ],
+    },
+    {
+      id: "HD005",
+      totalAmount: 1500000,
+      date: "31/03/2025",
+      partnerName: "Nguyễn Văn Hưng",
+      invoiceTypeId: 1,
+      note: "Hóa đơn bán hàng tháng 2",
+      invoiceDetails: [
+        {
+          orderCode: "DH001",
+          amount: 1500000,
         },
       ],
     },
@@ -163,10 +191,6 @@ const ListInvoice = () => {
               Danh sách hóa đơn
             </h1>
             <div className="flex items-center space-x-4">
-              <button className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
-                <FiUpload className="h-5 w-5 mr-2" />
-                Xuất file
-              </button>
               <button
                 onClick={handleAddClick}
                 className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"

@@ -78,20 +78,18 @@ const AddOrder = () => {
 
   return (
     <div className="w-full bg-white shadow-lg rounded-lg overflow-hidden">
-      {/* Modal thêm đối tác */}
       <AddPartnerModal
         isOpen={isPartnerModalOpen}
         onClose={() => setIsPartnerModalOpen(false)}
         onSubmit={handleAddPartner}
       />
 
-      {/* Modal chọn sản phẩm */}
       <ProductSelectionModal
         isOpen={isProductModalOpen}
         onClose={() => setIsProductModalOpen(false)}
         onSelect={handleProductSelect}
         selectedProducts={orderItems}
-        orderType={orderType} // Truyền loại đơn hàng vào modal
+        orderType={orderType}
       />
       <div className="p-6">
         <div className="flex items-center mb-6">
@@ -143,7 +141,7 @@ const AddOrder = () => {
               </label>
               <select
                 value={orderType}
-                onChange={(e) => setOrderType(e.target.value)} // Cập nhật loại đơn hàng khi người dùng thay đổi
+                onChange={(e) => setOrderType(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="import">Đơn mua</option>
@@ -152,7 +150,6 @@ const AddOrder = () => {
             </div>
           </div>
 
-          {/* Danh sách sản phẩm */}
           <div className="mt-8">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-semibold text-gray-800">

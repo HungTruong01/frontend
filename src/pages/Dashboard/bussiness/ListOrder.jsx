@@ -16,7 +16,7 @@ const ListOrder = () => {
     {
       id: "001",
       orderCode: "DH001",
-      createdAt: "25-03-2025",
+      createdAt: "25/03/2025",
       totalAmount: 1800000,
       paymentAmount: 1000000,
       partner: "Nguyễn Văn A",
@@ -27,7 +27,7 @@ const ListOrder = () => {
     {
       id: "002",
       orderCode: "DH002",
-      createdAt: "26-03-2025",
+      createdAt: "26/03/2025",
       totalAmount: 2000000,
       paymentAmount: 1000000,
       partner: "Nguyễn Văn B",
@@ -38,7 +38,7 @@ const ListOrder = () => {
     {
       id: "003",
       orderCode: "DH003",
-      createdAt: "27-03-2025",
+      createdAt: "27/03/2025",
       totalAmount: 1500000,
       paymentAmount: 1000000,
       partner: "Nguyễn Văn C",
@@ -49,7 +49,7 @@ const ListOrder = () => {
     {
       id: "004",
       orderCode: "DH004",
-      createdAt: "28-03-2025",
+      createdAt: "28/03/2025",
       totalAmount: 1100000,
       paymentAmount: 1000000,
       partner: "Nguyễn Văn D",
@@ -60,7 +60,7 @@ const ListOrder = () => {
     {
       id: "005",
       orderCode: "DH005",
-      createdAt: "29-03-2025",
+      createdAt: "29/03/2025",
       totalAmount: 2500000,
       paymentAmount: 1000000,
       partner: "Nguyễn Văn E",
@@ -71,7 +71,7 @@ const ListOrder = () => {
     {
       id: "006",
       orderCode: "DH006",
-      createdAt: "25-03-2025",
+      createdAt: "25/03/2025",
       totalAmount: 1800000,
       paymentAmount: 1000000,
       partner: "Nguyễn Văn Hưng",

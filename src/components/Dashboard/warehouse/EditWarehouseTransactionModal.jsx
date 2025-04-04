@@ -291,9 +291,6 @@ const EditWarehouseTransactionModal = ({
                       <th className="px-4 py-3 text-center text-sm font-semibold text-gray-600">
                         Số lượng
                       </th>
-                      <th className="px-4 py-3 text-center text-sm font-semibold text-gray-600">
-                        Thao tác
-                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -329,16 +326,6 @@ const EditWarehouseTransactionModal = ({
                               <FaPlus className="h-3 w-3" />
                             </button> */}
                           </div>
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          <button
-                            type="button"
-                            onClick={() => removeItem(item.id)}
-                            className="p-1 text-red-500 hover:text-red-700 hover:bg-red-100 rounded-full"
-                            title="Xóa sản phẩm"
-                          >
-                            <FaTrash className="h-4 w-4" />
-                          </button>
                         </td>
                       </tr>
                     ))}

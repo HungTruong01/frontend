@@ -123,7 +123,7 @@ const DebtReport = () => {
               {totalPayables.toLocaleString()} VND
             </p>
           </div>
-          {/* <div className="bg-white p-4 rounded-lg shadow-md">
+          <div className="bg-white p-4 rounded-lg shadow-md">
             <h3 className="text-sm font-medium text-gray-600">Công nợ ròng</h3>
             <p
               className={`text-2xl font-semibold ${
@@ -132,7 +132,7 @@ const DebtReport = () => {
             >
               {netDebt.toLocaleString()} VND
             </p>
-          </div> */}
+          </div>
         </div>
 
         {/* Bảng tổng hợp công nợ */}

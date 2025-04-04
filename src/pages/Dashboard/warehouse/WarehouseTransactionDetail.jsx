@@ -69,12 +69,6 @@ const WarehouseTransactionDetail = () => {
             Chi tiết giao dịch kho
           </h1>
         </div>
-        <div className="flex items-center space-x-3">
-          <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
-            <FaEdit className="h-4 w-4" />
-            <span>Chỉnh sửa</span>
-          </button>
-        </div>
       </div>
 
       <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -149,7 +143,6 @@ const WarehouseTransactionDetail = () => {
                 </th>
                 <th className="py-3 px-6 text-right font-semibold">Số lượng</th>
                 <th className="py-3 px-6 text-left font-semibold">Đơn vị</th>
-                <th className="py-3 px-6 text-left font-semibold">Ghi chú</th>
               </tr>
             </thead>
             <tbody>
@@ -172,9 +165,6 @@ const WarehouseTransactionDetail = () => {
                   </td>
                   <td className="py-4 px-6 text-sm text-gray-600">
                     {item.unit}
-                  </td>
-                  <td className="py-4 px-6 text-sm text-gray-600">
-                    {item.note || "-"}
                   </td>
                 </tr>
               ))}
