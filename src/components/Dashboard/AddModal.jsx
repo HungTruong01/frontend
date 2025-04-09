@@ -1,7 +1,18 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaTimes } from "react-icons/fa";
+
 const AddModal = ({ isOpen, onClose, onSubmit, fields, title }) => {
   const [formData, setFormData] = useState({});
+
+  useEffect(() => {
+    if (isOpen) {
+      const initialData = fields.reduce((acc, field) => {
+        acc[field.key] = field.defaultValue || "";
+        return acc;
+      }, {});
+      setFormData(initialData);
+    }
+  }, [isOpen, fields]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -41,7 +52,8 @@ const AddModal = ({ isOpen, onClose, onSubmit, fields, title }) => {
                 htmlFor={field.key}
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
-                {field.label}
+                {field.label}{" "}
+                {field.required && <span className="text-red-500">*</span>}
               </label>
               {field.type === "select" ? (
                 <select
@@ -52,7 +64,7 @@ const AddModal = ({ isOpen, onClose, onSubmit, fields, title }) => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
                   required={field.required}
                 >
-                  <option value="">Chọn {field.label}</option>
+                  <option value="">{`Chọn ${field.label}`}</option>
                   {field.options.map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.label}
@@ -66,7 +78,7 @@ const AddModal = ({ isOpen, onClose, onSubmit, fields, title }) => {
                   name={field.key}
                   value={formData[field.key] || ""}
                   onChange={handleChange}
-                  placeholder={`Nhập ${field.label}`}
+                  placeholder={field.placeholder || `Nhập ${field.label}`}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
                   required={field.required}
                   min={field.type === "number" ? field.min : undefined}

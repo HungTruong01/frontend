@@ -1,11 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  FaSearch,
-  FaEye,
-  FaRegEdit,
-  FaRegTrashAlt,
-  FaPlus,
-} from "react-icons/fa";
+import { FaSearch, FaEye, FaRegEdit, FaPlus } from "react-icons/fa";
 import { partnerApi } from "@/api/partnerApi";
 import AddPartnerModal from "@/components/Dashboard/partner/AddPartnerModal";
 import EditPartnerModal from "@/components/Dashboard/partner/EditPartnerModal";
@@ -131,12 +125,7 @@ const ListPartner = () => {
   );
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "decimal", // Chỉ lấy phần số, không thêm ký hiệu tiền tệ mặc định
-      minimumFractionDigits: 0, // Không hiển thị số thập phân nếu không cần
-    })
-      .format(amount)
-      .concat(" VNĐ");
+    return new Intl.NumberFormat("vi-VN").format(amount);
   };
 
   return (

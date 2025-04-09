@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { FaTimes, FaUpload } from "react-icons/fa";
 import { useQuill } from "react-quilljs";
 import "quill/dist/quill.snow.css";
-import service2 from "@/assets/service2.jpg"; // Placeholder image
+import imagenotfound from "@/assets/imagenotfound.jpg";
 
 const EditPostModal = ({ isOpen, onClose, post, onSubmit }) => {
   const { quill, quillRef } = useQuill({
@@ -41,7 +41,7 @@ const EditPostModal = ({ isOpen, onClose, post, onSubmit }) => {
         title: post.title || "",
         content: post.content || "",
         thumbnail: post.thumbnail || "",
-        posted_at: post.posted_at || "",
+        posted_at: post.posted_at || post.postedAt || "",
         updated_at: new Date().toLocaleDateString("en-GB").split("/").join("-"),
       });
       setFilePreview(post.thumbnail || null);
@@ -65,7 +65,7 @@ const EditPostModal = ({ isOpen, onClose, post, onSubmit }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    if (name === "thumbnail") {
+    if (name === "thumbnail" && !e.target.files) {
       setFilePreview(value);
     }
   };
@@ -88,20 +88,22 @@ const EditPostModal = ({ isOpen, onClose, post, onSubmit }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    const submitData = {
+      ...formData,
+      thumbnailFile: fileInputRef.current?.files[0] || null,
+    };
+    onSubmit(submitData);
   };
 
-  // Xử lý khi ảnh lỗi
   const handleImageError = (e) => {
-    e.target.src =
-      "https://via.placeholder.com/280x280.png?text=Không+tìm+thấy+hình+ảnh";
+    e.target.src = imagenotfound;
     e.target.classList.add("object-contain");
     e.target.classList.remove("object-cover");
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-900/70 flex items-center justify-center z-50 p-6 transition-opacity duration-500">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-5xl max-h-[95vh] flex flex-col overflow-hidden transform transition-all duration-300 scale-95 hover:scale-100">
+    <div className="fixed inset-0 bg-gray-900/70 flex items-center justify-center z-50 p-6 ">
+      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-5xl max-h-[95vh] flex flex-col overflow-hidden">
         <div className="px-8 py-5 border-b border-gray-200/50 bg-gradient-to-br from-indigo-50 to-white">
           <div className="flex justify-between items-center">
             <h2 className="text-2xl font-bold text-gray-900 tracking-wide">
@@ -109,7 +111,7 @@ const EditPostModal = ({ isOpen, onClose, post, onSubmit }) => {
             </h2>
             <button
               onClick={onClose}
-              className="text-gray-600 hover:text-indigo-600 p-2 rounded-full hover:bg-gray-100] transition-all duration-300"
+              className="text-gray-600 hover:text-indigo-600 p-2 rounded-full hover:bg-gray-100 "
             >
               <FaTimes className="h-6 w-6" />
             </button>
@@ -124,12 +126,11 @@ const EditPostModal = ({ isOpen, onClose, post, onSubmit }) => {
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               Mã bài đăng
             </label>
-            <div className="px-4 py-2 bg-gray-100] rounded-xl text-black font-mono text-sm shadow-inner">
+            <div className="px-4 py-2 bg-gray-100 rounded-xl text-black font-mono text-sm shadow-inner">
               #{formData.id}
             </div>
           </div>
 
-          {/* Title */}
           <div className="mb-6">
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               Tiêu đề
@@ -139,7 +140,7 @@ const EditPostModal = ({ isOpen, onClose, post, onSubmit }) => {
               name="title"
               value={formData.title || ""}
               onChange={handleChange}
-              className="w-full px-4 py-3 bg-gray-100] rounded-xl text-gray-900 text-base shadow-inner focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 transition-all duration-300"
+              className="w-full px-4 py-3 bg-gray-100 rounded-xl text-gray-900 text-base shadow-inner focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 transition-all duration-300"
               placeholder="Nhập tiêu đề bài đăng"
               required
             />
@@ -157,7 +158,7 @@ const EditPostModal = ({ isOpen, onClose, post, onSubmit }) => {
                     name="thumbnail"
                     value={formData.thumbnail || ""}
                     onChange={handleChange}
-                    className="flex-1 px-4 py-3 bg-gray-100] rounded-l-xl text-gray-900 shadow-inner focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 transition-all duration-300"
+                    className="flex-1 px-4 py-3 bg-gray-100 rounded-l-xl text-gray-900 shadow-inner focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 transition-all duration-300"
                     placeholder="Nhập URL ảnh hoặc video"
                   />
                   <button
@@ -176,12 +177,16 @@ const EditPostModal = ({ isOpen, onClose, post, onSubmit }) => {
                   />
                 </div>
                 <div className="relative w-full h-[280px] rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center">
-                  <img
-                    src={service2}
-                    alt="Ảnh dịch vụ"
-                    className="w-full h-full object-contain"
-                    onError={handleImageError}
-                  />
+                  {filePreview ? (
+                    <img
+                      src={filePreview}
+                      alt="Thumbnail preview"
+                      className="w-full h-full object-cover"
+                      onError={handleImageError}
+                    />
+                  ) : (
+                    <span className="text-gray-500">Chưa có ảnh được chọn</span>
+                  )}
                 </div>
               </div>
             </div>
@@ -190,30 +195,29 @@ const EditPostModal = ({ isOpen, onClose, post, onSubmit }) => {
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Nội dung
               </label>
-              <div className="border-2 border-indigo-100 rounded-xl overflow-hidden shadow-inner bg-gray-100]">
+              <div className="border-2 border-indigo-100 rounded-xl overflow-hidden shadow-inner bg-gray-100">
                 <div
                   ref={quillRef}
-                  className="h-[280px] overflow-y-auto scrollbar-thin scrollbar-thumb-indigo-200 scrollbar-track-indigo-50"
+                  className="h-[200px] overflow-y-auto scrollbar-thin scrollbar-thumb-indigo-200 scrollbar-track-indigo-50"
                 />
               </div>
             </div>
           </div>
         </form>
 
-        {/* Footer */}
         <div className="px-8 py-5 bg-gradient-to-br from-indigo-50 to-white rounded-b-3xl border-t border-gray-200/50">
           <div className="flex justify-end space-x-4">
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-2 bg-gradient-to-r from-gray-400 to-gray-500 text-white rounded-xl hover:from-gray-500 hover:to-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition-all duration-300 shadow-md hover:shadow-lg"
+              className="px-6 py-2 border border-gray-300 rounded-xl cursor-pointer"
             >
               Hủy
             </button>
             <button
               type="submit"
               onClick={handleSubmit}
-              className="px-6 py-2 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-xl hover:from-indigo-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 transition-all duration-300 shadow-md hover:shadow-lg"
+              className="px-6 py-2 bg-blue-600 text-white rounded-xl cursor-pointer"
             >
               Lưu
             </button>

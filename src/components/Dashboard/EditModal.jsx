@@ -1,10 +1,17 @@
 import React, { useState, useEffect } from "react";
 
-const EditModal = ({ isOpen, onClose, fields, initialData, title }) => {
+const EditModal = ({
+  isOpen,
+  onClose,
+  fields,
+  initialData,
+  title,
+  onSubmit,
+}) => {
   const [formData, setFormData] = useState({});
 
   useEffect(() => {
-    if (initialData) {
+    if (initialData && isOpen) {
       setFormData({ ...initialData });
     }
   }, [initialData, isOpen]);
@@ -16,7 +23,7 @@ const EditModal = ({ isOpen, onClose, fields, initialData, title }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Dữ liệu đã chỉnh sửa:", formData);
+    onSubmit(formData);
     onClose();
   };
 
@@ -28,22 +35,48 @@ const EditModal = ({ isOpen, onClose, fields, initialData, title }) => {
         <h2 className="text-xl font-bold mb-4">{title}</h2>
         <form onSubmit={handleSubmit}>
           {fields.map((field) => (
-            <div key={field.id} className="mb-4">
+            <div key={field.id || field.key} className="mb-4">
               <label
-                htmlFor={field.id}
+                htmlFor={field.id || field.key}
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
                 {field.label}
               </label>
-              <input
-                type={field.type || "text"}
-                id={field.id}
-                name={field.id}
-                value={formData[field.id] || ""}
-                onChange={handleChange}
-                disabled={field.id.startsWith("Mã") || field.id === "Ngày tạo"}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500"
-              />
+              {field.type === "select" ? (
+                <select
+                  id={field.id || field.key}
+                  name={field.id || field.key}
+                  value={formData[field.id || field.key] || ""}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {field.options.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              ) : field.id === "id" || field.key === "id" ? (
+                <input
+                  type="text"
+                  id={field.id || field.key}
+                  name={field.id || field.key}
+                  value={formData[field.id || field.key] || ""}
+                  disabled={true}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-500"
+                />
+              ) : (
+                <input
+                  type={field.type || "text"}
+                  id={field.id || field.key}
+                  name={field.id || field.key}
+                  value={formData[field.id || field.key] || ""}
+                  onChange={handleChange}
+                  disabled={field.disabled}
+                  placeholder={field.placeholder || ""}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500"
+                />
+              )}
             </div>
           ))}
           <div className="flex justify-end space-x-3 mt-6">

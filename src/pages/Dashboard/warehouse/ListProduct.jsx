@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FiSearch } from "react-icons/fi";
 import { FaRegTrashAlt, FaEye, FaEdit, FaPlus } from "react-icons/fa";
-import AddProductModal from "../../../components/Dashboard/product/AddProductModal";
-import EditProductModal from "../../../components/Dashboard/product/EditProductModal";
-import ProductDetailModal from "../../../components/Dashboard/product/ProductDetailModal";
+import AddProductModal from "@/components/Dashboard/product/AddProductModal";
+import EditProductModal from "@/components/Dashboard/product/EditProductModal";
+import ProductDetailModal from "@/components/Dashboard/product/ProductDetailModal";
+import { getAllProducts } from "@/api/productApi";
 
 const ListProduct = () => {
   const [itemsPerPage] = useState(10);
@@ -16,54 +17,68 @@ const ListProduct = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [products, setProducts] = useState([]);
 
-  const [products, setProducts] = useState([
-    {
-      id: "SP006",
-      name: "Trứng gà",
-      description: "Trứng gà ta tươi ngon, giàu dinh dưỡng",
-      price: 35000,
-      stock: 80,
-      type: "Thực phẩm",
-      unit: "Vỉ",
-    },
-    {
-      id: "SP007",
-      name: "Nước mắm Phú Quốc 40 độ đạm",
-      description: "Nước mắm truyền thống được ủ từ cá cơm tươi",
-      price: 95000,
-      stock: 150,
-      type: "Thực phẩm",
-      unit: "Chai",
-    },
-    {
-      id: "SP008",
-      name: "Mì ăn liền Hảo Hảo",
-      description: "Mì tôm chua cay thơm ngon, thương hiệu nổi tiếng",
-      price: 5000,
-      stock: 150,
-      type: "Thực phẩm",
-      unit: "Gói",
-    },
-    {
-      id: "SP009",
-      name: "Sữa tươi Vinamilk không đường",
-      description: "Sữa tươi thanh trùng tốt cho sức khỏe",
-      price: 32000,
-      stock: 300,
-      type: "Thực phẩm",
-      unit: "Hộp",
-    },
-    {
-      id: "SP010",
-      name: "Dầu ăn cao cấp Tường An",
-      description: "Dầu ăn nguyên chất từ cây mè, tốt cho sức khỏe",
-      price: 85000,
-      stock: 0,
-      type: "Thực phẩm",
-      unit: "Chai",
-    },
-  ]);
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await getAllProducts(0, 100, "id", "asc");
+        console.log("product data", response.data.content);
+        setProducts(response.data.content);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  // const [products, setProducts] = useState([
+  //   {
+  //     id: "SP006",
+  //     name: "Trứng gà",
+  //     description: "Trứng gà ta tươi ngon, giàu dinh dưỡng",
+  //     price: 35000,
+  //     stock: 80,
+  //     type: "Thực phẩm",
+  //     unit: "Vỉ",
+  //   },
+  //   {
+  //     id: "SP007",
+  //     name: "Nước mắm Phú Quốc 40 độ đạm",
+  //     description: "Nước mắm truyền thống được ủ từ cá cơm tươi",
+  //     price: 95000,
+  //     stock: 150,
+  //     type: "Thực phẩm",
+  //     unit: "Chai",
+  //   },
+  //   {
+  //     id: "SP008",
+  //     name: "Mì ăn liền Hảo Hảo",
+  //     description: "Mì tôm chua cay thơm ngon, thương hiệu nổi tiếng",
+  //     price: 5000,
+  //     stock: 150,
+  //     type: "Thực phẩm",
+  //     unit: "Gói",
+  //   },
+  //   {
+  //     id: "SP009",
+  //     name: "Sữa tươi Vinamilk không đường",
+  //     description: "Sữa tươi thanh trùng tốt cho sức khỏe",
+  //     price: 32000,
+  //     stock: 300,
+  //     type: "Thực phẩm",
+  //     unit: "Hộp",
+  //   },
+  //   {
+  //     id: "SP010",
+  //     name: "Dầu ăn cao cấp Tường An",
+  //     description: "Dầu ăn nguyên chất từ cây mè, tốt cho sức khỏe",
+  //     price: 85000,
+  //     stock: 0,
+  //     type: "Thực phẩm",
+  //     unit: "Chai",
+  //   },
+  // ]);
 
   const productTypes = ["Thực phẩm"];
   const productStatuses = ["Còn hàng", "Hết hàng"];
@@ -118,10 +133,7 @@ const ListProduct = () => {
   };
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(amount);
+    return new Intl.NumberFormat("vi-VN").format(amount);
   };
 
   return (
@@ -205,7 +217,7 @@ const ListProduct = () => {
                 </th>
                 <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700">
                   <div className="flex items-center justify-center space-x-1">
-                    <span>Tồn kho</span>
+                    <span>Số lượng</span>
                   </div>
                 </th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
@@ -243,13 +255,19 @@ const ListProduct = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-center">
-                    <div className="text-sm text-gray-900">{product.stock}</div>
+                    <div className="text-sm text-gray-900">
+                      {product.quantity}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{product.type}</div>
+                    <div className="text-sm text-gray-900 text-center">
+                      {product.productTypeId}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{product.unit}</div>
+                    <div className="text-sm text-gray-900 text-center">
+                      {product.productUnitId}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-center">
                     <div className="flex justify-center space-x-3">

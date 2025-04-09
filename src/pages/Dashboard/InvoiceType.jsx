@@ -1,21 +1,66 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Table from "@/components/Dashboard/Table";
-import { invoiceTypeTableData, invoiceTypeColumns } from "@/data/InvoiceType";
+import {
+  getAllInvoiceTypes,
+  createInvoiceType,
+  updateInvoiceType,
+  deleteInvoiceType,
+} from "@/api/invoiceTypeApi";
 const InvoiceType = () => {
-  const [invoiceType, setInvoiceType] = useState(invoiceTypeTableData);
+  const [invoiceType, setInvoiceType] = useState([]);
   const addAccountFields = [
     {
-      key: "invoiceType",
+      key: "name",
       label: "Loại hoá đơn",
       type: "text",
       required: true,
       placeholder: "Nhập loại hoá đơn",
     },
   ];
-  const formattedColumns = invoiceTypeColumns.map((col) => ({
-    key: col,
-    label: col.charAt(0).toUpperCase() + col.slice(1),
-  }));
+  const invoiceTypeColumns = [
+    { key: "id", label: "ID" },
+    { key: "name", label: "Loại hoá đơn" },
+  ];
+  const fetchInvoiceType = async () => {
+    try {
+      const response = await getAllInvoiceTypes();
+      // console.log("API response:", response);
+      setInvoiceType(response.content);
+    } catch (error) {
+      console.error("Lỗi khi lấy danh sách loại hoá đơn:", error);
+    }
+  };
+
+  const handleAddInvoiceType = async (newInvoiceType) => {
+    try {
+      await createInvoiceType(newInvoiceType);
+      fetchInvoiceType();
+    } catch (error) {
+      console.error("Lỗi khi thêm loại hoá đơn:", error);
+    }
+  };
+
+  const handleEditInvoiceType = async (updatedInvoiceType) => {
+    try {
+      await updateInvoiceType(updatedInvoiceType.id, updatedInvoiceType);
+      fetchInvoiceType();
+    } catch (error) {
+      console.log("Lỗi khi cập nhật loại hoá đơn:", error);
+    }
+  };
+
+  const handleDeleteInvoiceType = async (invoiceType) => {
+    try {
+      await deleteInvoiceType(invoiceType.id);
+      fetchInvoiceType();
+    } catch (error) {
+      console.log("Lỗi khi xóa loại hoá đơn:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchInvoiceType();
+  }, []);
   return (
     <div>
       <Table
@@ -23,7 +68,10 @@ const InvoiceType = () => {
         subtitle={"loại hoá đơn"}
         addFields={addAccountFields}
         data={invoiceType}
-        columns={formattedColumns}
+        columns={invoiceTypeColumns}
+        onAdd={handleAddInvoiceType}
+        onEdit={handleEditInvoiceType}
+        onDelete={handleDeleteInvoiceType}
       />
     </div>
   );

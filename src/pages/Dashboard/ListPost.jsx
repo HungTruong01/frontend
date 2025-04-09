@@ -6,7 +6,7 @@ import {
   FaRegTrashAlt,
   FaPlus,
 } from "react-icons/fa";
-import { getPostById, getAllPosts } from "@/api/postApi";
+import { getPostById, getAllPosts, createPost } from "@/api/postApi";
 import AddPostModal from "@/components/Dashboard/post/AddPostModal";
 import EditPostModal from "@/components/Dashboard/post/EditPostModal";
 import PostDetailModal from "@/components/Dashboard/post/PostDetailModal";
@@ -19,15 +19,12 @@ const ListPost = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isToggleModalOpen, setIsToggleModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [currentPost, setCurrentPost] = useState(null);
 
   const columns = [
     { key: "id", label: "Mã bài đăng" },
     { key: "title", label: "Tiêu đề" },
-    // { key: "content", label: "Nội dung" },
-    // { key: "thumbnail", label: "Ảnh/Video" },
     { key: "posted_at", label: "Ngày đăng" },
     { key: "updated_at", label: "Ngày cập nhật" },
   ];
@@ -62,9 +59,31 @@ const ListPost = () => {
 
   const handleAddNew = async (newPost) => {
     try {
-      await postApi.addPost(newPost);
+      const formData = new FormData();
+      const postData = {
+        title: newPost.title,
+        content: newPost.content,
+        posted_at: newPost.posted_at,
+        updated_at: newPost.updated_at,
+      };
+      formData.append(
+        "post",
+        new Blob([JSON.stringify(postData)], { type: "application/json" })
+      );
+      if (newPost.thumbnailFile) {
+        formData.append("thumbnail", newPost.thumbnailFile);
+      }
+
+      console.log("Sending formData:", {
+        post: postData,
+        thumbnail: newPost.thumbnailFile
+          ? newPost.thumbnailFile.name
+          : "No file",
+      });
+
+      await createPost(formData);
       toast.success("Thêm bài đăng thành công");
-      await fetchPosts();
+      listPosts();
       setIsAddModalOpen(false);
     } catch (error) {
       toast.error("Không thể thêm bài đăng");
@@ -81,7 +100,7 @@ const ListPost = () => {
     try {
       const response = await postApi.updatePost(updatedPost.id, updatedPost);
       toast.success("Cập nhật bài đăng thành công");
-      await fetchPosts();
+      listPosts();
       setIsEditModalOpen(false);
       setCurrentPost(null);
     } catch (error) {
@@ -89,15 +108,14 @@ const ListPost = () => {
       console.error("Error updating post:", error.response?.data || error);
     }
   };
+
   const formatDate = (dateString) => {
-    if (!dateString) return "Invalid Date"; // Xử lý giá trị null hoặc undefined
+    if (!dateString) return "Invalid Date";
     const date = new Date(dateString);
-    if (isNaN(date.getTime())) return "Invalid Date"; // Xử lý định dạng ngày không hợp lệ
-
+    if (isNaN(date.getTime())) return "Invalid Date";
     const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0"); // Tháng trong JS bắt đầu từ 0
+    const month = String(date.getMonth() + 1).padStart(2, "0");
     const year = date.getFullYear();
-
     return `${day}/${month}/${year}`;
   };
 
@@ -111,7 +129,7 @@ const ListPost = () => {
       try {
         await postApi.deletePost(post.id);
         toast.success("Xóa bài đăng thành công");
-        fetchPosts();
+        listPosts();
       } catch (error) {
         toast.error("Không thể xóa bài đăng");
         console.error("Error deleting post:", error);
@@ -151,7 +169,7 @@ const ListPost = () => {
             setIsDetailModalOpen(false);
             setCurrentPost(null);
           }}
-          post={currentPost}
+          postId={currentPost?.id}
         />
       )}
 
@@ -161,26 +179,24 @@ const ListPost = () => {
             Danh sách bài đăng
           </h1>
           <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-4">
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Tìm theo tiêu đề..."
-                  value={searchTitle}
-                  onChange={handleSearchTitleChange}
-                  className="w-64 px-4 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                />
-                <button
-                  onClick={handleSearch}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                >
-                  <FaSearch className="h-4 w-4" />
-                </button>
-              </div>
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Tìm theo tiêu đề..."
+                value={searchTitle}
+                onChange={handleSearchTitleChange}
+                className="w-64 px-4 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              />
+              <button
+                onClick={handleSearch}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              >
+                <FaSearch className="h-4 w-4" />
+              </button>
             </div>
             <button
               onClick={() => setIsAddModalOpen(true)}
-              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
             >
               <FaPlus className="h-5 w-5 mr-2" />
               Thêm mới
@@ -206,10 +222,10 @@ const ListPost = () => {
               </tr>
             </thead>
             <tbody>
-              {posts.map((post) => (
+              {paginatedData.map((post) => (
                 <tr
                   key={post.id}
-                  className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                  className="border-b border-gray-100 hover:bg-gray-50"
                 >
                   <td className="py-3 px-4 text-left">{post.id}</td>
                   <td className="py-3 px-4 text-left">{post.title}</td>
@@ -219,26 +235,25 @@ const ListPost = () => {
                   <td className="py-3 px-4 text-left">
                     {formatDate(post.updatedAt)}
                   </td>
-
                   <td className="py-3 px-4 text-center">
                     <div className="flex justify-center space-x-3">
                       <button
                         onClick={() => handleViewDetail(post)}
-                        className="text-blue-500 hover:text-blue-700 transition-colors"
+                        className="text-blue-500 hover:text-blue-700"
                         title="Xem chi tiết"
                       >
                         <FaEye className="h-5 w-5" />
                       </button>
                       <button
                         onClick={() => handleEditClick(post)}
-                        className="text-blue-500 hover:text-blue-700 transition-colors"
+                        className="text-blue-500 hover:text-blue-700"
                         title="Sửa"
                       >
                         <FaRegEdit className="h-5 w-5" />
                       </button>
                       <button
                         onClick={() => handleDelete(post)}
-                        className="text-red-500 hover:text-red-700 transition-colors"
+                        className="text-red-500 hover:text-red-700"
                         title="Xóa"
                       >
                         <FaRegTrashAlt className="h-5 w-5" />
@@ -261,7 +276,7 @@ const ListPost = () => {
             <button
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
-              className="px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-600 hover:bg-gray-100 disabled:opacity-50 transition-all"
+              className="px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-600 hover:bg-gray-100 disabled:opacity-50"
             >
               Trước
             </button>
@@ -274,7 +289,7 @@ const ListPost = () => {
                     currentPage === i + 1
                       ? "bg-blue-600 text-white"
                       : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                  } transition-colors`}
+                  }`}
                 >
                   {i + 1}
                 </button>
@@ -285,7 +300,7 @@ const ListPost = () => {
                 setCurrentPage((prev) => Math.min(prev + 1, totalPages))
               }
               disabled={currentPage === totalPages}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 disabled:opacity-50 transition-all"
+              className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 disabled:opacity-50"
             >
               Tiếp
             </button>

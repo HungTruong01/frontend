@@ -349,3 +349,4 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
 };
 
 export default EditInvoiceModal;
+

@@ -1,29 +1,76 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Table from "@/components/Dashboard/Table";
-import { orderTypesTableData, orderTypeColumns } from "@/data";
+import {
+  getAllOrderTypes,
+  createOrderType,
+  updateOrderType,
+  deleteOrderType,
+} from "@/api/orderTypeApi";
 const TypeOrder = () => {
-  const [orderType, setOrderType] = useState(orderTypesTableData);
-  const addAccountFields = [
+  const [orderType, setOrderType] = useState([]);
+  const addOrderFields = [
     {
-      key: "orderType",
+      key: "name",
       label: "Loại đơn hàng",
       type: "text",
       required: true,
       placeholder: "Nhập loại đơn hàng",
     },
   ];
-  const formattedColumns = orderTypeColumns.map((col) => ({
-    key: col,
-    label: col.charAt(0).toUpperCase() + col.slice(1),
-  }));
+  const orderTypeColumns = [
+    { key: "id", label: "ID" },
+    { key: "name", label: "Tên loại đơn hàng" },
+  ];
+  const fetchOrderType = async () => {
+    try {
+      const response = await getAllOrderTypes();
+      console.log("API response:", response);
+      setOrderType(response.content);
+    } catch (error) {
+      console.error("Lỗi khi lấy danh sách loại đơn hàng:", error);
+    }
+  };
+
+  const handleAddOrderType = async (newOrderType) => {
+    try {
+      await createOrderType(newOrderType);
+      fetchOrderType();
+    } catch (error) {
+      console.error("Lỗi khi thêm loại đơn hàng:", error);
+    }
+  };
+
+  const handleEditOrderType = async (updatedOrderType) => {
+    try {
+      await updateOrderType(updatedOrderType.id, updatedOrderType);
+      fetchOrderType();
+    } catch (error) {
+      console.error("Lỗi khi sửa loại đơn hàng:", error);
+    }
+  };
+
+  const handleDeleteOrderType = async (orderTypeId) => {
+    try {
+      await deleteOrderType(orderTypeId.id);
+      fetchOrderType();
+    } catch (error) {
+      console.log("Xóa loại đơn hàng không thành công:", error);
+    }
+  };
+  useEffect(() => {
+    fetchOrderType();
+  }, []);
   return (
     <div>
       <Table
         title={"Loại đơn hàng"}
         subtitle={"loại đơn hàng"}
-        addFields={addAccountFields}
+        addFields={addOrderFields}
         data={orderType}
-        columns={formattedColumns}
+        columns={orderTypeColumns}
+        onAdd={handleAddOrderType}
+        onEdit={handleEditOrderType}
+        onDelete={handleDeleteOrderType}
       />
     </div>
   );

@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { FaTimes, FaUpload } from "react-icons/fa";
 import { useQuill } from "react-quilljs";
-
 import "quill/dist/quill.snow.css";
 
 const AddPostModal = ({ isOpen, onClose, onSubmit }) => {
@@ -35,9 +34,9 @@ const AddPostModal = ({ isOpen, onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
     title: "",
     content: "",
-    thumbnail: "",
-    posted_at: new Date().toLocaleDateString("en-GB").split("/").join("-"),
-    updated_at: new Date().toLocaleDateString("en-GB").split("/").join("-"),
+    thumbnailFile: null, // Lưu file ảnh thay vì URL
+    posted_at: new Date().toISOString().split("T")[0], // Định dạng yyyy-mm-dd
+    updated_at: new Date().toISOString().split("T")[0],
   });
 
   const [filePreview, setFilePreview] = useState(null);
@@ -45,12 +44,23 @@ const AddPostModal = ({ isOpen, onClose, onSubmit }) => {
   useEffect(() => {
     if (quill && isOpen) {
       quill.clipboard.dangerouslyPasteHTML(formData.content || "");
+      quill.on("text-change", () => {
+        setFormData((prev) => ({ ...prev, content: quill.root.innerHTML }));
+      });
     }
   }, [quill, isOpen]);
 
   useEffect(() => {
     if (!isOpen && quill) {
       quill.setText(""); // Reset khi modal đóng
+      setFormData({
+        title: "",
+        content: "",
+        thumbnailFile: null,
+        posted_at: new Date().toISOString().split("T")[0],
+        updated_at: new Date().toISOString().split("T")[0],
+      });
+      setFilePreview(null);
     }
   }, [isOpen, quill]);
 
@@ -62,15 +72,10 @@ const AddPostModal = ({ isOpen, onClose, onSubmit }) => {
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // For image files, create a preview URL
-      if (file.type.startsWith("image/")) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          setFilePreview(e.target.result);
-          setFormData((prev) => ({ ...prev, thumbnail: e.target.result }));
-        };
-        reader.readAsDataURL(file);
-      }
+      setFormData((prev) => ({ ...prev, thumbnailFile: file }));
+      const reader = new FileReader();
+      reader.onload = (e) => setFilePreview(e.target.result);
+      reader.readAsDataURL(file);
     }
   };
 
@@ -80,15 +85,21 @@ const AddPostModal = ({ isOpen, onClose, onSubmit }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    const submitData = {
+      title: formData.title,
+      content: formData.content,
+      thumbnailFile: formData.thumbnailFile,
+      posted_at: formData.posted_at,
+      updated_at: formData.updated_at,
+    };
+    onSubmit(submitData);
   };
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl transform transition-all max-h-[90vh] flex flex-col">
-        {/* Header */}
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
         <div className="px-6 py-4 border-b border-gray-200">
           <div className="flex justify-between items-center">
             <h2 className="text-xl font-bold text-gray-800">
@@ -104,7 +115,6 @@ const AddPostModal = ({ isOpen, onClose, onSubmit }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 flex-1 overflow-y-auto">
-          {/* Title input */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Tiêu đề
@@ -114,87 +124,68 @@ const AddPostModal = ({ isOpen, onClose, onSubmit }) => {
               name="title"
               value={formData.title}
               onChange={handleChange}
-              className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
+              className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Nhập tiêu đề bài đăng"
               required
             />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Media section */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Ảnh/Video
               </label>
-
               <div className="flex mb-2">
-                <input
-                  type="text"
-                  name="thumbnail"
-                  value={formData.thumbnail}
-                  onChange={handleChange}
-                  className="flex-1 px-4 py-2 border-2 border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
-                  placeholder="Nhập URL ảnh hoặc video"
-                />
                 <button
                   type="button"
                   onClick={triggerFileUpload}
-                  className="px-4 py-2 bg-gray-100 border-2 border-l-0 border-gray-300 rounded-r-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200 flex items-center justify-center"
+                  className="px-4 py-2 bg-gray-100 border-2 border-gray-300 rounded-lg hover:bg-gray-200 flex items-center"
                 >
-                  <FaUpload className="mr-2" /> Import
+                  <FaUpload className="mr-2" /> Chọn file
                 </button>
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept="image/*,video/*"
+                  accept="image/*"
                   onChange={handleFileUpload}
                   className="hidden"
                 />
               </div>
-
-              {/* Image preview */}
-              {(formData.thumbnail || filePreview) && (
+              {filePreview && (
                 <div className="mt-2 border-2 border-gray-200 rounded-lg p-2">
-                  <div className="relative w-full h-[200px] rounded-lg overflow-hidden">
-                    <img
-                      src={filePreview || formData.thumbnail}
-                      alt="Thumbnail preview"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
+                  <img
+                    src={filePreview}
+                    alt="Thumbnail preview"
+                    className="w-full h-[200px] object-cover rounded-lg"
+                  />
                 </div>
               )}
             </div>
-
-            {/* Content editor */}
           </div>
-          <div>
+
+          <div className="mt-6">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Nội dung
             </label>
-            <div className="border-2 border-gray-300 rounded-lg overflow-hidden max-h-[1200px]">
-              <div
-                ref={quillRef}
-                className="h-full min-h-[300px] max-h-[500px] overflow-y-auto"
-              />
+            <div className="border-2 border-gray-300 rounded-lg max-h-[500px] overflow-y-auto">
+              <div ref={quillRef} className="min-h-[300px]" />
             </div>
           </div>
         </form>
 
-        {/* Footer with buttons */}
         <div className="px-6 py-4 bg-gray-50 rounded-b-xl">
           <div className="flex justify-end space-x-4">
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors duration-200"
+              className="px-5 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
             >
               Hủy
             </button>
             <button
               type="submit"
               onClick={handleSubmit}
-              className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200"
+              className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
             >
               Thêm mới
             </button>
