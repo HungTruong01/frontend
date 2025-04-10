@@ -1,25 +1,57 @@
 import React, { useState, useEffect } from "react";
 import { FaTimes } from "react-icons/fa";
+import { getAllProductTypes } from "@/api/productTypeApi";
+import { getAllProductUnits } from "@/api/productUnitApi";
 
 const EditProductModal = ({ isOpen, onClose, onSubmit, product }) => {
   const [formData, setFormData] = useState({
+    id: "",
     name: "",
     description: "",
     price: "",
-    stock: "",
-    type: "",
-    unit: "",
-    status: "",
+    quantity: "",
+    productTypeId: "",
+    productUnitId: "",
   });
 
-  const productTypes = ["Thực phẩm"];
-  const productUnits = ["Kg", "Chai", "Hộp", "Gói", "Vỉ"];
+  const [productTypes, setProductTypes] = useState([]);
+  const [productUnits, setProductUnits] = useState([]);
+
+  const fetchProductTypes = async () => {
+    try {
+      const response = await getAllProductTypes();
+      setProductTypes(response.content);
+    } catch (error) {
+      console.error("Error fetching product types:", error);
+      setError("Không thể tải danh sách loại sản phẩm.");
+    }
+  };
+
+  const fetchProductUnits = async () => {
+    try {
+      const response = await getAllProductUnits();
+      setProductUnits(response.content);
+    } catch (error) {
+      console.error("Error fetching product units:", error);
+      setError("Không thể tải danh sách đơn vị tính.");
+    }
+  };
 
   useEffect(() => {
-    if (product) {
-      setFormData(product);
+    if (isOpen && product) {
+      setFormData({
+        id: product.id || "",
+        name: product.name || "",
+        description: product.description || "",
+        price: product.price || "",
+        quantity: product.quantity || "",
+        productTypeId: product.productTypeId || "",
+        productUnitId: product.productUnitId || "",
+      });
+      fetchProductTypes();
+      fetchProductUnits();
     }
-  }, [product]);
+  }, [isOpen, product]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -96,7 +128,21 @@ const EditProductModal = ({ isOpen, onClose, onSubmit, product }) => {
                     value={formData.price}
                     onChange={handleChange}
                     className="w-full pl-3 pr-8 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
-                    placeholder="Nhập giá tiền"
+                    required
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Số lượng <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    name="quantity"
+                    value={formData.quantity}
+                    onChange={handleChange}
+                    className="w-full pl-3 pr-8 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
                     required
                   />
                 </div>
@@ -109,16 +155,16 @@ const EditProductModal = ({ isOpen, onClose, onSubmit, product }) => {
                   Loại sản phẩm <span className="text-red-500">*</span>
                 </label>
                 <select
-                  name="type"
-                  value={formData.type}
+                  name="productTypeId"
+                  value={formData.productTypeId}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 bg-white"
                   required
                 >
                   <option value="">Chọn loại sản phẩm</option>
                   {productTypes.map((type) => (
-                    <option key={type} value={type}>
-                      {type}
+                    <option key={type.id} value={type.id}>
+                      {type.name}
                     </option>
                   ))}
                 </select>
@@ -129,27 +175,24 @@ const EditProductModal = ({ isOpen, onClose, onSubmit, product }) => {
                   Đơn vị tính <span className="text-red-500">*</span>
                 </label>
                 <select
-                  name="unit"
-                  value={formData.unit}
+                  name="productUnitId"
+                  value={formData.productUnitId}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 bg-white"
                   required
                 >
                   <option value="">Chọn đơn vị tính</option>
                   {productUnits.map((unit) => (
-                    <option key={unit} value={unit}>
-                      {unit}
+                    <option key={unit.id} value={unit.id}>
+                      {unit.name}
                     </option>
                   ))}
                 </select>
               </div>
             </div>
           </div>
-        </form>
 
-        {/* Footer */}
-        <div className="px-6 py-4 bg-gray-50 rounded-b-xl border-t border-gray-200">
-          <div className="flex justify-end space-x-3">
+          <div className="mt-6 flex justify-end space-x-3">
             <button
               type="button"
               onClick={onClose}
@@ -159,13 +202,12 @@ const EditProductModal = ({ isOpen, onClose, onSubmit, product }) => {
             </button>
             <button
               type="submit"
-              onClick={handleSubmit}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 shadow-md hover:shadow-lg"
             >
               Lưu thay đổi
             </button>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   );

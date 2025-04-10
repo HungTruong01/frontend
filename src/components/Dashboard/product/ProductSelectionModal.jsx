@@ -1,63 +1,53 @@
-import React, { use, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FaTimes, FaSearch, FaPlus } from "react-icons/fa";
 import AddProductModal from "./AddProductModal";
+import { getAllProducts } from "@/api/productApi";
+import { getAllProductUnits } from "@/api/productUnitApi";
 
 const ProductSelectionModal = ({
   isOpen,
   onClose,
   onSelect,
   selectedProducts,
-  orderType,
+  orderTypes,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isOpenAddProduct, setIsOpenAddProduct] = useState(false);
+  const [products, setProducts] = useState([]);
+  const [productUnits, setProductUnits] = useState([]);
 
-  const products = [
-    {
-      id: 1,
-      name: "Gạo Jasmine",
-      description: "Gạo Jasmine nhập khẩu từ Thái Lan, đóng gói 5kg",
-      price: 120000,
-      stock: 100,
-      unit: "kg",
-    },
-    {
-      id: 2,
-      name: "Dầu ăn Olein",
-      description: "Dầu ăn Olein nhập khẩu từ Malaysia, 1 lít",
-      price: 80000,
-      stock: 300,
-      unit: "lít",
-    },
-    {
-      id: 3,
-      name: "Sữa đặc Ngôi Sao Phương Nam",
-      description: "Sữa đặc Ngôi Sao Phương Nam, hộp 400g",
-      price: 35000,
-      stock: 75,
-      unit: "hộp",
-    },
-    {
-      id: 4,
-      name: "Cà phê Trung Nguyên",
-      description: "Cà phê Trung Nguyên, gói 500g",
-      price: 120000,
-      stock: 30,
-      unit: "gói",
-    },
-    {
-      id: 5,
-      name: "Nước mắm Phú Quốc",
-      description: "Nước mắm Phú Quốc, chai 500ml",
-      price: 60000,
-      stock: 60,
-      unit: "chai",
-    },
-  ];
+  const fetchProducts = async () => {
+    try {
+      const response = await getAllProducts(0, 100, "id", "asc");
+      setProducts(response.data.content);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
+  };
+
+  const fetchProductUnits = async () => {
+    try {
+      const response = await getAllProductUnits();
+      setProductUnits(response.content);
+    } catch (error) {
+      console.log("Error fetching product units: ", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+    fetchProductUnits();
+  }, []);
 
   const filteredProducts = products.filter((product) =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const getProductUnitName = (productUnitId) => {
+    const unit = productUnits.find((unit) => unit.id === productUnitId);
+    return unit ? unit.name : "Unknown";
+  };
+
   const handleAddProduct = () => {
     setIsOpenAddProduct(true);
   };
@@ -94,7 +84,7 @@ const ProductSelectionModal = ({
           </div>
         </div>
         <div className="flex justify-start items-center">
-          {orderType === "import" && (
+          {orderTypes === "Đơn hàng nhập" && (
             <button
               type="button"
               onClick={handleAddProduct}
@@ -135,10 +125,10 @@ const ProductSelectionModal = ({
                     {product.description}
                   </p>
                   <div className="flex items-center space-x-4 text-sm text-gray-500">
+                    <span>Số lượng: {product.quantity} </span>
                     <span>
-                      Tồn kho: {product.stock} {product.unit}
+                      Đơn vị: {getProductUnitName(product.productUnitId)}
                     </span>
-                    <span>Đơn vị: {product.unit}</span>
                   </div>
                 </div>
                 {isSelected && (

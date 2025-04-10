@@ -1,23 +1,63 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaArrowLeft, FaSearch, FaPlus, FaTrash } from "react-icons/fa";
+import { FaArrowLeft, FaPlus, FaTrash } from "react-icons/fa";
 import AddPartnerModal from "@/components/Dashboard/partner/AddPartnerModal";
 import ProductSelectionModal from "@/components/Dashboard/product/ProductSelectionModal";
+import { partnerApi } from "@/api/partnerApi";
+import { getAllOrderTypes } from "@/api/orderTypeApi";
+import { createOrder } from "@/api/orderApi";
+import { createOrderDetails } from "@/api/orderDetailApi";
+import { toast } from "react-toastify";
 
 const AddOrder = () => {
   const navigate = useNavigate();
   const [orderItems, setOrderItems] = useState([]);
+  const [orderDetailList, setOrderDetailList] = useState([]);
   const [isPartnerModalOpen, setIsPartnerModalOpen] = useState(false);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+  const [partners, setPartners] = useState([]);
+  const [orderTypes, setOrderTypes] = useState([]);
   const [selectedPartner, setSelectedPartner] = useState("");
-  const [orderType, setOrderType] = useState("import"); // Thêm state để theo dõi loại đơn hàng
+  const [selectedOrderType, setSelectedOrderType] = useState("");
 
-  const partners = [
-    { id: 1, name: "Nguyễn Văn A", phone: "0123456789" },
-    { id: 2, name: "Nguyễn Văn B", phone: "0987654321" },
-    { id: 3, name: "Nguyễn Văn C", phone: "0369852147" },
-    { id: 4, name: "Nguyễn Văn D", phone: "0147852369" },
-  ];
+  const fetchPartners = async () => {
+    try {
+      const response = await partnerApi.getAllPartners();
+      setPartners(response.content);
+    } catch (error) {
+      console.error("Lỗi khi tải danh sách đối tác:", error);
+      toast.error("Không thể tải danh sách đối tác");
+      setPartners([]);
+    }
+  };
+
+  // const handleAddOrderDetailList = async () => {
+  //   try {
+  //     const orderDetailData = {
+  //       productId: orderItems.id,
+  //       quantity: orderItems.quantity,
+  //     }
+  //     await createOrderDetails(orderDetailData);
+  //   } catch (error) {
+  //     console.log("Error add order detail list", error);
+  //   }
+  // }
+
+  const fetchOrderTypes = async () => {
+    try {
+      const response = await getAllOrderTypes();
+      setOrderTypes(response.content);
+    } catch (error) {
+      console.error("Lỗi khi tải danh sách loại đơn hàng:", error);
+      toast.error("Không thể tải danh sách loại đơn hàng");
+      setOrderTypes([]);
+    }
+  };
+
+  useEffect(() => {
+    fetchPartners();
+    fetchOrderTypes();
+  }, []);
 
   const handleAddItem = () => {
     setIsProductModalOpen(true);
@@ -25,7 +65,6 @@ const AddOrder = () => {
 
   const handleProductSelect = (product) => {
     const isProductSelected = orderItems.some((item) => item.id === product.id);
-
     if (!isProductSelected) {
       setOrderItems([
         ...orderItems,
@@ -66,14 +105,59 @@ const AddOrder = () => {
     );
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Đơn hàng:", orderItems);
-    navigate("/dashboard/business/order-management");
+    if (!selectedPartner) {
+      toast.error("Vui lòng chọn đối tác");
+      return;
+    }
+    if (!selectedOrderType) {
+      toast.error("Vui lòng chọn loại đơn hàng");
+      return;
+    }
+    if (orderItems.length === 0) {
+      toast.error("Vui lòng thêm ít nhất một sản phẩm");
+      return;
+    }
+    const orderData = {
+      partnerId: selectedPartner,
+      orderTypeId: selectedOrderType,
+      totalAmount: Number(calculateTotal()),
+    };
+
+    try {
+      const orderResponse = await createOrder(orderData);
+      console.log(orderResponse);
+      const orderId = orderResponse.id;
+      const orderDetail = {
+        orderId: orderId,
+        details: orderItems.map((item) => ({
+          productId: item.id,
+          quantity: item.quantity,
+        })),
+      };
+      console.log(orderDetail);
+      await createOrderDetails(orderDetail);
+      alert("Đơn hàng đã được tạo thành công!");
+      navigate("/dashboard/business/order-management");
+    } catch (error) {
+      console.error("Lỗi tạo đơn hàng:", error);
+      alert("Có lỗi xảy ra khi tạo đơn hàng.");
+    }
   };
 
-  const handleAddPartner = (partnerData) => {
-    console.log("Đối tác mới:", partnerData);
+  const handleAddPartner = async (newPartner) => {
+    try {
+      await partnerApi.addPartner(newPartner);
+      toast.success("Thêm đối tác thành công");
+      await fetchPartners();
+      setIsPartnerModalOpen(false);
+    } catch (error) {
+      console.error("Lỗi khi thêm đối tác:", error);
+      toast.error(
+        "Không thể thêm đối tác: " + (error.message || "Lỗi không xác định")
+      );
+    }
   };
 
   return (
@@ -89,7 +173,7 @@ const AddOrder = () => {
         onClose={() => setIsProductModalOpen(false)}
         onSelect={handleProductSelect}
         selectedProducts={orderItems}
-        orderType={orderType}
+        orderTypes={orderTypes}
       />
       <div className="p-6">
         <div className="flex items-center mb-6">
@@ -118,11 +202,15 @@ const AddOrder = () => {
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">Chọn đối tác</option>
-                    {partners.map((partner) => (
-                      <option key={partner.id} value={partner.id}>
-                        {partner.name} - {partner.phone}
-                      </option>
-                    ))}
+                    {partners && partners.length > 0 ? (
+                      partners.map((partner) => (
+                        <option key={partner.id} value={partner.id}>
+                          {partner.name} - {partner.phone || "Không có SĐT"}
+                        </option>
+                      ))
+                    ) : (
+                      <option disabled>Không có đối tác nào</option>
+                    )}
                   </select>
                 </div>
                 <button
@@ -140,12 +228,20 @@ const AddOrder = () => {
                 Loại đơn hàng
               </label>
               <select
-                value={orderType}
-                onChange={(e) => setOrderType(e.target.value)}
+                value={selectedOrderType}
+                onChange={(e) => setSelectedOrderType(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="import">Đơn mua</option>
-                <option value="export">Đơn bán</option>
+                <option value="">Chọn loại đơn hàng</option>
+                {orderTypes && orderTypes.length > 0 ? (
+                  orderTypes.map((type) => (
+                    <option key={type.id} value={type.id}>
+                      {type.name}
+                    </option>
+                  ))
+                ) : (
+                  <option disabled>Không có loại đơn hàng nào</option>
+                )}
               </select>
             </div>
           </div>
@@ -246,7 +342,6 @@ const AddOrder = () => {
             )}
           </div>
 
-          {/* Tổng tiền và nút lưu */}
           <div className="flex justify-between items-center mt-6">
             <div className="text-lg font-semibold">
               Tổng tiền:{" "}

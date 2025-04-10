@@ -1,7 +1,6 @@
 import axios from "axios";
 
 const API_URL = "http://localhost:8080/api";
-// Tạo instance axios với cấu hình mặc định
 const axiosInstance = axios.create({
   baseURL: API_URL,
   timeout: 10000, // Timeout sau 10 giây
@@ -12,7 +11,6 @@ const axiosInstance = axios.create({
   withCredentials: true, // Cho phép gửi cookies nếu cần
 });
 
-// Thêm interceptor để xử lý lỗi
 axiosInstance.interceptors.response.use(
   (response) => {
     console.log("API Response:", response.data);
@@ -44,7 +42,6 @@ export const partnerApi = {
       return response.data;
     } catch (error) {
       console.error("Error fetching partners:", error);
-      throw error;
     }
   },
 
@@ -54,6 +51,7 @@ export const partnerApi = {
       switch (partnerData.type) {
         case "Khách hàng":
           partnerTypeId = 1;
+          break;
         case "Nhà cung cấp":
           partnerTypeId = 2;
           break;

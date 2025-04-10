@@ -1,7 +1,13 @@
 import React from "react";
 import { FaTimes } from "react-icons/fa";
 
-const ProductDetailModal = ({ isOpen, onClose, product }) => {
+const ProductDetailModal = ({
+  isOpen,
+  onClose,
+  product,
+  productTypes,
+  productUnits,
+}) => {
   if (!isOpen || !product) return null;
 
   const formatCurrency = (amount) => {
@@ -9,6 +15,16 @@ const ProductDetailModal = ({ isOpen, onClose, product }) => {
       style: "currency",
       currency: "VND",
     }).format(amount);
+  };
+
+  const getProductTypeName = (productTypeId) => {
+    const type = productTypes.find((type) => type.id === productTypeId);
+    return type ? type.name : "Unknown";
+  };
+
+  const getProductUnitName = (productUnitId) => {
+    const unit = productUnits.find((unit) => unit.id === productUnitId);
+    return unit ? unit.name : "Unknown";
   };
 
   return (
@@ -56,16 +72,16 @@ const ProductDetailModal = ({ isOpen, onClose, product }) => {
                 <label className="block text-sm font-medium text-gray-600 mb-1">
                   Giá tiền
                 </label>
-                <p className=" font-medium text-blue-600">
+                <p className="font-medium text-blue-600">
                   {formatCurrency(product.price)}
                 </p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">
-                  Tồn kho
+                  Số lượng
                 </label>
-                <p className="text-gray-800 font-medium">{product.stock}</p>
+                <p className="text-gray-800 font-medium">{product.quantity}</p>
               </div>
             </div>
 
@@ -74,14 +90,18 @@ const ProductDetailModal = ({ isOpen, onClose, product }) => {
                 <label className="block text-sm font-medium text-gray-600 mb-1">
                   Loại sản phẩm
                 </label>
-                <p className="text-gray-800 font-medium">{product.type}</p>
+                <p className="text-gray-800 font-medium">
+                  {getProductTypeName(product.productTypeId)}
+                </p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">
                   Đơn vị tính
                 </label>
-                <p className="text-gray-800 font-medium">{product.unit}</p>
+                <p className="text-gray-800 font-medium">
+                  {getProductUnitName(product.productUnitId)}
+                </p>
               </div>
             </div>
           </div>

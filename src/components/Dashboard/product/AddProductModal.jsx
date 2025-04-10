@@ -1,20 +1,45 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FaTimes } from "react-icons/fa";
+import { getAllProductTypes } from "@/api/productTypeApi";
+import { getAllProductUnits } from "@/api/productUnitApi";
 
 const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     price: "",
-    stock: "",
+    quantity: "",
     type: "",
     unit: "",
-    status: "Còn hàng",
   });
 
-  const productTypes = ["Thực phẩm"];
-  const productUnits = ["Kg", "Chai", "Hộp", "Gói"];
-  const productStatuses = ["Còn hàng", "Hết hàng"];
+  const [productTypes, setProductTypes] = useState([]);
+  const [productUnits, setProductUnits] = useState([]);
+
+  const fetchProductTypes = async () => {
+    try {
+      const response = await getAllProductTypes();
+      setProductTypes(response.content);
+    } catch (error) {
+      console.log("Error fetching product types:", error);
+    }
+  };
+
+  const fetchProductUnits = async () => {
+    try {
+      const response = await getAllProductUnits();
+      setProductUnits(response.content);
+    } catch (error) {
+      console.log("Error fetching product units:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchProductTypes();
+      fetchProductUnits();
+    }
+  }, [isOpen]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -23,7 +48,24 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    const productData = {
+      name: formData.name,
+      description: formData.description,
+      price: Number(formData.price),
+      quantity: Number(formData.quantity),
+      productTypeId: formData.type,
+      productUnitId: formData.unit,
+    };
+
+    onSubmit(productData);
+    setFormData({
+      name: "",
+      description: "",
+      price: "",
+      quantity: "",
+      type: "",
+      unit: "",
+    });
   };
 
   if (!isOpen) return null;
@@ -31,7 +73,6 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl transform transition-all max-h-[90vh] flex flex-col">
-        {/* Header */}
         <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-blue-700">
           <div className="flex justify-between items-center">
             <div>
@@ -51,8 +92,8 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
           </div>
         </div>
 
-        {/* Content */}
         <form onSubmit={handleSubmit} className="p-6 flex-1 overflow-y-auto">
+          {error && <p className="text-red-500 mb-4">{error}</p>}
           <div className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -88,20 +129,31 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Giá tiền <span className="text-red-500">*</span>
                 </label>
-                <div className="relative">
-                  <input
-                    type="number"
-                    name="price"
-                    value={formData.price}
-                    onChange={handleChange}
-                    className="w-full pl-3 pr-8 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
-                    placeholder="Nhập giá tiền"
-                    required
-                  />
-                  <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                    VNĐ
-                  </span>
-                </div>
+                <input
+                  type="number"
+                  name="price"
+                  value={formData.price}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
+                  placeholder="Nhập giá tiền"
+                  min="0"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Số lượng <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  name="quantity"
+                  value={formData.quantity}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
+                  placeholder="Nhập số lượng"
+                  min="0"
+                  required
+                />
               </div>
             </div>
 
@@ -119,8 +171,8 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
                 >
                   <option value="">Chọn loại sản phẩm</option>
                   {productTypes.map((type) => (
-                    <option key={type} value={type}>
-                      {type}
+                    <option key={type.id} value={type.id}>
+                      {type.name}
                     </option>
                   ))}
                 </select>
@@ -139,19 +191,16 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
                 >
                   <option value="">Chọn đơn vị tính</option>
                   {productUnits.map((unit) => (
-                    <option key={unit} value={unit}>
-                      {unit}
+                    <option key={unit.id} value={unit.id}>
+                      {unit.name}
                     </option>
                   ))}
                 </select>
               </div>
             </div>
           </div>
-        </form>
 
-        {/* Footer */}
-        <div className="px-6 py-4 bg-gray-50 rounded-b-xl border-t border-gray-200">
-          <div className="flex justify-end space-x-3">
+          <div className="mt-6 flex justify-end space-x-3">
             <button
               type="button"
               onClick={onClose}
@@ -161,13 +210,12 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
             </button>
             <button
               type="submit"
-              onClick={handleSubmit}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 shadow-md hover:shadow-lg"
             >
               Thêm mới
             </button>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   );

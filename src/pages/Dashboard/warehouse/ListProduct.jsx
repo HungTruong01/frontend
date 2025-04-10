@@ -4,10 +4,19 @@ import { FaRegTrashAlt, FaEye, FaEdit, FaPlus } from "react-icons/fa";
 import AddProductModal from "@/components/Dashboard/product/AddProductModal";
 import EditProductModal from "@/components/Dashboard/product/EditProductModal";
 import ProductDetailModal from "@/components/Dashboard/product/ProductDetailModal";
-import { getAllProducts } from "@/api/productApi";
+import {
+  getAllProducts,
+  getProductById,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+} from "@/api/productApi";
+import { getAllProductTypes } from "@/api/productTypeApi";
+import { getAllProductUnits } from "@/api/productUnitApi";
+import { toast } from "react-toastify";
 
 const ListProduct = () => {
-  const [itemsPerPage] = useState(10);
+  const [itemsPerPage] = useState(6);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchStatus, setSearchStatus] = useState("");
   const [searchType, setSearchType] = useState("");
@@ -18,74 +27,56 @@ const ListProduct = () => {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [products, setProducts] = useState([]);
+  const [productTypes, setProductTypes] = useState([]);
+  const [productUnits, setProductUnits] = useState([]);
+
+  const fetchProducts = async () => {
+    try {
+      const response = await getAllProducts(0, 100, "id", "asc");
+      console.log("product data", response.data.content);
+      setProducts(response.data.content);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
+  };
+
+  const fetchProductTypes = async () => {
+    try {
+      const response = await getAllProductTypes();
+      setProductTypes(response.content);
+    } catch (error) {
+      console.log("Error fetching product types:", error);
+    }
+  };
+
+  const fetchProductUnits = async () => {
+    try {
+      const response = await getAllProductUnits();
+      setProductUnits(response.content);
+    } catch (error) {
+      console.log("Error fetching product units:", error);
+    }
+  };
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await getAllProducts(0, 100, "id", "asc");
-        console.log("product data", response.data.content);
-        setProducts(response.data.content);
-      } catch (error) {
-        console.error("Error fetching products:", error);
-      }
-    };
     fetchProducts();
+    fetchProductTypes();
+    fetchProductUnits();
   }, []);
 
-  // const [products, setProducts] = useState([
-  //   {
-  //     id: "SP006",
-  //     name: "Trứng gà",
-  //     description: "Trứng gà ta tươi ngon, giàu dinh dưỡng",
-  //     price: 35000,
-  //     stock: 80,
-  //     type: "Thực phẩm",
-  //     unit: "Vỉ",
-  //   },
-  //   {
-  //     id: "SP007",
-  //     name: "Nước mắm Phú Quốc 40 độ đạm",
-  //     description: "Nước mắm truyền thống được ủ từ cá cơm tươi",
-  //     price: 95000,
-  //     stock: 150,
-  //     type: "Thực phẩm",
-  //     unit: "Chai",
-  //   },
-  //   {
-  //     id: "SP008",
-  //     name: "Mì ăn liền Hảo Hảo",
-  //     description: "Mì tôm chua cay thơm ngon, thương hiệu nổi tiếng",
-  //     price: 5000,
-  //     stock: 150,
-  //     type: "Thực phẩm",
-  //     unit: "Gói",
-  //   },
-  //   {
-  //     id: "SP009",
-  //     name: "Sữa tươi Vinamilk không đường",
-  //     description: "Sữa tươi thanh trùng tốt cho sức khỏe",
-  //     price: 32000,
-  //     stock: 300,
-  //     type: "Thực phẩm",
-  //     unit: "Hộp",
-  //   },
-  //   {
-  //     id: "SP010",
-  //     name: "Dầu ăn cao cấp Tường An",
-  //     description: "Dầu ăn nguyên chất từ cây mè, tốt cho sức khỏe",
-  //     price: 85000,
-  //     stock: 0,
-  //     type: "Thực phẩm",
-  //     unit: "Chai",
-  //   },
-  // ]);
+  const getProductTypeName = (productTypeId) => {
+    const type = productTypes.find((type) => type.id === productTypeId);
+    return type ? type.name : "Unknown";
+  };
 
-  const productTypes = ["Thực phẩm"];
-  const productStatuses = ["Còn hàng", "Hết hàng"];
+  const getProductUnitName = (productUnitId) => {
+    const unit = productUnits.find((unit) => unit.id === productUnitId);
+    return unit ? unit.name : "Unknown";
+  };
 
   const filteredProducts = products.filter((product) => {
     const matchStatus = searchStatus === "" || product.status === searchStatus;
-    const matchType = searchType === "" || product.type === searchType;
+    const matchType = searchType === "" || product.productTypeId === searchType;
     const matchName =
       searchName === "" ||
       product.name.toLowerCase().includes(searchName.toLowerCase());
@@ -102,20 +93,39 @@ const ListProduct = () => {
     setIsAddModalOpen(true);
   };
 
-  const handleAddSubmit = (newProduct) => {
-    setProducts([
-      ...products,
-      {
-        ...newProduct,
-        id: `SP${String(products.length + 1).padStart(3, "0")}`,
-      },
-    ]);
-    setIsAddModalOpen(false);
+  const handleAddSubmit = async (newProduct) => {
+    try {
+      const productData = {
+        name: newProduct.name,
+        description: newProduct.description,
+        price: Number(newProduct.price),
+        quantity: Number(newProduct.quantity),
+        productTypeId: Number(newProduct.productTypeId),
+        productUnitId: Number(newProduct.productUnitId),
+      };
+
+      const response = await createProduct(productData);
+      toast.success("Thêm sản phẩm mới thành công");
+      setProducts((prev) => [...prev, response]);
+      setIsAddModalOpen(false);
+    } catch (error) {
+      console.log("Không thể thêm sản phẩm. Vui lòng thử lại.", error);
+      toast.error("Không thể thêm sản phẩm. Vui lòng thử lại.");
+    }
   };
 
-  const handleViewDetail = (product) => {
-    setSelectedProduct(product);
-    setIsDetailModalOpen(true);
+  const handleViewDetail = async (product) => {
+    try {
+      const response = await getProductById(product.id);
+      setSelectedProduct(response);
+      setIsDetailModalOpen(true);
+    } catch (error) {
+      console.error(
+        "Không thể xem chi tiết sản phẩm:",
+        error.response?.data || error.message
+      );
+      toast.error("Không thể xem chi tiết sản phẩm. Vui lòng thử lại.");
+    }
   };
 
   const handleEditProduct = (product) => {
@@ -123,13 +133,50 @@ const ListProduct = () => {
     setIsEditModalOpen(true);
   };
 
-  const handleEditSubmit = (updatedProduct) => {
-    setProducts(
-      products.map((product) =>
-        product.id === updatedProduct.id ? updatedProduct : product
-      )
-    );
-    setIsEditModalOpen(false);
+  const handleEditSubmit = async (updatedProduct) => {
+    try {
+      const productData = {
+        name: updatedProduct.name,
+        description: updatedProduct.description,
+        price: Number(updatedProduct.price),
+        quantity: Number(updatedProduct.quantity),
+        productTypeId: Number(updatedProduct.productTypeId),
+        productUnitId: Number(updatedProduct.productUnitId),
+      };
+
+      const response = await updateProduct(updatedProduct.id, productData);
+      toast.success("Cập nhật sản phẩm thành công");
+      setProducts((prev) =>
+        prev.map((product) =>
+          product.id === updatedProduct.id ? response : product
+        )
+      );
+      setIsEditModalOpen(false);
+    } catch (error) {
+      console.error(
+        "Không thể cập nhật sản phẩm:",
+        error.response?.data || error.message
+      );
+      toast.error("Không thể cập nhật sản phẩm. Vui lòng thử lại.");
+    }
+  };
+
+  const handleDeleteProduct = async (productId) => {
+    if (window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này?")) {
+      try {
+        await deleteProduct(productId);
+        toast.success("Xóa sản phẩm thành công");
+        setProducts((prev) =>
+          prev.filter((product) => product.id !== productId)
+        );
+      } catch (error) {
+        console.error(
+          "Không thể xóa sản phẩm:",
+          error.response?.data || error.message
+        );
+        toast.error("Không thể xóa sản phẩm. Vui lòng thử lại.");
+      }
+    }
   };
 
   const formatCurrency = (amount) => {
@@ -155,6 +202,8 @@ const ListProduct = () => {
         isOpen={isDetailModalOpen}
         onClose={() => setIsDetailModalOpen(false)}
         product={selectedProduct}
+        productTypes={productTypes}
+        productUnits={productUnits}
       />
       <div className="p-6">
         <div className="flex justify-between items-center mb-6">
@@ -180,8 +229,8 @@ const ListProduct = () => {
               >
                 <option value="">Loại sản phẩm</option>
                 {productTypes.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
+                  <option key={type.id} value={type.id}>
+                    {type.name}
                   </option>
                 ))}
               </select>
@@ -202,7 +251,7 @@ const ListProduct = () => {
               <tr className="bg-gray-200">
                 <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
                   <div className="flex items-center space-x-1">
-                    <span>Mã sản phẩm</span>
+                    <span>STT</span>
                   </div>
                 </th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
@@ -243,10 +292,10 @@ const ListProduct = () => {
                   key={product.id}
                   className="hover:bg-gray-100 transition-colors"
                 >
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-6 py-4 whitespace-nowrap text-left">
                     <div className="text-sm text-gray-900">{product.id}</div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-6 py-4 whitespace-nowrap text-left">
                     <div className="text-sm text-gray-900">{product.name}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right">
@@ -260,13 +309,13 @@ const ListProduct = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900 text-center">
-                      {product.productTypeId}
+                    <div className="text-sm text-gray-900 text-left">
+                      {getProductTypeName(product.productTypeId)}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900 text-center">
-                      {product.productUnitId}
+                    <div className="text-sm text-gray-900 text-left">
+                      {getProductUnitName(product.productUnitId)}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-center">
@@ -286,6 +335,7 @@ const ListProduct = () => {
                         <FaEdit className="h-5 w-5" />
                       </button>
                       <button
+                        onClick={() => handleDeleteProduct(product.id)}
                         className="text-red-500 hover:text-red-700 transition-colors"
                         title="Xóa"
                       >

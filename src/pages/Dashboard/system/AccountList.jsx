@@ -27,7 +27,7 @@ const AccountList = () => {
     { id: 4, name: "ADMIN_K", label: "Nhân viên kho vận" },
     { id: 5, name: "ADMIN_TCKT", label: "Nhân viên tài chính kế toán" },
   ]);
-  const columns = ["STT", "Tên đăng nhập", "Ngày tạo", "Vai trò"];
+  const columns = ["ID", "Tên đăng nhập", "Ngày tạo", "Vai trò"];
 
   const formatDate = (dateString) => {
     if (!dateString) return "Invalid Date";
@@ -80,7 +80,7 @@ const AccountList = () => {
         password: formData.password || undefined,
         roleId: roleId,
       };
-      console.log("Dữ liệu gửi đi: ", accountData);
+      // console.log("Dữ liệu gửi đi: ", accountData);
       await updateAccount(accountId, accountData);
       alert("Cập nhật tài khoản thành công!");
       fetchAccounts();
