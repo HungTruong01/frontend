@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_REST_API_URL = "http://localhost:8080/api/orders-details";
+const BASE_REST_API_URL = "http://localhost:8080/api/order-details";
 
 axios.defaults.withCredentials = true;
 
@@ -24,15 +24,15 @@ export const createOrderDetails = async (orderDetailList) => {
   }
 };
 
-export const updateOrderDetail = async (orderDetailId, orderDetailData) => {
+export const updateOrderDetailsByOrderId = async (orderId, orderDetailList) => {
   try {
     const response = await axios.put(
-      `${BASE_REST_API_URL}/${orderDetailId}`,
-      orderDetailData
+      `${BASE_REST_API_URL}/orders/${orderId}`,
+      orderDetailList
     );
     return response.data;
   } catch (error) {
-    console.error("Error updating order detail:", error);
+    console.error("Error updating order details:", error);
     throw error;
   }
 };

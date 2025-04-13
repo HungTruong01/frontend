@@ -5,7 +5,7 @@ import {
   createWarehouseTransactionType,
   updateWarehouseTransactionType,
   deleteWarehouseTransactionType,
-} from "@/api/warehouseTransactionApi";
+} from "@/api/warehouseTransactionTypeApi";
 const TypeTransactionWareHouse = () => {
   const [warehouseTransactionType, setWarehouseTransactionType] = useState([]);
   const addWarehouseTransactionTypeFields = [

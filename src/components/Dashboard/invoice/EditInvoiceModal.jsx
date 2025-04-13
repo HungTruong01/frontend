@@ -1,86 +1,207 @@
 import React, { useState, useEffect } from "react";
 import { FaTimes } from "react-icons/fa";
+import { partnerApi } from "@/api/partnerApi";
+import { getAllInvoiceTypes } from "@/api/invoiceTypeApi";
+import { getAllOrders, getOrderById } from "@/api/orderApi";
+import { getProductById } from "@/api/productApi";
 
 const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
   const [formData, setFormData] = useState({
     id: "",
-    totalAmount: "",
-    date: "",
-    partnerName: "",
+    partnerId: "",
     invoiceTypeId: 1,
-    note: "",
+    orderId: "",
+    totalAmount: "",
     paidAmount: "",
-    invoiceDetails: [],
-    // Thêm thông tin đối tác để có thể chỉnh sửa
-    partner: {
-      name: "",
-      phone: "",
-      email: "",
-      address: "",
-    },
   });
 
-  const mockOrderData = {
-    orderId: "001",
-    orderDate: "25-03-2025",
-    partner: {
-      name: "Nguyễn Văn A",
-      phone: "0123456789",
-      email: "nguyenvana@email.com",
-      address: "123 Đường ABC, Quận 1, TP.HCM",
-      type: "customer",
-    },
-    orderType: "Đơn hàng nhập",
-    status: "Chưa thanh toán",
-    items: [
-      {
-        id: 1,
-        productName: "Sản phẩm A",
-        quantity: 10,
-        unitPrice: 180000,
-        total: 1800000,
-      },
-      {
-        id: 2,
-        productName: "Sản phẩm B",
-        quantity: 5,
-        unitPrice: 250000,
-        total: 1250000,
-      },
-    ],
-    totalAmount: 3050000,
-    paymentStatus: "Chưa thanh toán",
-    paidAmount: 0,
-  };
+  const [partners, setPartners] = useState([]);
+  const [invoiceTypes, setInvoiceTypes] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [filteredOrders, setFilteredOrders] = useState([]);
+  const [partnerDetails, setPartnerDetails] = useState({
+    name: "",
+    phone: "",
+    email: "",
+    address: "",
+  });
+  const [orderDetails, setOrderDetails] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (invoice) {
-      setFormData({
-        id: invoice.id,
-        totalAmount: invoice.totalAmount,
-        date: invoice.date,
-        partnerName: invoice.partnerName,
-        invoiceTypeId: invoice.invoiceTypeId,
-        note: invoice.note || "",
-        paidAmount: invoice.paidAmount || "",
-        invoiceDetails: invoice.invoiceDetails || [],
-        // Khởi tạo thông tin đối tác từ mockOrderData khi modal mở
-        partner: {
-          name: mockOrderData.partner.name,
-          phone: mockOrderData.partner.phone,
-          email: mockOrderData.partner.email,
-          address: mockOrderData.partner.address,
-        },
+    const fetchInitialData = async () => {
+      if (isOpen && invoice) {
+        setLoading(true);
+        try {
+          const [partnersData, invoiceTypesData, ordersData] =
+            await Promise.all([
+              partnerApi.getAllPartners(),
+              getAllInvoiceTypes(),
+              getAllOrders(),
+            ]);
+
+          setPartners(partnersData.content || []);
+          setInvoiceTypes(invoiceTypesData.content || []);
+          setOrders(ordersData.content || []);
+
+          const partnerId = invoice.order?.partnerId || "";
+          setFormData({
+            id: invoice.id || "",
+            partnerId: partnerId.toString(),
+            invoiceTypeId: invoice.invoiceTypeId || 1,
+            orderId: invoice.orderId?.toString() || "",
+            totalAmount: invoice.order?.totalMoney || 0,
+            paidAmount:
+              invoice.moneyAmount
+                ?.toString()
+                .replace(/\B(?=(\d{3})+(?!\d))/g, ".") || "",
+          });
+
+          // Cập nhật thông tin đối tác
+          if (invoice.partner) {
+            setPartnerDetails({
+              name: invoice.partner.name || "",
+              phone: invoice.partner.phone || "",
+              email: invoice.partner.email || "",
+              address: invoice.partner.address || "",
+            });
+          }
+
+          // Lọc đơn hàng theo đối tác
+          if (partnerId) {
+            const filtered = ordersData.content.filter(
+              (order) => order.partnerId === parseInt(partnerId)
+            );
+            setFilteredOrders(filtered);
+          } else {
+            setFilteredOrders(ordersData.content || []);
+          }
+        } catch (err) {
+          setError("Không thể tải dữ liệu từ server.");
+          console.error(err);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchInitialData();
+  }, [isOpen, invoice]);
+
+  // Cập nhật danh sách đơn hàng khi đối tác thay đổi
+  useEffect(() => {
+    if (formData.partnerId) {
+      const filtered = orders.filter(
+        (order) => order.partnerId === parseInt(formData.partnerId)
+      );
+      setFilteredOrders(filtered);
+
+      // Reset orderId if not valid
+      const orderExists = filtered.some(
+        (order) => order.id === parseInt(formData.orderId)
+      );
+      if (!orderExists) {
+        setFormData((prev) => ({ ...prev, orderId: "", totalAmount: 0 }));
+        setOrderDetails([]);
+      }
+
+      // Cập nhật thông tin đối tác
+      const selectedPartner = partners.find(
+        (p) => p.id === parseInt(formData.partnerId)
+      );
+      if (selectedPartner) {
+        setPartnerDetails({
+          name: selectedPartner.name || "",
+          phone: selectedPartner.phone || "",
+          email: selectedPartner.email || "",
+          address: selectedPartner.address || "",
+        });
+      }
+    } else {
+      setFilteredOrders(orders);
+      setPartnerDetails({
+        name: "",
+        phone: "",
+        email: "",
+        address: "",
       });
+      setOrderDetails([]);
     }
-  }, [invoice]);
+  }, [formData.partnerId, orders, partners]);
 
-  if (!isOpen || !invoice) return null;
+  // Cập nhật chi tiết đơn hàng khi mã đơn hàng thay đổi
+  useEffect(() => {
+    const fetchOrderDetails = async () => {
+      const selectedOrderId = parseInt(formData.orderId, 10) || null;
+      if (selectedOrderId) {
+        setLoading(true);
+        try {
+          const orderData = await getOrderById(selectedOrderId);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onSubmit(formData);
-  };
+          if (!orderData || !orderData.orderDetails?.length) {
+            setError(
+              `Không tìm thấy chi tiết đơn hàng cho orderId ${selectedOrderId}`
+            );
+            setOrderDetails([]);
+            setFormData((prev) => ({ ...prev, totalAmount: 0 }));
+            setLoading(false);
+            return;
+          }
+
+          const details = orderData.orderDetails;
+          const detailedItems = await Promise.all(
+            details.map(async (detail, index) => {
+              try {
+                const product = await getProductById(detail.productId);
+                return {
+                  id: index + 1,
+                  productId: detail.productId,
+                  productName: product?.name || `Sản phẩm ${detail.productId}`,
+                  quantity: detail.quantity || 0,
+                  unitPrice: product?.price || detail.unitPrice || 0,
+                  total:
+                    (detail.quantity || 0) *
+                    (product?.price || detail.unitPrice || 0),
+                };
+              } catch (err) {
+                console.error(`Lỗi lấy sản phẩm ${detail.productId}:`, err);
+                return {
+                  id: index + 1,
+                  productId: detail.productId,
+                  productName: `Sản phẩm ${detail.productId}`,
+                  quantity: detail.quantity || 0,
+                  unitPrice: detail.unitPrice || 0,
+                  total: (detail.quantity || 0) * (detail.unitPrice || 0),
+                };
+              }
+            })
+          );
+
+          setOrderDetails(detailedItems);
+          // Sử dụng orderData.totalMoney thay vì tính lại
+          setFormData((prev) => ({
+            ...prev,
+            totalAmount: orderData.totalMoney || 0,
+          }));
+        } catch (err) {
+          setError("Không thể tải chi tiết đơn hàng.");
+          console.error(err);
+          setOrderDetails([]);
+          setFormData((prev) => ({ ...prev, totalAmount: 0 }));
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        setOrderDetails([]);
+        setFormData((prev) => ({ ...prev, totalAmount: 0 }));
+      }
+    };
+
+    if (formData.orderId) {
+      fetchOrderDetails();
+    }
+  }, [formData.orderId]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -95,43 +216,56 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
     }
   };
 
-  // Xử lý thay đổi thông tin đối tác
-  const handlePartnerChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      partner: {
-        ...prev.partner,
-        [name]: value,
-      },
-    }));
-  };
+  const handleSubmit = (e) => {
+    e.preventDefault();
 
-  const handleDetailChange = (index, field, value) => {
-    const newDetails = [...formData.invoiceDetails];
-    newDetails[index] = { ...newDetails[index], [field]: value };
-    setFormData((prev) => ({ ...prev, invoiceDetails: newDetails }));
-  };
+    const paidAmount = parseFloat(formData.paidAmount?.replace(/\./g, "")) || 0;
+    const totalAmount = parseFloat(formData.totalAmount) || 0;
 
-  const addDetail = () => {
-    setFormData((prev) => ({
-      ...prev,
-      invoiceDetails: [...prev.invoiceDetails, { orderCode: "", amount: "" }],
-    }));
-  };
+    // Kiểm tra paidAmount hợp lệ
+    if (paidAmount > totalAmount) {
+      setError(
+        `Số tiền thanh toán (${paidAmount.toLocaleString()} VNĐ) không được vượt quá tổng tiền đơn hàng (${totalAmount.toLocaleString()} VNĐ)`
+      );
+      return;
+    }
 
-  const removeDetail = (index) => {
-    setFormData((prev) => ({
-      ...prev,
-      invoiceDetails: prev.invoiceDetails.filter((_, i) => i !== index),
-    }));
+    const updatedInvoice = {
+      id: formData.id,
+      invoiceTypeId: parseInt(formData.invoiceTypeId) || 1,
+      orderId: parseInt(formData.orderId) || null,
+      moneyAmount: paidAmount,
+    };
+
+    if (!updatedInvoice.invoiceTypeId) {
+      setError("Vui lòng chọn loại hóa đơn");
+      return;
+    }
+
+    if (!updatedInvoice.orderId) {
+      setError("Vui lòng chọn đơn hàng");
+      return;
+    }
+
+    onSubmit(updatedInvoice);
+    onClose();
   };
 
   const calculateRemainingAmount = () => {
-    const paid = parseFloat(formData.paidAmount.replace(/\./g, "")) || 0;
-    const total = parseFloat(formData.totalAmount) || 0;
-    return Math.max(total - paid, 0);
+    const paidAmount = parseFloat(formData.paidAmount?.replace(/\./g, "")) || 0;
+    const totalAmount = parseFloat(formData.totalAmount) || 0;
+    const order = orders.find((o) => o.id === parseInt(formData.orderId));
+    const otherPaidMoney = (order?.paidMoney || 0) - (invoice.moneyAmount || 0); // Trừ tiền của hóa đơn hiện tại
+    return Math.max(totalAmount - otherPaidMoney - paidAmount, 0);
   };
+
+  const calculateTotalPaidForOrder = () => {
+    const order = orders.find((o) => o.id === parseInt(formData.orderId));
+    const otherPaidMoney = (order?.paidMoney || 0) - (invoice.moneyAmount || 0); // Trừ tiền của hóa đơn hiện tại
+    return otherPaidMoney;
+  };
+
+  if (!isOpen || !invoice) return null;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -154,6 +288,9 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 flex-1 overflow-y-auto">
+          {loading && <p className="text-blue-500">Đang tải dữ liệu...</p>}
+          {error && <p className="text-red-500">{error}</p>}
+
           <div className="grid grid-cols gap-8">
             <div className="col-span-2 space-y-6">
               <div className="bg-white rounded-lg border border-gray-200 p-6">
@@ -162,7 +299,7 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
                     Thông tin chung
                   </h3>
                 </div>
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Mã hóa đơn <span className="text-red-500">*</span>
@@ -171,7 +308,6 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
                       type="text"
                       name="id"
                       value={formData.id}
-                      onChange={handleChange}
                       className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg bg-gray-50"
                       readOnly
                     />
@@ -187,14 +323,54 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
                       className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 bg-white"
                       required
                     >
-                      <option value={1}>Hóa đơn bán</option>
-                      <option value={2}>Hóa đơn mua</option>
+                      {invoiceTypes.map((type) => (
+                        <option key={type.id} value={type.id}>
+                          {type.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Đối tác <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      name="partnerId"
+                      value={formData.partnerId}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 bg-white"
+                      required
+                    >
+                      <option value="">Chọn đối tác</option>
+                      {partners.map((partner) => (
+                        <option key={partner.id} value={partner.id}>
+                          {partner.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Mã đơn hàng <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      name="orderId"
+                      value={formData.orderId}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 bg-white"
+                      required
+                    >
+                      <option value="">Chọn mã đơn hàng</option>
+                      {filteredOrders.map((order) => (
+                        <option key={order.id} value={order.id}>
+                          {order.code || `DH${order.id}`}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>
               </div>
 
-              {/* Phần thông tin đối tác đã được chuyển thành form có thể chỉnh sửa */}
               <div className="border border-gray-200 p-6 rounded-xl">
                 <div className="flex items-center mb-4">
                   <h3 className="text-lg font-semibold text-gray-800">
@@ -204,15 +380,13 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Tên đối tác <span className="text-red-500">*</span>
+                      Tên đối tác
                     </label>
                     <input
                       type="text"
-                      name="name"
-                      value={formData.partner.name}
-                      onChange={handlePartnerChange}
-                      className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
-                      required
+                      value={partnerDetails.name}
+                      className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg bg-gray-50"
+                      readOnly
                     />
                   </div>
                   <div>
@@ -221,10 +395,9 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
                     </label>
                     <input
                       type="text"
-                      name="phone"
-                      value={formData.partner.phone}
-                      onChange={handlePartnerChange}
-                      className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
+                      value={partnerDetails.phone}
+                      className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg bg-gray-50"
+                      readOnly
                     />
                   </div>
                   <div>
@@ -233,10 +406,9 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
                     </label>
                     <input
                       type="email"
-                      name="email"
-                      value={formData.partner.email}
-                      onChange={handlePartnerChange}
-                      className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
+                      value={partnerDetails.email}
+                      className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg bg-gray-50"
+                      readOnly
                     />
                   </div>
                   <div>
@@ -245,10 +417,9 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
                     </label>
                     <input
                       type="text"
-                      name="address"
-                      value={formData.partner.address}
-                      onChange={handlePartnerChange}
-                      className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
+                      value={partnerDetails.address}
+                      className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg bg-gray-50"
+                      readOnly
                     />
                   </div>
                 </div>
@@ -279,41 +450,84 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
                       </tr>
                     </thead>
                     <tbody>
-                      {mockOrderData.items.map((item) => (
-                        <tr key={item.id} className="border-t border-gray-200">
-                          <td className="px-4 py-3">{item.productName}</td>
-                          <td className="px-4 py-3 text-right">
-                            {item.quantity}
-                          </td>
-                          <td className="px-4 py-3 text-right">
-                            {item.unitPrice.toLocaleString()} VNĐ
-                          </td>
-                          <td className="px-4 py-3 text-right font historic">
-                            {item.total.toLocaleString()} VNĐ
+                      {orderDetails.length > 0 ? (
+                        orderDetails.map((item, index) => (
+                          <tr key={index} className="border-t border-gray-200">
+                            <td className="px-4 py-3">{item.productName}</td>
+                            <td className="px-4 py-3 text-right">
+                              {item.quantity}
+                            </td>
+                            <td className="px-4 py-3 text-right">
+                              {item.unitPrice?.toLocaleString()} VNĐ
+                            </td>
+                            <td className="px-4 py-3 text-right font-medium">
+                              {item.total?.toLocaleString()} VNĐ
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td
+                            colSpan="4"
+                            className="px-4 py-3 text-center text-gray-500"
+                          >
+                            Chưa có chi tiết đơn hàng cho mã đơn hàng đã chọn
                           </td>
                         </tr>
-                      ))}
+                      )}
                     </tbody>
                     <tfoot>
                       <tr className="bg-white border-t-2 border-gray-200">
                         <td
                           colSpan="3"
-                          className="px-3 py-1 text-right font-semibold text-gray-800"
+                          className="px-3 py-3 text-right font-semibold text-gray-800"
                         >
                           Tổng cộng:
                         </td>
-                        <td className="px-3 py-1 text-right font-bold text-blue-600 text-lg">
-                          {mockOrderData.totalAmount.toLocaleString()} VNĐ
+                        <td className="px-3 py-3 text-right font-bold text-blue-600 text-lg">
+                          {parseFloat(
+                            formData.totalAmount || 0
+                          ).toLocaleString()}{" "}
+                          VNĐ
                         </td>
                       </tr>
                       <tr className="bg-white">
                         <td
                           colSpan="3"
-                          className="px-3 py-1 text-right font-semibold text-gray-800"
+                          className="px-3 py-3 text-right font-semibold text-gray-800"
                         >
-                          Tổng tiền đã thanh toán:
+                          Tổng tiền đã thanh toán (khác):
                         </td>
-                        <td className="px-3 py-1 text-right font-bold text-green-600 text-lg">
+                        <td className="px-3 py-3 text-right font-bold text-gray-600 text-lg">
+                          {calculateTotalPaidForOrder().toLocaleString()} VNĐ
+                        </td>
+                      </tr>
+                      <tr className="bg-white">
+                        <td
+                          colSpan="3"
+                          className="px-3 py-3 text-right font-semibold text-gray-800"
+                        >
+                          Số tiền thanh toán (hóa đơn này):
+                        </td>
+                        <td className="px-3 py-3 text-right font-bold">
+                          <input
+                            type="text"
+                            name="paidAmount"
+                            value={formData.paidAmount}
+                            onChange={handleChange}
+                            className="w-full px-2 py-1 border border-gray-200 rounded-lg text-right bg-white"
+                            placeholder="Nhập số tiền thanh toán"
+                          />
+                        </td>
+                      </tr>
+                      <tr className="bg-white">
+                        <td
+                          colSpan="3"
+                          className="px-3 py-3 text-right font-semibold text-gray-800"
+                        >
+                          Số tiền còn lại:
+                        </td>
+                        <td className="px-3 py-3 text-right font-bold text-green-600 text-lg">
                           {calculateRemainingAmount().toLocaleString()} VNĐ
                         </td>
                       </tr>
@@ -349,4 +563,3 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
 };
 
 export default EditInvoiceModal;
-

@@ -93,7 +93,6 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 flex-1 overflow-y-auto">
-          {error && <p className="text-red-500 mb-4">{error}</p>}
           <div className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">

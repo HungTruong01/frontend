@@ -1,35 +1,89 @@
-import React, { useState } from "react";
-import tableConfig from "@/configs/tableConfig";
+import React, { useEffect, useState } from "react";
 import { FaSearch, FaRegTrashAlt, FaEye, FaEdit } from "react-icons/fa";
 import { GoPlus } from "react-icons/go";
 import { useNavigate } from "react-router-dom";
+import {
+  getAllWarehouseTransaction,
+  deleteWarehouseTransaction,
+  getWarehouseTransactionById,
+} from "@/api/warehouseTransactionApi";
+import { getOrderById } from "@/api/orderApi";
+import { getDeliveryStatusById } from "@/api/deliveryStatusApi";
+import { getWarehouseById } from "@/api/warehouseApi";
+import { getWarehouseTransactionTypeById } from "@/api/warehouseTransactionTypeApi";
 import AddWarehouseTransactionModal from "@/components/Dashboard/warehouse/AddWarehouseTransactionModal";
 import EditWarehouseTransactionModal from "@/components/Dashboard/warehouse/EditWarehouseTransactionModal";
-const WarehouseTransaction = ({ onAddNew, onEdit, onDelete }) => {
-  const { title, tableData, columns } = tableConfig["warehouse-transaction"];
+import { toast } from "react-toastify";
 
-  const data = tableData || [];
-
-  const visibleColumns = columns.map((col) =>
-    typeof col === "string"
-      ? { key: col, label: col.charAt(0).toUpperCase() + col.slice(1) }
-      : col
-  );
-
-  const [filteredData, setFilteredData] = useState(data);
+const WarehouseTransaction = () => {
+  const [warehouseTransaction, setWarehouseTransaction] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
   const [searchValue, setSearchValue] = useState("");
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [currentEditItem, setCurrentEditItem] = useState(null);
   const navigate = useNavigate();
 
-  const displayColumns = visibleColumns;
+  const displayColumns = [
+    { key: "id", label: "Mã giao dịch" },
+    { key: "orderCode", label: "Mã đơn hàng" },
+    { key: "statusName", label: "Trạng thái" },
+    { key: "transactionTypeName", label: "Loại giao dịch" },
+    { key: "createdAt", label: "Ngày tạo" },
+    { key: "warehouseName", label: "Kho bãi" },
+  ];
+
+  const fetchWarehouseTransaction = async () => {
+    try {
+      const response = await getAllWarehouseTransaction();
+      const transactions = response.content || [];
+
+      const enrichedTransactions = await Promise.all(
+        transactions.map(async (tran) => {
+          try {
+            const [warehouse, order, status, type] = await Promise.all([
+              getWarehouseById(tran.warehouseId),
+              getOrderById(tran.orderId),
+              getDeliveryStatusById(tran.statusId),
+              getWarehouseTransactionTypeById(tran.transactionTypeId),
+            ]);
+
+            return {
+              ...tran,
+              warehouseName: warehouse?.name || "Kho không rõ",
+              orderCode: order?.code || `DH${tran.orderId}`,
+              statusName: status?.name || "Trạng thái không rõ",
+              transactionTypeName: type?.name || "Loại không rõ",
+            };
+          } catch (innerErr) {
+            console.error(`Lỗi khi enrich giao dịch ${tran.id}:`, innerErr);
+            return {
+              ...tran,
+              warehouseName: "Lỗi kho",
+              orderCode: "Lỗi đơn hàng",
+              statusName: "Lỗi trạng thái",
+              transactionTypeName: "Lỗi loại",
+            };
+          }
+        })
+      );
+
+      setWarehouseTransaction(enrichedTransactions);
+      setFilteredData(enrichedTransactions);
+    } catch (error) {
+      console.error("Lỗi khi lấy danh sách giao dịch kho:", error);
+      toast.error("Không thể tải danh sách giao dịch kho");
+    }
+  };
+
+  useEffect(() => {
+    fetchWarehouseTransaction();
+  }, []);
 
   const handleSearch = () => {
-    const filtered = data.filter((item) =>
+    const filtered = warehouseTransaction.filter((item) =>
       displayColumns.some((col) => {
         const value = item[col.key]?.toString().toLowerCase() || "";
         return value.includes(searchValue.toLowerCase());
@@ -42,19 +96,17 @@ const WarehouseTransaction = ({ onAddNew, onEdit, onDelete }) => {
   const handleSearchChange = (e) => {
     setSearchValue(e.target.value);
     if (e.target.value === "") {
-      setFilteredData(data);
+      setFilteredData(warehouseTransaction);
     }
   };
 
-  const handleAddNew = (newItem) => {
-    if (onAddNew) {
-      onAddNew(newItem);
-    }
+  const handleAddNew = async () => {
     setIsAddModalOpen(false);
+    await fetchWarehouseTransaction();
   };
 
-  const handleViewDetail = () => {
-    navigate("/dashboard/warehouse/warehouse-transaction-detail");
+  const handleViewDetail = (id) => {
+    navigate(`/dashboard/warehouse/warehouse-transaction-detail/${id}`);
   };
 
   const handleEdit = (item) => {
@@ -62,20 +114,24 @@ const WarehouseTransaction = ({ onAddNew, onEdit, onDelete }) => {
     setIsEditModalOpen(true);
   };
 
-  const handleEditSubmit = (updatedItem) => {
-    if (onEdit) {
-      onEdit(updatedItem);
-    }
-
-    if (!onEdit) {
-      const updatedData = filteredData.map((item) =>
-        item.id === updatedItem.id ? updatedItem : item
-      );
-      setFilteredData(updatedData);
-    }
-
+  const handleEditSubmit = async (updatedItem) => {
     setIsEditModalOpen(false);
     setCurrentEditItem(null);
+    await fetchWarehouseTransaction();
+    toast.success("Cập nhật giao dịch kho thành công");
+  };
+
+  const handleDelete = async (item) => {
+    if (window.confirm("Bạn có chắc muốn xóa giao dịch này?")) {
+      try {
+        await deleteWarehouseTransaction(item.id);
+        await fetchWarehouseTransaction();
+        toast.success("Xóa giao dịch kho thành công");
+      } catch (error) {
+        console.error("Lỗi khi xóa giao dịch:", error);
+        toast.error("Lỗi khi xóa giao dịch kho");
+      }
+    }
   };
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
@@ -94,12 +150,8 @@ const WarehouseTransaction = ({ onAddNew, onEdit, onDelete }) => {
             setCurrentEditItem(null);
           }}
           onSubmit={handleEditSubmit}
-          fields={displayColumns.map((col) => ({
-            id: col.key,
-            label: col.label,
-          }))}
           initialData={currentEditItem}
-          title={`Chỉnh sửa ${title}`}
+          title="Chỉnh sửa giao dịch kho"
         />
       )}
 
@@ -108,19 +160,12 @@ const WarehouseTransaction = ({ onAddNew, onEdit, onDelete }) => {
           isOpen={isAddModalOpen}
           onClose={() => setIsAddModalOpen(false)}
           onSubmit={handleAddNew}
-          fields={displayColumns.map((col) => ({
-            id: col.key,
-            label: col.label,
-            type: "text",
-          }))}
-          initialData={{}}
-          title={`Thêm ${title} mới`}
         />
       )}
 
       <div className="p-6">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-800">{title}</h1>
+          <h1 className="text-2xl font-bold text-gray-800">Giao dịch kho</h1>
           <div className="flex items-center space-x-4">
             <div className="relative flex-grow w-64">
               <input
@@ -176,13 +221,15 @@ const WarehouseTransaction = ({ onAddNew, onEdit, onDelete }) => {
                         key={col.key}
                         className="py-3 px-4 text-sm text-gray-600 whitespace-nowrap text-left"
                       >
-                        {row[col.key]}
+                        {col.key === "createdAt"
+                          ? new Date(row[col.key]).toLocaleDateString()
+                          : row[col.key]}
                       </td>
                     ))}
                     <td className="py-3 px-4 text-center">
                       <div className="flex justify-center space-x-3">
                         <button
-                          onClick={handleViewDetail}
+                          onClick={() => handleViewDetail(row.id)}
                           className="text-blue-500 hover:text-blue-700 transition-colors"
                           title="Xem"
                         >
@@ -194,13 +241,6 @@ const WarehouseTransaction = ({ onAddNew, onEdit, onDelete }) => {
                           title="Sửa"
                         >
                           <FaEdit className="h-5 w-5" />
-                        </button>
-                        <button
-                          onClick={() => onDelete && onDelete(row)}
-                          className="text-red-500 hover:text-red-700 transition-colors"
-                          title="Xóa"
-                        >
-                          <FaRegTrashAlt className="h-5 w-5" />
                         </button>
                       </div>
                     </td>

@@ -6,6 +6,7 @@ import {
   updateInventoryAdjustmentType,
   deleteInventoryAdjustmentType,
 } from "@/api/inventoryAdjustmentTypesApi";
+
 const ReasonInventoryAdjust = () => {
   const [reason, setReason] = useState([]);
   const addInventoryAdjustmentTypeFields = [

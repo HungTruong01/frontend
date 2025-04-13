@@ -15,6 +15,20 @@ export const getAllInventoryAdjustmentType = async () => {
   }
 };
 
+export const getInventoryAdjustmentTypeById = async (
+  inventoryAdjustmentTypeId
+) => {
+  try {
+    const response = await axios.get(
+      `${BASE_REST_API_URL}/${inventoryAdjustmentTypeId}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching inventory adjustment types by id:", error);
+    throw error;
+  }
+};
+
 export const createInventoryAdjustmentType = async (
   inventoryAdjustmentType
 ) => {

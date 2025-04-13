@@ -31,18 +31,6 @@ const AddOrder = () => {
     }
   };
 
-  // const handleAddOrderDetailList = async () => {
-  //   try {
-  //     const orderDetailData = {
-  //       productId: orderItems.id,
-  //       quantity: orderItems.quantity,
-  //     }
-  //     await createOrderDetails(orderDetailData);
-  //   } catch (error) {
-  //     console.log("Error add order detail list", error);
-  //   }
-  // }
-
   const fetchOrderTypes = async () => {
     try {
       const response = await getAllOrderTypes();
@@ -107,45 +95,34 @@ const AddOrder = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedPartner) {
-      toast.error("Vui lòng chọn đối tác");
+
+    if (!selectedPartner || !selectedOrderType || orderItems.length === 0) {
+      toast.error("Vui lòng điền đầy đủ thông tin và thêm sản phẩm");
       return;
     }
-    if (!selectedOrderType) {
-      toast.error("Vui lòng chọn loại đơn hàng");
-      return;
-    }
-    if (orderItems.length === 0) {
-      toast.error("Vui lòng thêm ít nhất một sản phẩm");
-      return;
-    }
+
     const orderData = {
       partnerId: selectedPartner,
       orderTypeId: selectedOrderType,
-      totalAmount: Number(calculateTotal()),
+      totalMoney: Number(calculateTotal()),
     };
 
     try {
       const orderResponse = await createOrder(orderData);
-      console.log(orderResponse);
       const orderId = orderResponse.id;
-      const orderDetail = {
-        orderId: orderId,
-        details: orderItems.map((item) => ({
-          productId: item.id,
-          quantity: item.quantity,
-        })),
-      };
-      console.log(orderDetail);
-      await createOrderDetails(orderDetail);
-      alert("Đơn hàng đã được tạo thành công!");
+      const orderDetails = orderItems.map((item) => ({
+        orderId,
+        productId: item.id,
+        quantity: item.quantity,
+      }));
+      await createOrderDetails(orderDetails);
+      toast.success("Đơn hàng đã được tạo thành công!");
       navigate("/dashboard/business/order-management");
     } catch (error) {
       console.error("Lỗi tạo đơn hàng:", error);
-      alert("Có lỗi xảy ra khi tạo đơn hàng.");
+      toast.error("Có lỗi xảy ra khi tạo đơn hàng.");
     }
   };
-
   const handleAddPartner = async (newPartner) => {
     try {
       await partnerApi.addPartner(newPartner);

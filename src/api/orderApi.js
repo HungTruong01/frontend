@@ -14,6 +14,17 @@ export const getAllOrders = async () => {
   }
 };
 
+export const getOrdersByPartnerId = async (partnerId) => {
+  try {
+    const response = await axios.get(
+      `${BASE_REST_API_URL}/partners/${partnerId}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching orders:", error);
+    throw error;
+  }
+};
 export const getOrderById = async (orderId) => {
   try {
     const response = await axios.get(`${BASE_REST_API_URL}/${orderId}`);

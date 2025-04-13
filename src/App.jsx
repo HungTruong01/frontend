@@ -28,7 +28,7 @@ import ListWarehouse from "./pages/Dashboard/ListWarehouse";
 import InventoryProduct from "./pages/Dashboard/warehouse/InventoryProduct";
 import WarehouseTransaction from "./pages/Dashboard/warehouse/WarehouseTransaction";
 import WarehouseTransactionDetail from "./pages/Dashboard/warehouse/WarehouseTransactionDetail";
-
+import InventoryAdjustmentDetail from "./pages/Dashboard/warehouse/InventoryAdjustmentDetail";
 import ListOrder from "./pages/Dashboard/bussiness/ListOrder";
 import ListPartner from "./pages/Dashboard/bussiness/ListPartner";
 import DebtReport from "./pages/Dashboard/reports/DebtReport";
@@ -69,14 +69,12 @@ const App = () => {
           <Route path="system/account" element={<AccountList />} />
           <Route path="system/role" element={<RoleUser />} />
           <Route path="system/edit-account" element={<FormEditAccount />} />
-
           <Route path="categories/type-products" element={<TypeProduct />} />
           <Route path="categories/unit" element={<UnitPage />} />
           <Route path="categories/partner" element={<TypePartner />} />
           <Route path="categories/order" element={<TypeOrder />} />
           <Route path="categories/order-status" element={<OrderStatus />} />
           <Route path="categories/invoice-type" element={<InvoiceType />} />
-
           <Route
             path="categories/reason-for-inventory-adjustment"
             element={<ReasonInventoryAdjust />}
@@ -90,14 +88,12 @@ const App = () => {
             path="categories/delivery-status"
             element={<DeliveryStatus />}
           />
-
           <Route path="posts/post-list" element={<ListPost />} />
-
           <Route path="business/partner-list" element={<ListPartner />} />
           <Route path="business/order-management" element={<ListOrder />} />
           <Route path="bussiness/add-order" element={<AddOrder />} />
           <Route
-            path="business/order-management/edit"
+            path="business/order-management/edit/:id"
             element={<EditOrder />}
           />
           <Route path="business/invoice-management" element={<ListInvoice />} />
@@ -110,7 +106,7 @@ const App = () => {
             element={<WarehouseTransaction />}
           />
           <Route
-            path="warehouse/warehouse-transaction-detail"
+            path="warehouse/warehouse-transaction-detail/:transactionId"
             element={<WarehouseTransactionDetail />}
           />
           <Route
@@ -121,6 +117,11 @@ const App = () => {
             path="warehouse/adjust-inventory"
             element={<AdjustInventory />}
           />
+          <Route
+            path="warehouse/adjust-inventory-detail/:id"
+            element={<InventoryAdjustmentDetail />}
+          />
+          "
           <Route path="reports/revenue-report" element={<RevenueReport />} />
           <Route
             path="reports/income-and-expenditure-report"

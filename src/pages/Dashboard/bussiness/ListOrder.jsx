@@ -1,8 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiUpload } from "react-icons/fi";
 import { FaRegTrashAlt, FaEye, FaEdit, FaPlus } from "react-icons/fa";
 import OrderDetailModal from "@/components/Dashboard/order/OrderDetailModal";
+import { getAllOrders, getOrderById } from "@/api/orderApi";
+import { getAllOrderTypes } from "@/api/orderTypeApi";
+import { getAllOrderStatus } from "@/api/orderStatusApi";
+import { partnerApi } from "@/api/partnerApi";
 
 const ListOrder = () => {
   const navigate = useNavigate();
@@ -12,81 +15,54 @@ const ListOrder = () => {
   const [searchType, setSearchType] = useState("");
   const [itemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
-  const orders = [
-    {
-      id: "001",
-      orderCode: "DH001",
-      createdAt: "25/03/2025",
-      totalAmount: 1800000,
-      paymentAmount: 1000000,
-      partner: "Nguyễn Văn A",
-      status: "Hoàn thành",
-      orderType: "Đơn mua",
-      statusColor: "bg-green-100 text-green-800",
-    },
-    {
-      id: "002",
-      orderCode: "DH002",
-      createdAt: "26/03/2025",
-      totalAmount: 2000000,
-      paymentAmount: 1000000,
-      partner: "Nguyễn Văn B",
-      status: "Hoàn thành",
-      orderType: "Đơn bán",
-      statusColor: "bg-green-100 text-green-800",
-    },
-    {
-      id: "003",
-      orderCode: "DH003",
-      createdAt: "27/03/2025",
-      totalAmount: 1500000,
-      paymentAmount: 1000000,
-      partner: "Nguyễn Văn C",
-      status: "Chưa thanh toán",
-      orderType: "Đơn mua",
-      statusColor: "bg-red-100 text-red-800",
-    },
-    {
-      id: "004",
-      orderCode: "DH004",
-      createdAt: "28/03/2025",
-      totalAmount: 1100000,
-      paymentAmount: 1000000,
-      partner: "Nguyễn Văn D",
-      status: "Chưa thanh toán",
-      orderType: "Đơn bán",
-      statusColor: "bg-red-100 text-red-800",
-    },
-    {
-      id: "005",
-      orderCode: "DH005",
-      createdAt: "29/03/2025",
-      totalAmount: 2500000,
-      paymentAmount: 1000000,
-      partner: "Nguyễn Văn E",
-      status: "Hoàn thành",
-      orderType: "Đơn mua",
-      statusColor: "bg-green-100 text-green-800",
-    },
-    {
-      id: "006",
-      orderCode: "DH006",
-      createdAt: "25/03/2025",
-      totalAmount: 1800000,
-      paymentAmount: 1000000,
-      partner: "Nguyễn Văn Hưng",
-      status: "Thanh toán một phần",
-      orderType: "Đơn bán",
-      statusColor: "bg-yellow-100 text-yellow-800",
-    },
-  ];
+  const [orders, setOrders] = useState([]);
+  const [orderType, setOrderType] = useState([]);
+  const [orderStatus, setOrderStatus] = useState([]);
+  const [partners, setPartners] = useState([]);
 
-  const orderStatuses = [
-    "Hoàn thành",
-    "Chưa thanh toán",
-    "Thanh toán một phần",
-  ];
-  const orderTypes = ["Đơn mua", "Đơn bán"];
+  const fetchOrders = async () => {
+    try {
+      const response = await getAllOrders();
+      console.log(response.content);
+      setOrders(response.content);
+    } catch (error) {
+      console.log("Error fetching orders", error);
+    }
+  };
+
+  const fetchOrderTypes = async () => {
+    try {
+      const response = await getAllOrderTypes();
+      setOrderType(response.content);
+    } catch (error) {
+      console.log("Error fetching order types", error);
+    }
+  };
+
+  const fetchOrderStatus = async () => {
+    try {
+      const response = await getAllOrderStatus();
+      setOrderStatus(response.content);
+    } catch (error) {
+      console.log("Error fetching order status", error);
+    }
+  };
+
+  const fetchPartners = async () => {
+    try {
+      const response = await partnerApi.getAllPartners();
+      setPartners(response.content);
+    } catch (error) {
+      console.log("Error fetching partners: ", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchOrders();
+    fetchOrderTypes();
+    fetchOrderStatus();
+    fetchPartners();
+  }, []);
 
   const filteredOrders = orders.filter((order) => {
     const matchStatus = searchStatus === "" || order.status === searchStatus;
@@ -99,25 +75,69 @@ const ListOrder = () => {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "Invalid Date";
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "Invalid Date";
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
+  const getOrderTypeName = (orderTypeId) => {
+    const type = orderType.find((type) => type.id === orderTypeId);
+    return type ? type.name : "Unknown";
+  };
+
+  const getOrderStatusName = (orderStatusId) => {
+    const status = orderStatus.find((status) => status.id === orderStatusId);
+    return status ? status.name : "Unknown";
+  };
+
+  const getPartnerName = (partnerId) => {
+    const partner = partners.find((partner) => partner.id === partnerId);
+    return partner ? partner.name : "Unknown";
+  };
+
+  const getPaymentStatusColor = (order) => {
+    switch (order.orderStatusId) {
+      case 1:
+        return "bg-green-600 text-gray-100";
+      case 2:
+        return "bg-red-400 text-gray-100";
+      case 3:
+        return "bg-orange-400 text-gray-100";
+    }
+  };
+
   const handleAddClick = () => {
     navigate("/dashboard/bussiness/add-order");
   };
 
-  const handleViewDetail = (order) => {
-    setSelectedOrder(order);
-    setIsDetailModalOpen(true);
+  const handleViewDetail = async (order) => {
+    try {
+      const response = await getOrderById(order.id);
+      setSelectedOrder(response);
+      setIsDetailModalOpen(true);
+    } catch (error) {
+      console.error("Lỗi xem chi tiết đơn hàng", error);
+      alert("Không thể tải chi tiết đơn hàng. Vui lòng thử lại!");
+    }
   };
 
-  // Hàm format số tiền
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(amount);
+    return `${new Intl.NumberFormat("vi-VN").format(amount)}`;
   };
 
   const handleEditOrder = (order) => {
-    navigate("/dashboard/business/order-management/edit");
+    navigate(`/dashboard/business/order-management/edit/${order.id}`);
+  };
+
+  // Hàm để làm mới danh sách đơn hàng
+  const handleOrderUpdated = () => {
+    fetchOrders();
   };
 
   return (
@@ -126,6 +146,7 @@ const ListOrder = () => {
         isOpen={isDetailModalOpen}
         onClose={() => setIsDetailModalOpen(false)}
         orderData={selectedOrder}
+        onOrderUpdated={handleOrderUpdated} // Truyền callback
       />
       <div className="p-6">
         <div className="flex justify-between items-center mb-6">
@@ -154,9 +175,9 @@ const ListOrder = () => {
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="">Tất cả</option>
-              {orderStatuses.map((status) => (
-                <option key={status} value={status}>
-                  {status}
+              {orderStatus.map((status) => (
+                <option key={status.id} value={status.name}>
+                  {status.name}
                 </option>
               ))}
             </select>
@@ -171,9 +192,9 @@ const ListOrder = () => {
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="">Tất cả</option>
-              {orderTypes.map((type) => (
-                <option key={type} value={type}>
-                  {type}
+              {orderType.map((type) => (
+                <option key={type.id} value={type.name}>
+                  {type.name}
                 </option>
               ))}
             </select>
@@ -183,7 +204,7 @@ const ListOrder = () => {
         <div className="overflow-x-auto bg-white">
           <table className="w-full">
             <thead>
-              <tr className="bg-gray-200 ">
+              <tr className="bg-gray-200">
                 <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 w-1/7">
                   <div className="flex items-center space-x-1">
                     <span>Mã đơn</span>
@@ -194,7 +215,6 @@ const ListOrder = () => {
                     <span>Ngày tạo</span>
                   </div>
                 </th>
-
                 <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 w-1/5">
                   <div className="flex items-center space-x-1">
                     <span>Đối tác</span>
@@ -205,7 +225,6 @@ const ListOrder = () => {
                     <span>Loại đơn</span>
                   </div>
                 </th>
-
                 <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700 w-1/7">
                   <div className="flex items-center justify-end space-x-1">
                     <span>Tổng tiền</span>
@@ -229,49 +248,48 @@ const ListOrder = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {filteredOrders.map((order) => (
+              {paginatedData.map((order) => (
                 <tr
                   key={order.id}
                   className="hover:bg-gray-100 transition-colors"
                 >
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
-                      {order.orderCode}
+                    <div className="text-sm text-gray-900">{order.id}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">
+                      {formatDate(order.createdAt)}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">
-                      {order.createdAt}
+                      {getPartnerName(order.partnerId)}
                     </div>
-                  </td>
-
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{order.partner}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-center">
                     <div className="text-sm text-gray-900">
-                      {order.orderType}
-                    </div>
-                  </td>
-
-                  <td className="px-6 py-4 whitespace-nowrap text-right">
-                    <div className="text-sm text-gray-900">
-                      {formatCurrency(order.totalAmount)}
+                      {getOrderTypeName(order.orderTypeId)}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right">
                     <div className="text-sm text-gray-900">
-                      {formatCurrency(order.paymentAmount)}
+                      {formatCurrency(order.totalMoney)}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right">
+                    <div className="text-sm text-gray-900">
+                      {formatCurrency(order.paidMoney)}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-center">
                     <span
-                      className={`px-2 py-1 text-xs font-medium rounded-full ${order.statusColor}`}
+                      className={`px-2 py-1 text-xs font-medium rounded-full ${getPaymentStatusColor(
+                        order
+                      )}`}
                     >
-                      {order.status}
+                      {getOrderStatusName(order.orderStatusId)}
                     </span>
                   </td>
-
                   <td className="px-6 py-4 whitespace-nowrap text-center">
                     <div className="flex justify-center space-x-3">
                       <button
