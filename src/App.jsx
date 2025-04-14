@@ -139,10 +139,10 @@ const App = () => {
             path="warehouse/adjust-inventory"
             element={<AdjustInventory />}
           />
-          <Route
+          {/* <Route
             path="warehouse/adjust-inventory-detail/:id"
             element={<InventoryAdjustmentDetail />}
-          />
+          /> */}
 
           <Route
             path="warehouse/warehouse-transfer"

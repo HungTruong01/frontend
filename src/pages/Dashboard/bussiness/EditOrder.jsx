@@ -28,6 +28,7 @@ const EditOrder = () => {
   const [selectedOrderType, setSelectedOrderType] = useState("");
   const [originalPartner, setOriginalPartner] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPaidMoney, setCurrentPaidMoney] = useState(0); // Thêm trạng thái lưu số tiền đã trả hiện tại
 
   const fetchPartners = async () => {
     try {
@@ -67,6 +68,7 @@ const EditOrder = () => {
       setOriginalPartner(response.partnerId || "");
       setSelectedOrderType(response.orderTypeId || "");
       setSelectedStatus(response.orderStatusId || "");
+      setCurrentPaidMoney(response.paidMoney || 0); // Lưu số tiền đã trả hiện tại
 
       const orderDetails = Array.isArray(response.orderDetails)
         ? response.orderDetails
@@ -163,31 +165,20 @@ const EditOrder = () => {
       return;
     }
 
-    if (selectedPartner !== originalPartner) {
-      const total = calculateTotal();
+    const newTotal = calculateTotal();
 
+    if (selectedPartner !== originalPartner) {
       try {
         // Trừ công nợ đối tác cũ
-        await partnerApi.updateDebt(originalPartner, -total);
+        await partnerApi.updateDebt(originalPartner, -newTotal);
 
         // Cộng công nợ đối tác mới
-        await partnerApi.updateDebt(selectedPartner, total);
+        await partnerApi.updateDebt(selectedPartner, newTotal);
       } catch (error) {
         console.error("Lỗi khi cập nhật công nợ:", error);
         toast.error("Không thể cập nhật công nợ cho đối tác.");
       }
     }
-
-    const updatedOrder = {
-      partnerId: selectedPartner,
-      orderTypeId: selectedOrderType,
-      orderStatusId: selectedStatus,
-      totalMoney: calculateTotal(),
-      paidMoney: orderItems.reduce(
-        (total, item) => total + (item.paid || 0),
-        0
-      ),
-    };
 
     try {
       // 1. Cập nhật danh sách sản phẩm trước
@@ -198,15 +189,13 @@ const EditOrder = () => {
       }));
       await updateOrderDetailsByOrderId(id, newOrderDetails);
 
+      // 2. Cập nhật thông tin đơn hàng nhưng giữ nguyên số tiền đã trả
       const updatedOrder = {
         partnerId: selectedPartner,
         orderTypeId: selectedOrderType,
         orderStatusId: selectedStatus,
-        totalMoney: calculateTotal(),
-        paidMoney: orderItems.reduce(
-          (total, item) => total + (item.paid || 0),
-          0
-        ),
+        totalMoney: newTotal,
+        paidMoney: currentPaidMoney, // Giữ nguyên số tiền đã trả hiện tại thay vì tính lại
       };
       await updateOrder(id, updatedOrder);
 
@@ -414,6 +403,12 @@ const EditOrder = () => {
               <span className="text-blue-600">
                 {formatCurrency(calculateTotal())} VNĐ
               </span>
+              <div className="text-sm text-gray-600 mt-1">
+                Đã thanh toán:{" "}
+                <span className="text-green-600">
+                  {formatCurrency(currentPaidMoney)} VNĐ
+                </span>
+              </div>
             </div>
             <div className="space-x-4">
               <button

@@ -329,18 +329,18 @@ const ListProduct = () => {
                       </button>
                       <button
                         onClick={() => handleEditProduct(product)}
-                        className="text-green-500 hover:text-green-700 transition-colors"
+                        className="text-blue-500 hover:text-blue-700 transition-colors"
                         title="Sửa"
                       >
                         <FaEdit className="h-5 w-5" />
                       </button>
-                      <button
+                      {/* <button
                         onClick={() => handleDeleteProduct(product.id)}
                         className="text-red-500 hover:text-red-700 transition-colors"
                         title="Xóa"
                       >
                         <FaRegTrashAlt className="h-5 w-5" />
-                      </button>
+                      </button> */}
                     </div>
                   </td>
                 </tr>
