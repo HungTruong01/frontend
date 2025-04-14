@@ -1,80 +1,80 @@
 import React, { useState } from "react";
+import {
+  loginCallAPI,
+  saveLoggedInUser,
+} from "@/api/authService";
+import { useNavigate } from "react-router-dom";
 
-const LoginPage = () => {
-  const [formData, setFormData] = useState({
-    username: "",
-    password: "",
-  });
+const LoginComponent = () => {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const navigator = useNavigate();
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleSubmit = (e) => {
+  async function handleLoginForm(e) {
     e.preventDefault();
-    console.log("Thông tin đăng nhập:", formData);
-    alert("Đăng nhập thành công!");
-  };
+
+    await loginCallAPI(username, password)
+      .then((res) => {
+        console.log(res);
+        saveLoggedInUser(username);
+
+        navigator("/dashboard");
+        window.location.reload(false);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
-        <h2 className="text-2xl font-semibold text-gray-800 text-center mb-6">
-          Đăng nhập
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+      <div className="w-full max-w-md bg-white rounded-xl shadow-md p-8">
+        <h2 className="text-2xl font-semibold text-center text-gray-800 mb-6">
+          Admin Login Form
         </h2>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleLoginForm}>
           <div className="mb-4">
-            <label
-              htmlFor="username"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              Tên đăng nhập
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Username or Email
             </label>
             <input
               type="text"
-              id="username"
               name="username"
-              value={formData.username}
-              onChange={handleChange}
-              placeholder="Nhập tên đăng nhập"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Enter username or email"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               required
             />
           </div>
 
           <div className="mb-6">
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              Mật khẩu
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Password
             </label>
             <input
               type="password"
-              id="password"
               name="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="Nhập mật khẩu"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Enter password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               required
             />
           </div>
 
-          <button
-            type="submit"
-            className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            Đăng nhập
-          </button>
+          <div className="text-center">
+            <button
+              type="submit"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200"
+            >
+              Login
+            </button>
+          </div>
         </form>
       </div>
     </div>
   );
 };
 
-export default LoginPage;
+export default LoginComponent;

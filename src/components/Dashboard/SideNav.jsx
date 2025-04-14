@@ -1,19 +1,26 @@
 import React, { useState, useEffect } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import logo from "@/assets/logo.png";
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/24/outline";
 import { MdLogout, MdOutlineMenu } from "react-icons/md";
+import { logout } from "@/api/authService";
 
-const SideNav = ({ menuItems, onLogout, onToggle }) => {
+const SideNav = ({ menuItems, onToggle }) => {
   const [openSubmenu, setOpenSubmenu] = useState({});
   const [isCollapsed, setIsCollapsed] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   const handleSubmenuToggle = (name) => {
     setOpenSubmenu((prev) => ({
       ...prev,
       [name]: !prev[name],
     }));
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login"); // Chuyển hướng về trang login sau khi logout
   };
 
   const toggleSidebar = () => {
@@ -154,7 +161,7 @@ const SideNav = ({ menuItems, onLogout, onToggle }) => {
 
         <div className="p-4 mt-auto border-t border-gray-200">
           <button
-            onClick={onLogout}
+            onClick={handleLogout}
             className={`flex items-center ${
               isCollapsed ? "justify-center" : "gap-4"
             } w-full px-4 py-3 cursor-pointer rounded-md transition-colors`}
@@ -162,7 +169,7 @@ const SideNav = ({ menuItems, onLogout, onToggle }) => {
           >
             <MdLogout className="h-6 w-6" />
             {!isCollapsed && (
-              <span className="text-base font-medium">Logout</span>
+              <a className="text-base font-medium">Logout</a>
             )}
           </button>
         </div>

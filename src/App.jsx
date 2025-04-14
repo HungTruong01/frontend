@@ -1,5 +1,5 @@
 import React from "react";
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, Navigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import About from "./pages/LandingPage/About";
 import Home from "./pages/LandingPage/Home";
@@ -45,26 +45,35 @@ import ListInvoice from "./pages/Dashboard/bussiness/ListInvoice";
 import FormEditAccount from "./pages/Dashboard/system/FormEditAccount";
 import ErrorPopup from "./components/Dashboard/ErrorPopUp";
 import SuccessPopup from "./components/Dashboard/SuccessPopup";
+import { isUserLoggedIn } from "./api/authService";
+
+// Component để bảo vệ các route
+function AuthenticatedRoute({ children }) {
+  const isAuth = isUserLoggedIn();
+  if (isAuth) {
+    return children;
+  }
+  return <Navigate to="/login" />; // Redirect về trang login nếu chưa đăng nhập
+}
+
 const App = () => {
   return (
     <>
       <ToastContainer />
       <Routes>
+        {/* Public routes */}
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
         <Route path="/service" element={<Service />} />
         <Route path="/products" element={<Products />} />
         <Route path="/news" element={<News />} />
-        <Route
-          path="/news/food-logistics-optimization"
-          element={<NewDetail />}
-        />
-
+        <Route path="/news/food-logistics-optimization" element={<NewDetail />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/error" element={<ErrorPopup />} />
         <Route path="/success" element={<SuccessPopup />} />
 
-        <Route path="/dashboard" element={<DashBoardHome />}>
+        {/* Protected routes */}
+        <Route path="/dashboard" element={<AuthenticatedRoute><DashBoardHome /></AuthenticatedRoute>}>
           <Route index element={<OverviewDashboard />} />
           <Route path="system/account" element={<AccountList />} />
           <Route path="system/role" element={<RoleUser />} />
@@ -75,58 +84,24 @@ const App = () => {
           <Route path="categories/order" element={<TypeOrder />} />
           <Route path="categories/order-status" element={<OrderStatus />} />
           <Route path="categories/invoice-type" element={<InvoiceType />} />
-          <Route
-            path="categories/reason-for-inventory-adjustment"
-            element={<ReasonInventoryAdjust />}
-          />
+          <Route path="categories/reason-for-inventory-adjustment" element={<ReasonInventoryAdjust />} />
           <Route path="categories/warehouse" element={<ListWarehouse />} />
-          <Route
-            path="categories/warehouse-transaction-type"
-            element={<TypeTransactionWareHouse />}
-          />
-          <Route
-            path="categories/delivery-status"
-            element={<DeliveryStatus />}
-          />
+          <Route path="categories/warehouse-transaction-type" element={<TypeTransactionWareHouse />} />
+          <Route path="categories/delivery-status" element={<DeliveryStatus />} />
           <Route path="posts/post-list" element={<ListPost />} />
           <Route path="business/partner-list" element={<ListPartner />} />
           <Route path="business/order-management" element={<ListOrder />} />
           <Route path="bussiness/add-order" element={<AddOrder />} />
-          <Route
-            path="business/order-management/edit/:id"
-            element={<EditOrder />}
-          />
+          <Route path="business/order-management/edit/:id" element={<EditOrder />} />
           <Route path="business/invoice-management" element={<ListInvoice />} />
-          <Route
-            path="warehouse/product-management"
-            element={<ListProduct />}
-          />
-          <Route
-            path="warehouse/warehouse-transaction"
-            element={<WarehouseTransaction />}
-          />
-          <Route
-            path="warehouse/warehouse-transaction-detail/:transactionId"
-            element={<WarehouseTransactionDetail />}
-          />
-          <Route
-            path="warehouse/inventory-products"
-            element={<InventoryProduct />}
-          />
-          <Route
-            path="warehouse/adjust-inventory"
-            element={<AdjustInventory />}
-          />
-          <Route
-            path="warehouse/adjust-inventory-detail/:id"
-            element={<InventoryAdjustmentDetail />}
-          />
-          "
+          <Route path="warehouse/product-management" element={<ListProduct />} />
+          <Route path="warehouse/warehouse-transaction" element={<WarehouseTransaction />} />
+          <Route path="warehouse/warehouse-transaction-detail/:transactionId" element={<WarehouseTransactionDetail />} />
+          <Route path="warehouse/inventory-products" element={<InventoryProduct />} />
+          <Route path="warehouse/adjust-inventory" element={<AdjustInventory />} />
+          <Route path="warehouse/adjust-inventory-detail/:id" element={<InventoryAdjustmentDetail />} />
           <Route path="reports/revenue-report" element={<RevenueReport />} />
-          <Route
-            path="reports/income-and-expenditure-report"
-            element={<IncomeReport />}
-          />
+          <Route path="reports/income-and-expenditure-report" element={<IncomeReport />} />
           <Route path="reports/debt-report" element={<DebtReport />} />
         </Route>
       </Routes>
