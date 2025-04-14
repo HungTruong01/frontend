@@ -12,8 +12,8 @@ import { getProductById } from "@/api/productApi";
 import { getWarehouseById } from "@/api/warehouseApi";
 import { getInventoryAdjustmentTypeById } from "@/api/inventoryAdjustmentTypesApi";
 
-const InventoryAdjustmentDetail = () => {
-  const { id } = useParams();
+const WarehouseTransferDetail = () => {
+  const { transferId } = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -29,7 +29,7 @@ const InventoryAdjustmentDetail = () => {
         setLoading(true);
 
         // Fetch warehouse transfer data
-        const transferData = await getWarehouseTransferById(id);
+        const transferData = await getWarehouseTransferById(transferId);
         setAdjustmentData(transferData);
 
         // Fetch related data in parallel
@@ -58,10 +58,10 @@ const InventoryAdjustmentDetail = () => {
       }
     };
 
-    if (id) {
+    if (transferId) {
       fetchData();
     }
-  }, [id]);
+  }, [transferId]);
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat("vi-VN", {
@@ -83,7 +83,7 @@ const InventoryAdjustmentDetail = () => {
   };
 
   const handleGoBack = () => {
-    navigate("/dashboard/warehouse/adjust-inventory");
+    navigate("/dashboard/warehouse/warehouse-transfer");
   };
 
   if (loading) {
@@ -141,27 +141,21 @@ const InventoryAdjustmentDetail = () => {
       <div className="p-6">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-gray-800">
-            Chi tiết điều chỉnh tồn kho #{id}
+            Chi tiết chuyển kho #{transferId}
           </h1>
-          <button
-            onClick={handleGoBack}
-            className="flex items-center px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
-          >
-            <FaArrowLeft className="mr-2" /> Quay lại
-          </button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           {/* Thông tin cơ bản */}
           <div className="bg-blue-50 rounded-lg p-6 shadow-sm">
             <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
-              <FaCalendarAlt className="mr-2 text-blue-600" /> Thông tin điều
-              chỉnh
+              <FaCalendarAlt className="mr-2 text-blue-600" /> Thông tin chuyển
+              kho
             </h2>
             <div className="space-y-3">
               <div>
                 <span className="text-gray-500 font-medium">
-                  Mã điều chỉnh:
+                  Mã chuyển kho:
                 </span>
                 <span className="ml-2 text-gray-800">{adjustmentData.id}</span>
               </div>
@@ -173,15 +167,7 @@ const InventoryAdjustmentDetail = () => {
               </div>
               <div>
                 <span className="text-gray-500 font-medium">
-                  Ngày cập nhật:
-                </span>
-                <span className="ml-2 text-gray-800">
-                  {formatDate(adjustmentData.updatedAt)}
-                </span>
-              </div>
-              <div>
-                <span className="text-gray-500 font-medium">
-                  Lý do điều chỉnh:
+                  Trạng thái vận chuyển:
                 </span>
                 <span className="ml-2 text-gray-800 font-semibold">
                   {adjustmentType?.name || "Không rõ"}
@@ -217,20 +203,6 @@ const InventoryAdjustmentDetail = () => {
                     {product.name}
                   </span>
                 </div>
-                {product.sku && (
-                  <div>
-                    <span className="text-gray-500 font-medium">Mã SKU:</span>
-                    <span className="ml-2 text-gray-800">{product.sku}</span>
-                  </div>
-                )}
-                {product.barcode && (
-                  <div>
-                    <span className="text-gray-500 font-medium">Mã vạch:</span>
-                    <span className="ml-2 text-gray-800">
-                      {product.barcode}
-                    </span>
-                  </div>
-                )}
                 <div>
                   <span className="text-gray-500 font-medium">Giá:</span>
                   <span className="ml-2 text-blue-600 font-medium">
@@ -281,16 +253,6 @@ const InventoryAdjustmentDetail = () => {
                     </span>
                   </div>
                 )}
-                {sourceWarehouse.phone && (
-                  <div>
-                    <span className="text-gray-500 font-medium">
-                      Số điện thoại:
-                    </span>
-                    <span className="ml-2 text-gray-800">
-                      {sourceWarehouse.phone}
-                    </span>
-                  </div>
-                )}
               </div>
             ) : (
               <p className="text-gray-500">Không có thông tin kho xuất</p>
@@ -324,32 +286,12 @@ const InventoryAdjustmentDetail = () => {
                     </span>
                   </div>
                 )}
-                {destinationWarehouse.phone && (
-                  <div>
-                    <span className="text-gray-500 font-medium">
-                      Số điện thoại:
-                    </span>
-                    <span className="ml-2 text-gray-800">
-                      {destinationWarehouse.phone}
-                    </span>
-                  </div>
-                )}
               </div>
             ) : (
               <p className="text-gray-500">Không có thông tin kho nhập</p>
             )}
           </div>
         </div>
-
-        {/* Ghi chú (nếu có) */}
-        {adjustmentData.notes && (
-          <div className="mt-6 bg-yellow-50 rounded-lg p-6 shadow-sm">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">
-              Ghi chú
-            </h2>
-            <p className="text-gray-700">{adjustmentData.notes}</p>
-          </div>
-        )}
 
         {/* Nút hành động */}
         <div className="mt-8 flex justify-end space-x-4">
@@ -365,4 +307,4 @@ const InventoryAdjustmentDetail = () => {
   );
 };
 
-export default InventoryAdjustmentDetail;
+export default WarehouseTransferDetail;

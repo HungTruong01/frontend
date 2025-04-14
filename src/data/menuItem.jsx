@@ -170,6 +170,11 @@ const menuItem = [
         icon: <FaExchangeAlt {...iconStyles} />,
       },
       {
+        name: "Chuyển kho",
+        path: "/dashboard/warehouse/warehouse-transfer",
+        icon: <TbTruckDelivery {...iconStyles} />,
+      },
+      {
         name: "Điều chỉnh tồn kho",
         path: "/dashboard/warehouse/adjust-inventory",
         icon: <FaExclamationTriangle {...iconStyles} />,

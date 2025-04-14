@@ -1,23 +1,27 @@
 import React, { useEffect, useState } from "react";
 import {
-  getAllInventoryAdjustment,
-  deleteInventoryAdjustment,
-} from "@/api/inventoryAdjustmentApi";
+  getAllWarehouseTransfer,
+  deleteWarehouseTransfer,
+} from "@/api/warehouseTransferApi";
 import { getWarehouseById } from "@/api/warehouseApi";
 import { getProductById } from "@/api/productApi";
+import {
+  getAllDeliveryStatus,
+  getDeliveryStatusById,
+} from "@/api/deliveryStatusApi";
 import { getInventoryAdjustmentTypeById } from "@/api/inventoryAdjustmentTypesApi";
 import { FaSearch, FaRegTrashAlt, FaEye, FaEdit } from "react-icons/fa";
 import { GoPlus } from "react-icons/go";
 import { toast } from "react-toastify";
+import AddIWarehouseTransferModal from "@/components/Dashboard/warehouse/AddIWarehouseTransferModal";
+import EditWarehouseTransferModal from "@/components/Dashboard/warehouse/EditWarehouseTransferModal";
 import { useNavigate } from "react-router-dom";
-import AddInventoryAdjustmentModal from "@/components/Dashboard/warehouse/AddInventoryAdjustmentModal";
-import EditInventoryAdjustmentModal from "@/components/Dashboard/warehouse/EditInventoryAdjustmentModal";
 
-const AdjustInventory = () => {
-  const [adjustments, setAdjustments] = useState([]);
+const WarehouseTransfer = () => {
+  const [warehouseTransfer, setWarehouseTransfer] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [searchValue, setSearchValue] = useState("");
-  const [itemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -28,104 +32,55 @@ const AdjustInventory = () => {
     { key: "id", label: "STT" },
     { key: "quantity", label: "Số lượng" },
     { key: "createdAt", label: "Ngày tạo" },
-    { key: "adjustmentTypeName", label: "Lý do điều chỉnh" },
+    { key: "statusName", label: "Trạng thái" },
     { key: "productName", label: "Tên sản phẩm" },
-    { key: "warehouseName", label: "Kho bãi" },
+    { key: "sourceWarehouseName", label: "Kho xuất" },
+    { key: "destinationWarehouseName", label: "Kho nhập" },
   ];
 
   const fetchData = async () => {
     try {
-      const response = await getAllInventoryAdjustment();
-      const adjustmentData = response.content || [];
-
-      const enrichedAdjustments = await Promise.all(
-        adjustmentData.map(async (adjustment) => {
+      const response = await getAllWarehouseTransfer();
+      const transfers = response.content || [];
+      const enrichedTransfers = await Promise.all(
+        transfers.map(async (transfer) => {
           try {
-            let warehouse = null;
-            try {
-              warehouse = await getWarehouseById(adjustment.warehouseId);
-              if (!warehouse || !warehouse.name) {
-                console.error(
-                  "Warehouse missing or no name property:",
-                  warehouse
-                );
-              }
-            } catch (warehouseErr) {
-              console.error(
-                `Error fetching warehouse ID ${adjustment.warehouseId}:`,
-                warehouseErr
-              );
-            }
-
-            let product = null;
-            try {
-              product = await getProductById(adjustment.productId);
-              if (!product || !product.name) {
-                console.error("Product missing or no name property:", product);
-              }
-            } catch (productErr) {
-              console.error(
-                `Error fetching product ID ${adjustment.productId}:`,
-                productErr
-              );
-            }
-            const adjustmentTypeId = adjustment.inventoryAdjustmentTypeId;
-            let adjustmentType = null;
-            try {
-              adjustmentType = await getInventoryAdjustmentTypeById(
-                adjustmentTypeId
-              );
-              if (!adjustmentType || !adjustmentType.name) {
-                console.error(
-                  "Adjustment type missing or no name property:",
-                  adjustmentType
-                );
-              }
-            } catch (typeErr) {
-              console.error(
-                `Error fetching adjustment type ID ${adjustmentTypeId}:`,
-                typeErr
-              );
-            }
+            const [sourceWarehouse, destinationWarehouse, product, status] =
+              await Promise.all([
+                getWarehouseById(transfer.sourceWarehouseId),
+                getWarehouseById(transfer.destinationWarehouseId),
+                getProductById(transfer.productId),
+                getDeliveryStatusById(transfer.statusId), // Thay đổi này
+              ]);
 
             return {
-              ...adjustment,
-              warehouseName:
-                warehouse && warehouse.name
-                  ? warehouse.name
-                  : `Kho ${adjustment.warehouseId}`,
-              productName:
-                product && product.name
-                  ? product.name
-                  : `Sản phẩm ${adjustment.productId}`,
-              adjustmentTypeName:
-                adjustmentType && adjustmentType.name
-                  ? adjustmentType.name
-                  : `Loại ${adjustmentTypeId}`,
+              ...transfer,
+              sourceWarehouseName: sourceWarehouse?.name || "Kho xuất không rõ",
+              destinationWarehouseName:
+                destinationWarehouse?.name || "Kho nhập không rõ",
+              productName: product?.name || `Sản phẩm ${transfer.productId}`,
+              statusName: status?.name || "Trạng thái không rõ",
             };
           } catch (innerErr) {
             console.error(
-              `Lỗi khi lấy thông tin chi tiết điều chỉnh ${adjustment.id}:`,
+              `Lỗi khi lấy thông tin chi tiết chuyển kho ${transfer.id}:`,
               innerErr
             );
             return {
-              ...adjustment,
-              warehouseName: `Kho ${adjustment.warehouseId}`,
-              productName: `Sản phẩm ${adjustment.productId}`,
-              adjustmentTypeName: `Loại ${
-                adjustment.inventoryAdjustmentTypeId ||
-                adjustment.adjustmentTypeId
-              }`,
+              ...transfer,
+              sourceWarehouseName: "Lỗi kho xuất",
+              destinationWarehouseName: "Lỗi kho nhập",
+              productName: "Lỗi sản phẩm",
+              statusName: "Lỗi trạng thái",
             };
           }
         })
       );
 
-      console.log("Enriched adjustments:", enrichedAdjustments);
-      setAdjustments(enrichedAdjustments);
-      setFilteredData(enrichedAdjustments);
+      setWarehouseTransfer(enrichedTransfers);
+      setFilteredData(enrichedTransfers);
     } catch (error) {
-      console.error("Main fetch error:", error);
+      console.error("Lỗi khi lấy danh sách điều chỉnh tồn kho:", error);
       toast.error("Không thể tải danh sách điều chỉnh tồn kho");
     }
   };
@@ -133,7 +88,6 @@ const AdjustInventory = () => {
   useEffect(() => {
     fetchData();
   }, []);
-
   const formatDate = (dateString) => {
     if (!dateString) return "Invalid Date";
     const date = new Date(dateString);
@@ -143,9 +97,8 @@ const AdjustInventory = () => {
     const year = date.getFullYear();
     return `${day}/${month}/${year}`;
   };
-
   const handleSearch = () => {
-    const filtered = adjustments.filter((item) =>
+    const filtered = warehouseTransfer.filter((item) =>
       displayColumns.some((col) => {
         const value = item[col.key]?.toString().toLowerCase() || "";
         return value.includes(searchValue.toLowerCase());
@@ -158,19 +111,18 @@ const AdjustInventory = () => {
   const handleSearchChange = (e) => {
     setSearchValue(e.target.value);
     if (e.target.value === "") {
-      setFilteredData(adjustments);
-      setCurrentPage(1);
+      setFilteredData(warehouseTransfer);
     }
   };
 
   const handleAddNew = async () => {
     setIsAddModalOpen(false);
     await fetchData();
-    toast.success("Thêm mới điều chỉnh tồn kho thành công");
+    toast.success("Thêm mới chuyển kho thành công");
   };
 
-  const handleViewDetail = (adjustmentId) => {
-    navigate(`/dashboard/warehouse/adjust-inventory/${adjustmentId}`);
+  const handleViewDetail = (transferId) => {
+    navigate(`/dashboard/warehouse/warehouse-transfer/${transferId}`);
   };
 
   const handleEdit = (item) => {
@@ -178,22 +130,22 @@ const AdjustInventory = () => {
     setIsEditModalOpen(true);
   };
 
-  const handleEditSubmit = async () => {
+  const handleEditSubmit = async (updatedData) => {
     setIsEditModalOpen(false);
     setCurrentEditItem(null);
     await fetchData();
-    toast.success("Cập nhật điều chỉnh tồn kho thành công");
+    toast.success("Cập nhật chuyển kho thành công");
   };
 
   const handleDelete = async (item) => {
-    if (window.confirm("Bạn có chắc muốn xóa điều chỉnh này?")) {
+    if (window.confirm("Bạn có chắc muốn xóa chuyển kho này?")) {
       try {
-        await deleteInventoryAdjustment(item.id);
+        await deleteWarehouseTransfer(item.id);
         await fetchData();
-        toast.success("Xóa điều chỉnh thành công");
+        toast.success("Xóa chuyển kho thành công");
       } catch (error) {
-        console.error("Lỗi khi xóa điều chỉnh:", error);
-        toast.error("Lỗi khi xóa điều chỉnh");
+        console.error("Lỗi khi xóa chuyển kho:", error);
+        toast.error("Lỗi khi xóa chuyển kho");
       }
     }
   };
@@ -207,7 +159,7 @@ const AdjustInventory = () => {
   return (
     <div className="w-full bg-white shadow-lg rounded-lg overflow-hidden">
       {currentEditItem && (
-        <EditInventoryAdjustmentModal
+        <EditWarehouseTransferModal
           isOpen={isEditModalOpen}
           onClose={() => {
             setIsEditModalOpen(false);
@@ -215,12 +167,12 @@ const AdjustInventory = () => {
           }}
           onSubmit={handleEditSubmit}
           initialData={currentEditItem}
-          title="Chỉnh sửa điều chỉnh tồn kho"
+          title="Chỉnh sửa chuyển kho"
         />
       )}
 
       {isAddModalOpen && (
-        <AddInventoryAdjustmentModal
+        <AddIWarehouseTransferModal
           isOpen={isAddModalOpen}
           onClose={() => setIsAddModalOpen(false)}
           onSubmit={handleAddNew}
@@ -230,7 +182,7 @@ const AdjustInventory = () => {
       <div className="p-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-gray-800">
-            Danh sách điều chỉnh tồn kho
+            Danh sách chuyển kho
           </h1>
           <div className="flex items-center space-x-4">
             <div className="relative flex-grow w-64">
@@ -289,7 +241,7 @@ const AdjustInventory = () => {
                       >
                         {col.key === "createdAt"
                           ? formatDate(row[col.key])
-                          : row[col.key] || "N/A"}
+                          : row[col.key]}
                       </td>
                     ))}
                     <td className="py-3 px-4 text-center">
@@ -381,4 +333,4 @@ const AdjustInventory = () => {
   );
 };
 
-export default AdjustInventory;
+export default WarehouseTransfer;
