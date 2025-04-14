@@ -303,7 +303,7 @@ const WarehouseTransactionDetail = () => {
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <div className="border-b border-gray-200 bg-gray-50 px-6 py-4 flex justify-between items-center">
           <h2 className="text-lg font-semibold text-gray-800">
-            Chi tiết sản phẩm
+            Chi tiết đơn hàng
           </h2>
           <p className="text-gray-600 font-medium">
             Tổng số lượng: <span className="font-bold">{totalQuantity}</span>
@@ -322,7 +322,6 @@ const WarehouseTransactionDetail = () => {
                   Tên sản phẩm
                 </th>
                 <th className="py-3 px-6 text-right font-semibold">Số lượng</th>
-                <th className="py-3 px-6 text-left font-semibold">Đơn vị</th>
               </tr>
             </thead>
             <tbody>
@@ -343,9 +342,6 @@ const WarehouseTransactionDetail = () => {
                     </td>
                     <td className="py-4 px-6 text-sm text-gray-600 text-right font-semibold">
                       {item.quantity || 0}
-                    </td>
-                    <td className="py-4 px-6 text-sm text-gray-600">
-                      {item.unit || "Cái"}
                     </td>
                   </tr>
                 ))

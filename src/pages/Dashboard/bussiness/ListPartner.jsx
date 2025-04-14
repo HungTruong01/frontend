@@ -10,7 +10,7 @@ const ListPartner = () => {
   const [partners, setPartners] = useState([]);
   const [searchName, setSearchName] = useState("");
   const [searchType, setSearchType] = useState("");
-  const [itemsPerPage] = useState(10);
+  const [itemsPerPage] = useState(7);
   const [currentPage, setCurrentPage] = useState(1);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -27,7 +27,7 @@ const ListPartner = () => {
 
   const fetchPartners = async () => {
     try {
-      const data = await partnerApi.getAllPartners();
+      const data = await partnerApi.getAllPartners(0, 100, "id", "asc");
       setPartners(data.content || data);
     } catch (error) {
       toast.error("Không thể tải danh sách đối tác");

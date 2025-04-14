@@ -21,7 +21,7 @@ const WarehouseTransfer = () => {
   const [warehouseTransfer, setWarehouseTransfer] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [searchValue, setSearchValue] = useState("");
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(7);
   const [currentPage, setCurrentPage] = useState(1);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -40,7 +40,7 @@ const WarehouseTransfer = () => {
 
   const fetchData = async () => {
     try {
-      const response = await getAllWarehouseTransfer();
+      const response = await getAllWarehouseTransfer(0, 100, "id", "asc");
       const transfers = response.content || [];
       const enrichedTransfers = await Promise.all(
         transfers.map(async (transfer) => {

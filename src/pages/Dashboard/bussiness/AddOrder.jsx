@@ -22,7 +22,7 @@ const AddOrder = () => {
 
   const fetchPartners = async () => {
     try {
-      const response = await partnerApi.getAllPartners();
+      const response = await partnerApi.getAllPartners(0, 100, "id", "asc");
       setPartners(response.content);
     } catch (error) {
       console.error("Lỗi khi tải danh sách đối tác:", error);

@@ -8,7 +8,7 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
     name: "",
     description: "",
     price: "",
-    quantity: "",
+    // quantity: "",
     type: "",
     unit: "",
   });
@@ -52,7 +52,7 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
       name: formData.name,
       description: formData.description,
       price: Number(formData.price),
-      quantity: Number(formData.quantity),
+      // quantity: Number(formData.quantity),
       productTypeId: formData.type,
       productUnitId: formData.unit,
     };
@@ -62,7 +62,7 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
       name: "",
       description: "",
       price: "",
-      quantity: "",
+      // quantity: "",
       type: "",
       unit: "",
     });

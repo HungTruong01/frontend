@@ -6,7 +6,13 @@ import {
   FaRegTrashAlt,
   FaPlus,
 } from "react-icons/fa";
-import { getPostById, getAllPosts, createPost } from "@/api/postApi";
+import {
+  getPostById,
+  getAllPosts,
+  createPost,
+  updatePost,
+  deletePost,
+} from "@/api/postApi";
 import AddPostModal from "@/components/Dashboard/post/AddPostModal";
 import EditPostModal from "@/components/Dashboard/post/EditPostModal";
 import PostDetailModal from "@/components/Dashboard/post/PostDetailModal";
@@ -91,14 +97,47 @@ const ListPost = () => {
     }
   };
 
-  const handleEditClick = (post) => {
-    setCurrentPost(post);
-    setIsEditModalOpen(true);
+  const handleEditClick = async (post) => {
+    try {
+      // Lấy thông tin chi tiết của bài đăng để chỉnh sửa
+      const detailPost = await getPostById(post.id);
+      setCurrentPost(detailPost);
+      setIsEditModalOpen(true);
+    } catch (error) {
+      toast.error("Không thể tải thông tin bài đăng");
+      console.error("Error fetching post details:", error);
+    }
   };
 
   const handleEditSubmit = async (updatedPost) => {
     try {
-      const response = await postApi.updatePost(updatedPost.id, updatedPost);
+      // Tạo FormData tương tự như khi thêm mới
+      const formData = new FormData();
+      const postData = {
+        title: updatedPost.title,
+        content: updatedPost.content,
+        posted_at: updatedPost.posted_at || updatedPost.postedAt,
+        updated_at: updatedPost.updated_at,
+      };
+
+      formData.append(
+        "post",
+        new Blob([JSON.stringify(postData)], { type: "application/json" })
+      );
+
+      // Nếu có file ảnh mới được tải lên
+      if (updatedPost.thumbnailFile) {
+        formData.append("thumbnail", updatedPost.thumbnailFile);
+      }
+
+      console.log("Updating with formData:", {
+        post: postData,
+        thumbnail: updatedPost.thumbnailFile
+          ? updatedPost.thumbnailFile.name
+          : "No file change",
+      });
+
+      await updatePost(updatedPost.id, formData);
       toast.success("Cập nhật bài đăng thành công");
       listPosts();
       setIsEditModalOpen(false);
@@ -127,7 +166,7 @@ const ListPost = () => {
   const handleDelete = async (post) => {
     if (window.confirm(`Bạn có chắc chắn muốn xóa bài đăng "${post.title}"?`)) {
       try {
-        await postApi.deletePost(post.id);
+        await deletePost(post.id);
         toast.success("Xóa bài đăng thành công");
         listPosts();
       } catch (error) {
@@ -251,13 +290,13 @@ const ListPost = () => {
                       >
                         <FaRegEdit className="h-5 w-5" />
                       </button>
-                      {/* <button
+                      <button
                         onClick={() => handleDelete(post)}
                         className="text-red-500 hover:text-red-700"
                         title="Xóa"
                       >
                         <FaRegTrashAlt className="h-5 w-5" />
-                      </button> */}
+                      </button>
                     </div>
                   </td>
                 </tr>

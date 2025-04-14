@@ -27,7 +27,7 @@ const AddWarehouseTransactionModal = ({ isOpen, onClose, onSubmit }) => {
     const fetchData = async () => {
       try {
         const [orderRes, statusRes, typeRes, warehouseRes] = await Promise.all([
-          getAllOrders(),
+          getAllOrders(0, 100, "id", "asc"),
           getAllDeliveryStatus(),
           getAllWarehouseTransactionType(),
           getAllWarehouse(),
@@ -283,9 +283,6 @@ const AddWarehouseTransactionModal = ({ isOpen, onClose, onSubmit }) => {
                         <th className="py-3 px-4 text-right font-semibold">
                           Số lượng
                         </th>
-                        <th className="py-3 px-4 text-left font-semibold">
-                          Đơn vị
-                        </th>
                       </tr>
                     </thead>
                     <tbody>
@@ -305,9 +302,6 @@ const AddWarehouseTransactionModal = ({ isOpen, onClose, onSubmit }) => {
                           </td>
                           <td className="py-3 px-4 text-sm text-gray-600 text-right font-semibold">
                             {product.quantity}
-                          </td>
-                          <td className="py-3 px-4 text-sm text-gray-600">
-                            {product.unit}
                           </td>
                         </tr>
                       ))}

@@ -13,62 +13,96 @@ const ListOrder = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [searchStatus, setSearchStatus] = useState("");
   const [searchType, setSearchType] = useState("");
-  const [itemsPerPage] = useState(10);
+  const [itemsPerPage] = useState(7);
   const [currentPage, setCurrentPage] = useState(1);
   const [orders, setOrders] = useState([]);
   const [orderType, setOrderType] = useState([]);
   const [orderStatus, setOrderStatus] = useState([]);
   const [partners, setPartners] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Status ID for completed orders (assuming "completed" status has ID 1 based on your color scheme)
+  const completedStatusId = 1;
 
   const fetchOrders = async () => {
     try {
-      const response = await getAllOrders();
-      console.log(response.content);
-      setOrders(response.content);
+      const response = await getAllOrders(0, 100, "id", "asc");
+      if (response && response.content) {
+        setOrders(response.content);
+      } else {
+        setOrders([]);
+        console.log("No orders found or unexpected response format");
+      }
     } catch (error) {
       console.log("Error fetching orders", error);
+      setOrders([]);
     }
   };
 
   const fetchOrderTypes = async () => {
     try {
       const response = await getAllOrderTypes();
-      setOrderType(response.content);
+      if (response && response.content) {
+        setOrderType(response.content);
+      } else {
+        setOrderType([]);
+      }
     } catch (error) {
       console.log("Error fetching order types", error);
+      setOrderType([]);
     }
   };
 
   const fetchOrderStatus = async () => {
     try {
       const response = await getAllOrderStatus();
-      setOrderStatus(response.content);
+      if (response && response.content) {
+        setOrderStatus(response.content);
+      } else {
+        setOrderStatus([]);
+      }
     } catch (error) {
       console.log("Error fetching order status", error);
+      setOrderStatus([]);
     }
   };
 
   const fetchPartners = async () => {
     try {
-      const response = await partnerApi.getAllPartners();
+      // Provide explicit values for pagination parameters
+      const response = await partnerApi.getAllPartners(0, 100, "id", "asc");
       setPartners(response.content);
     } catch (error) {
       console.log("Error fetching partners: ", error);
+      setPartners([]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchOrders();
-    fetchOrderTypes();
-    fetchOrderStatus();
-    fetchPartners();
+    const fetchAllData = async () => {
+      setIsLoading(true);
+      await Promise.all([
+        fetchOrders(),
+        fetchOrderTypes(),
+        fetchOrderStatus(),
+        fetchPartners(),
+      ]);
+      setIsLoading(false);
+    };
+
+    fetchAllData();
   }, []);
 
-  const filteredOrders = orders.filter((order) => {
-    const matchStatus = searchStatus === "" || order.status === searchStatus;
-    const matchType = searchType === "" || order.orderType === searchType;
-    return matchStatus && matchType;
-  });
+  const filteredOrders = orders
+    ? orders.filter((order) => {
+        const matchStatus =
+          searchStatus === "" || order.status === searchStatus;
+        const matchType = searchType === "" || order.orderType === searchType;
+        return matchStatus && matchType;
+      })
+    : [];
 
   const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
   const paginatedData = filteredOrders.slice(
@@ -109,6 +143,8 @@ const ListOrder = () => {
         return "bg-red-400 text-gray-100";
       case 3:
         return "bg-orange-400 text-gray-100";
+      default:
+        return "bg-gray-400 text-gray-100";
     }
   };
 
@@ -135,10 +171,26 @@ const ListOrder = () => {
     navigate(`/dashboard/business/order-management/edit/${order.id}`);
   };
 
-  // Hàm để làm mới danh sách đơn hàng
   const handleOrderUpdated = () => {
     fetchOrders();
   };
+
+  // Check if an order is completed
+  const isOrderCompleted = (order) => {
+    return order.orderStatusId === completedStatusId;
+  };
+
+  if (isLoading) {
+    return (
+      <div className="w-full bg-white shadow-lg rounded-lg overflow-hidden p-6">
+        <div className="flex justify-center items-center h-64">
+          <div className="text-lg font-semibold text-gray-600">
+            Đang tải dữ liệu...
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full bg-white shadow-lg rounded-lg overflow-hidden">
@@ -146,7 +198,7 @@ const ListOrder = () => {
         isOpen={isDetailModalOpen}
         onClose={() => setIsDetailModalOpen(false)}
         orderData={selectedOrder}
-        onOrderUpdated={handleOrderUpdated} // Truyền callback
+        onOrderUpdated={handleOrderUpdated}
       />
       <div className="p-6">
         <div className="flex justify-between items-center mb-6">
@@ -201,164 +253,177 @@ const ListOrder = () => {
           </div>
         </div>
 
-        <div className="overflow-x-auto bg-white">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-gray-200">
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 w-1/7">
-                  <div className="flex items-center space-x-1">
-                    <span>Mã đơn</span>
-                  </div>
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 w-1/7">
-                  <div className="flex items-center space-x-1">
-                    <span>Ngày tạo</span>
-                  </div>
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 w-1/5">
-                  <div className="flex items-center space-x-1">
-                    <span>Đối tác</span>
-                  </div>
-                </th>
-                <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700 w-1/7">
-                  <div className="flex items-center justify-center space-x-1">
-                    <span>Loại đơn</span>
-                  </div>
-                </th>
-                <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700 w-1/7">
-                  <div className="flex items-center justify-end space-x-1">
-                    <span>Tổng tiền</span>
-                  </div>
-                </th>
-                <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700 w-1/7">
-                  <div className="flex items-center justify-end space-x-1">
-                    <span>Đã trả</span>
-                  </div>
-                </th>
-                <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700 w-1/7">
-                  <div className="flex items-center justify-center space-x-1">
-                    <span>Trạng thái</span>
-                  </div>
-                </th>
-                <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700 w-1/7">
-                  <div className="flex items-center justify-center space-x-1">
-                    <span>Hành động</span>
-                  </div>
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {paginatedData.map((order) => (
-                <tr
-                  key={order.id}
-                  className="hover:bg-gray-100 transition-colors"
-                >
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{order.id}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
-                      {formatDate(order.createdAt)}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
-                      {getPartnerName(order.partnerId)}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-center">
-                    <div className="text-sm text-gray-900">
-                      {getOrderTypeName(order.orderTypeId)}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right">
-                    <div className="text-sm text-gray-900">
-                      {formatCurrency(order.totalMoney)}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right">
-                    <div className="text-sm text-gray-900">
-                      {formatCurrency(order.paidMoney)}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-center">
-                    <span
-                      className={`px-2 py-1 text-xs font-medium rounded-full ${getPaymentStatusColor(
-                        order
-                      )}`}
-                    >
-                      {getOrderStatusName(order.orderStatusId)}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-center">
-                    <div className="flex justify-center space-x-3">
-                      <button
-                        onClick={() => handleViewDetail(order)}
-                        className="text-blue-500 hover:text-blue-700 transition-colors"
-                        title="Xem chi tiết"
-                      >
-                        <FaEye className="h-5 w-5" />
-                      </button>
-                      <button
-                        onClick={() => handleEditOrder(order)}
-                        className="text-blue-500 hover:text-blue-700 transition-colors"
-                        title="Sửa"
-                      >
-                        <FaEdit className="h-5 w-5" />
-                      </button>
-                      {/* <button
-                        className="text-red-500 hover:text-red-700 transition-colors"
-                        title="Xóa"
-                      >
-                        <FaRegTrashAlt className="h-5 w-5" />
-                      </button> */}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <div className="flex items-center justify-between mt-6">
-          <p className="text-sm text-gray-600">
-            Hiển thị {(currentPage - 1) * itemsPerPage + 1} đến{" "}
-            {Math.min(currentPage * itemsPerPage, filteredOrders.length)} của{" "}
-            {filteredOrders.length} bản ghi
-          </p>
-          <div className="flex space-x-2">
-            <button
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-600 hover:bg-gray-100 disabled:opacity-50 transition-all"
-            >
-              Trước
-            </button>
-            <div className="flex items-center space-x-2">
-              {[...Array(totalPages)].map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setCurrentPage(i + 1)}
-                  className={`w-8 h-8 rounded-md text-sm ${
-                    currentPage === i + 1
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                  } transition-colors`}
-                >
-                  {i + 1}
-                </button>
-              ))}
-            </div>
-            <button
-              onClick={() =>
-                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-              }
-              disabled={currentPage === totalPages}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 disabled:opacity-50 transition-all"
-            >
-              Tiếp
-            </button>
+        {orders.length === 0 ? (
+          <div className="text-center py-10">
+            <p className="text-gray-500">Không có đơn hàng nào</p>
           </div>
-        </div>
+        ) : (
+          <div className="overflow-x-auto bg-white">
+            <table className="w-full">
+              <thead>
+                <tr className="bg-gray-200">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 w-1/7">
+                    <div className="flex items-center space-x-1">
+                      <span>Mã đơn</span>
+                    </div>
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 w-1/7">
+                    <div className="flex items-center space-x-1">
+                      <span>Ngày tạo</span>
+                    </div>
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 w-1/5">
+                    <div className="flex items-center space-x-1">
+                      <span>Đối tác</span>
+                    </div>
+                  </th>
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700 w-1/7">
+                    <div className="flex items-center justify-center space-x-1">
+                      <span>Loại đơn</span>
+                    </div>
+                  </th>
+                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700 w-1/7">
+                    <div className="flex items-center justify-end space-x-1">
+                      <span>Tổng tiền</span>
+                    </div>
+                  </th>
+                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700 w-1/7">
+                    <div className="flex items-center justify-end space-x-1">
+                      <span>Đã trả</span>
+                    </div>
+                  </th>
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700 w-1/7">
+                    <div className="flex items-center justify-center space-x-1">
+                      <span>Trạng thái</span>
+                    </div>
+                  </th>
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700 w-1/7">
+                    <div className="flex items-center justify-center space-x-1">
+                      <span>Hành động</span>
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {paginatedData.map((order) => (
+                  <tr
+                    key={order.id}
+                    className="hover:bg-gray-100 transition-colors"
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{order.id}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
+                        {formatDate(order.createdAt)}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
+                        {getPartnerName(order.partnerId)}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <div className="text-sm text-gray-900">
+                        {getOrderTypeName(order.orderTypeId)}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                      <div className="text-sm text-gray-900">
+                        {formatCurrency(order.totalMoney)}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                      <div className="text-sm text-gray-900">
+                        {formatCurrency(order.paidMoney)}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <span
+                        className={`px-2 py-1 text-xs font-medium rounded-full ${getPaymentStatusColor(
+                          order
+                        )}`}
+                      >
+                        {getOrderStatusName(order.orderStatusId)}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <div className="flex justify-center space-x-3">
+                        <button
+                          onClick={() => handleViewDetail(order)}
+                          className="text-blue-500 hover:text-blue-700 transition-colors"
+                          title="Xem chi tiết"
+                        >
+                          <FaEye className="h-5 w-5" />
+                        </button>
+                        {!isOrderCompleted(order) ? (
+                          <button
+                            onClick={() => handleEditOrder(order)}
+                            className="text-blue-500 hover:text-blue-700 transition-colors"
+                            title="Sửa"
+                          >
+                            <FaEdit className="h-5 w-5" />
+                          </button>
+                        ) : (
+                          <button
+                            disabled
+                            className="text-gray-400 cursor-not-allowed"
+                            title="Đơn hàng đã hoàn thành không thể chỉnh sửa"
+                          >
+                            <FaEdit className="h-5 w-5" />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {orders.length > 0 && (
+          <div className="flex items-center justify-between mt-6">
+            <p className="text-sm text-gray-600">
+              Hiển thị {(currentPage - 1) * itemsPerPage + 1} đến{" "}
+              {Math.min(currentPage * itemsPerPage, filteredOrders.length)} của{" "}
+              {filteredOrders.length} bản ghi
+            </p>
+            <div className="flex space-x-2">
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-600 hover:bg-gray-100 disabled:opacity-50 transition-all"
+              >
+                Trước
+              </button>
+              <div className="flex items-center space-x-2">
+                {[...Array(totalPages)].map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setCurrentPage(i + 1)}
+                    className={`w-8 h-8 rounded-md text-sm ${
+                      currentPage === i + 1
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                    } transition-colors`}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+              </div>
+              <button
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                }
+                disabled={currentPage === totalPages || totalPages === 0}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 disabled:opacity-50 transition-all"
+              >
+                Tiếp
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

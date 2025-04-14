@@ -20,7 +20,7 @@ const InventoryProduct = () => {
 
   const fetchInventoryProducts = async () => {
     try {
-      const response = await getAllInventoryWarehouse();
+      const response = await getAllInventoryWarehouse(0, 100, "id", "asc");
       const products = response.content || [];
 
       const enrichedProducts = await Promise.all(
@@ -112,7 +112,7 @@ const InventoryProduct = () => {
     <div className="w-full bg-white shadow-lg rounded-lg overflow-hidden">
       <div className="p-6">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-800">Sản phẩm tồn kho</h1>
+          <h1 className="text-2xl font-bold text-gray-800">Tồn kho</h1>
           <div className="relative w-64 ml-auto">
             <input
               type="text"

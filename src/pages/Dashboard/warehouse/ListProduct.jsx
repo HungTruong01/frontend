@@ -16,7 +16,7 @@ import { getAllProductUnits } from "@/api/productUnitApi";
 import { toast } from "react-toastify";
 
 const ListProduct = () => {
-  const [itemsPerPage] = useState(6);
+  const [itemsPerPage] = useState(7);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchStatus, setSearchStatus] = useState("");
   const [searchType, setSearchType] = useState("");
@@ -99,7 +99,7 @@ const ListProduct = () => {
         name: newProduct.name,
         description: newProduct.description,
         price: Number(newProduct.price),
-        quantity: Number(newProduct.quantity),
+        // quantity: Number(newProduct.quantity),
         productTypeId: Number(newProduct.productTypeId),
         productUnitId: Number(newProduct.productUnitId),
       };

@@ -35,9 +35,11 @@ axiosInstance.interceptors.response.use(
 );
 
 export const partnerApi = {
-  getAllPartners: async () => {
+  getAllPartners: async (pageNo, pageSize, sortBy, sortDir) => {
     try {
-      const response = await axiosInstance.get("/partners");
+      const response = await axiosInstance.get(
+        `/partners?pageNo=${pageNo}&pageSize=${pageSize}&sortBy=${sortBy}&sortDir=${sortDir}`
+      );
       return response.data;
     } catch (error) {
       console.error("Error fetching partners:", error);

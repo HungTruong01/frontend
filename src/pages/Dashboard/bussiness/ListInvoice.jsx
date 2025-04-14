@@ -20,7 +20,7 @@ const ListInvoice = () => {
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [searchName, setSearchName] = useState("");
   const [searchPartner, setSearchPartner] = useState("");
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(7);
   const [currentPage, setCurrentPage] = useState(1);
   const [allInvoices, setAllInvoices] = useState([]);
   const [filteredInvoices, setFilteredInvoices] = useState([]);

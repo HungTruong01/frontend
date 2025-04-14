@@ -65,7 +65,7 @@ const AddInvoiceModal = ({
       setLoading(true);
       try {
         const [partnersData, invoiceTypesData] = await Promise.all([
-          partnerApi.getAllPartners(),
+          partnerApi.getAllPartners(0, 100, "id", "asc"),
           getAllInvoiceTypes(),
         ]);
 

@@ -46,7 +46,7 @@ const OrderDetailModal = ({ isOpen, onClose, orderData, onOrderUpdated }) => {
 
   const fetchPartners = async () => {
     try {
-      const response = await partnerApi.getAllPartners();
+      const response = await partnerApi.getAllPartners(0, 100, "id", "asc");
       setPartners(response.content);
     } catch (error) {
       console.error("Lỗi tải đối tác:", error);
@@ -138,6 +138,10 @@ const OrderDetailModal = ({ isOpen, onClose, orderData, onOrderUpdated }) => {
   const getOrderStatusName = (orderStatusId) => {
     const status = orderStatus.find((s) => s.id === orderStatusId);
     return status ? status.name : "Không xác định";
+  };
+
+  const isOrderCompleted = () => {
+    return getOrderStatusName(orderData.orderStatusId) === "Đã thanh toán";
   };
 
   const formatCurrency = (value) =>
@@ -369,7 +373,12 @@ const OrderDetailModal = ({ isOpen, onClose, orderData, onOrderUpdated }) => {
           <div className="flex justify-end">
             <button
               onClick={handlePaymentSubmit}
-              className="px-6 py-2 rounded-md font-medium bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
+              disabled={isOrderCompleted()}
+              className={`px-6 py-2 rounded-md font-medium ${
+                isOrderCompleted()
+                  ? "bg-gray-400 cursor-not-allowed opacity-60"
+                  : "bg-blue-600 hover:bg-blue-700 cursor-pointer"
+              } text-white`}
             >
               Lập hoá đơn
             </button>

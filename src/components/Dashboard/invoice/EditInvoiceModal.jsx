@@ -36,9 +36,9 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
         try {
           const [partnersData, invoiceTypesData, ordersData] =
             await Promise.all([
-              partnerApi.getAllPartners(),
+              partnerApi.getAllPartners(0, 100, "id", "asc"),
               getAllInvoiceTypes(),
-              getAllOrders(),
+              getAllOrders(0, 100, "id", "asc"),
             ]);
 
           setPartners(partnersData.content || []);

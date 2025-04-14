@@ -14,8 +14,6 @@ const PostDetailModal = ({ isOpen, onClose, postId }) => {
   const [imageError, setImageError] = useState(false);
   const [fullscreenImage, setFullscreenImage] = useState(false);
 
-  const BASE_URL = "http://localhost:8080"; // URL của backend
-
   useEffect(() => {
     if (isOpen && postId) {
       fetchPostDetail(postId);
@@ -29,6 +27,7 @@ const PostDetailModal = ({ isOpen, onClose, postId }) => {
   const fetchPostDetail = async (id) => {
     try {
       const postData = await getPostById(id);
+      console.log(post);
       setPost(postData);
     } catch (error) {
       console.error("Error fetching post detail:", error);
@@ -75,7 +74,7 @@ const PostDetailModal = ({ isOpen, onClose, postId }) => {
     if (!post.thumbnail) {
       return imagenotfound;
     }
-    return `${BASE_URL}${post.thumbnail}`;
+    return post.thumbnail;
   };
 
   const toggleFullscreen = () => {

@@ -17,7 +17,7 @@ const AdjustInventory = () => {
   const [adjustments, setAdjustments] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [searchValue, setSearchValue] = useState("");
-  const [itemsPerPage] = useState(10);
+  const [itemsPerPage] = useState(7);
   const [currentPage, setCurrentPage] = useState(1);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -35,7 +35,7 @@ const AdjustInventory = () => {
 
   const fetchData = async () => {
     try {
-      const response = await getAllInventoryAdjustment();
+      const response = await getAllInventoryAdjustment(0, 100, "id", "asc");
       const adjustmentData = response.content || [];
 
       const enrichedAdjustments = await Promise.all(

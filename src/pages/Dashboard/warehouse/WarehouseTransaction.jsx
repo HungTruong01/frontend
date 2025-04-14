@@ -19,7 +19,7 @@ const WarehouseTransaction = () => {
   const [warehouseTransaction, setWarehouseTransaction] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [searchValue, setSearchValue] = useState("");
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(7);
   const [currentPage, setCurrentPage] = useState(1);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -37,7 +37,7 @@ const WarehouseTransaction = () => {
 
   const fetchWarehouseTransaction = async () => {
     try {
-      const response = await getAllWarehouseTransaction();
+      const response = await getAllWarehouseTransaction(0, 100, "id", "asc");
       const transactions = response.content || [];
 
       const enrichedTransactions = await Promise.all(
