@@ -28,7 +28,11 @@ import ListWarehouse from "./pages/Dashboard/ListWarehouse";
 import InventoryProduct from "./pages/Dashboard/warehouse/InventoryProduct";
 import WarehouseTransaction from "./pages/Dashboard/warehouse/WarehouseTransaction";
 import WarehouseTransactionDetail from "./pages/Dashboard/warehouse/WarehouseTransactionDetail";
-import InventoryAdjustmentDetail from "./pages/Dashboard/warehouse/InventoryAdjustmentDetail";
+import WarehouseTransfer from "./pages/Dashboard/warehouse/WarehouseTransfer";
+import WarehouseTransferDetail from "./pages/Dashboard/warehouse/WarehouseTransferDetail";
+import AdjustInventory from "./pages/Dashboard/warehouse/AdjustInventory";
+import AdjustInventoryDetail from "./pages/Dashboard/warehouse/AdjustInventoryDetail";
+
 import ListOrder from "./pages/Dashboard/bussiness/ListOrder";
 import ListPartner from "./pages/Dashboard/bussiness/ListPartner";
 import DebtReport from "./pages/Dashboard/reports/DebtReport";
@@ -36,7 +40,6 @@ import IncomeReport from "./pages/Dashboard/reports/IncomeReport";
 import RevenueReport from "./pages/Dashboard/reports/RevenueReport";
 
 import LoginPage from "./pages/auth/LoginPage";
-import AdjustInventory from "./pages/Dashboard/warehouse/AdjustInventory";
 import InvoiceType from "./pages/Dashboard/InvoiceType";
 import DeliveryStatus from "./pages/Dashboard/DeliveryStatus";
 import AddOrder from "./pages/Dashboard/bussiness/AddOrder";
@@ -67,13 +70,23 @@ const App = () => {
         <Route path="/service" element={<Service />} />
         <Route path="/products" element={<Products />} />
         <Route path="/news" element={<News />} />
-        <Route path="/news/food-logistics-optimization" element={<NewDetail />} />
+        <Route
+          path="/news/food-logistics-optimization"
+          element={<NewDetail />}
+        />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/error" element={<ErrorPopup />} />
         <Route path="/success" element={<SuccessPopup />} />
 
         {/* Protected routes */}
-        <Route path="/dashboard" element={<AuthenticatedRoute><DashBoardHome /></AuthenticatedRoute>}>
+        <Route
+          path="/dashboard"
+          element={
+            <AuthenticatedRoute>
+              <DashBoardHome />
+            </AuthenticatedRoute>
+          }
+        >
           <Route index element={<OverviewDashboard />} />
           <Route path="system/account" element={<AccountList />} />
           <Route path="system/role" element={<RoleUser />} />
@@ -84,24 +97,78 @@ const App = () => {
           <Route path="categories/order" element={<TypeOrder />} />
           <Route path="categories/order-status" element={<OrderStatus />} />
           <Route path="categories/invoice-type" element={<InvoiceType />} />
-          <Route path="categories/reason-for-inventory-adjustment" element={<ReasonInventoryAdjust />} />
+          <Route
+            path="categories/reason-for-inventory-adjustment"
+            element={<ReasonInventoryAdjust />}
+          />
           <Route path="categories/warehouse" element={<ListWarehouse />} />
-          <Route path="categories/warehouse-transaction-type" element={<TypeTransactionWareHouse />} />
-          <Route path="categories/delivery-status" element={<DeliveryStatus />} />
+          <Route
+            path="categories/warehouse-transaction-type"
+            element={<TypeTransactionWareHouse />}
+          />
+          <Route
+            path="categories/delivery-status"
+            element={<DeliveryStatus />}
+          />
           <Route path="posts/post-list" element={<ListPost />} />
           <Route path="business/partner-list" element={<ListPartner />} />
           <Route path="business/order-management" element={<ListOrder />} />
           <Route path="bussiness/add-order" element={<AddOrder />} />
-          <Route path="business/order-management/edit/:id" element={<EditOrder />} />
+          <Route
+            path="business/order-management/edit/:id"
+            element={<EditOrder />}
+          />
           <Route path="business/invoice-management" element={<ListInvoice />} />
-          <Route path="warehouse/product-management" element={<ListProduct />} />
-          <Route path="warehouse/warehouse-transaction" element={<WarehouseTransaction />} />
-          <Route path="warehouse/warehouse-transaction-detail/:transactionId" element={<WarehouseTransactionDetail />} />
-          <Route path="warehouse/inventory-products" element={<InventoryProduct />} />
-          <Route path="warehouse/adjust-inventory" element={<AdjustInventory />} />
-          <Route path="warehouse/adjust-inventory-detail/:id" element={<InventoryAdjustmentDetail />} />
+          <Route
+            path="warehouse/product-management"
+            element={<ListProduct />}
+          />
+          <Route
+            path="warehouse/warehouse-transaction"
+            element={<WarehouseTransaction />}
+          />
+          <Route
+            path="warehouse/warehouse-transaction-detail/:transactionId"
+            element={<WarehouseTransactionDetail />}
+          />
+          <Route
+            path="warehouse/inventory-products"
+            element={<InventoryProduct />}
+          />
+          <Route
+            path="warehouse/adjust-inventory"
+            element={<AdjustInventory />}
+          />
+          <Route
+            path="warehouse/adjust-inventory-detail/:id"
+            element={<InventoryAdjustmentDetail />}
+          />
+
+          <Route
+            path="warehouse/warehouse-transfer"
+            element={<WarehouseTransfer />}
+          />
+          <Route
+            path="warehouse/warehouse-transfer/:transferId"
+            element={<WarehouseTransferDetail />}
+          />
+          <Route
+            path="warehouse/inventory-products"
+            element={<InventoryProduct />}
+          />
+          <Route
+            path="warehouse/adjust-inventory"
+            element={<AdjustInventory />}
+          />
+          <Route
+            path="warehouse/adjust-inventory/:adjustmentId"
+            element={<AdjustInventoryDetail />}
+          />
           <Route path="reports/revenue-report" element={<RevenueReport />} />
-          <Route path="reports/income-and-expenditure-report" element={<IncomeReport />} />
+          <Route
+            path="reports/income-and-expenditure-report"
+            element={<IncomeReport />}
+          />
           <Route path="reports/debt-report" element={<DebtReport />} />
         </Route>
       </Routes>

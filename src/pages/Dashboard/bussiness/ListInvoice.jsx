@@ -9,6 +9,7 @@ import {
   createInvoice,
   updateInvoice,
   getInvoiceWithDetails,
+  getAllInvoices,
 } from "@/api/invoiceApi";
 import { getAllInvoiceTypes } from "@/api/invoiceTypeApi";
 
@@ -19,18 +20,27 @@ const ListInvoice = () => {
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [searchName, setSearchName] = useState("");
   const [searchPartner, setSearchPartner] = useState("");
-  const [itemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
-  const [invoices, setInvoices] = useState([]);
+  const [allInvoices, setAllInvoices] = useState([]);
+  const [filteredInvoices, setFilteredInvoices] = useState([]);
   const [invoiceType, setInvoiceType] = useState([]);
+  const [totalElements, setTotalElements] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
 
   const fetchInvoices = async () => {
     try {
-      const response = await getAllInvoicesWithPartnerName();
-      console.log(response);
-      setInvoices(response.content || []);
+      setIsLoading(true);
+      const response = await getAllInvoicesWithPartnerName(0, 100, "id", "asc");
+      const allInvoicesData = response.content || [];
+      setAllInvoices(allInvoicesData);
+      setTotalElements(allInvoicesData.length);
+      applyFilters(allInvoicesData, searchName, searchPartner);
+      setIsLoading(false);
     } catch (error) {
       console.log("Lỗi khi lấy hóa đơn", error);
+      setIsLoading(false);
     }
   };
 
@@ -48,16 +58,30 @@ const ListInvoice = () => {
     fetchInvoiceType();
   }, []);
 
-  const filteredInvoices = invoices.filter((invoice) => {
-    const matchName = String(invoice.id)
-      .toLowerCase()
-      .includes(searchName.toLowerCase());
-    const matchPartner =
-      invoice.partnerName
-        ?.toLowerCase()
-        .includes(searchPartner.toLowerCase()) || true;
-    return matchName && matchPartner;
-  });
+  // Áp dụng bộ lọc và cập nhật trạng thái
+  const applyFilters = (invoices, nameFilter, partnerFilter) => {
+    const filtered = invoices.filter((invoice) => {
+      const matchName = String(invoice.id)
+        .toLowerCase()
+        .includes(nameFilter.toLowerCase());
+      const matchPartner =
+        !partnerFilter ||
+        invoice.partnerName
+          ?.toLowerCase()
+          .includes(partnerFilter.toLowerCase());
+      return matchName && matchPartner;
+    });
+
+    setFilteredInvoices(filtered);
+    setTotalElements(filtered.length);
+    setTotalPages(Math.ceil(filtered.length / itemsPerPage));
+  };
+
+  // Cập nhật lọc khi thay đổi tìm kiếm
+  useEffect(() => {
+    applyFilters(allInvoices, searchName, searchPartner);
+    setCurrentPage(1);
+  }, [searchName, searchPartner, allInvoices, itemsPerPage]);
 
   const formatDate = (dateString) => {
     if (!dateString) return "Invalid Date";
@@ -69,7 +93,6 @@ const ListInvoice = () => {
     return `${day}/${month}/${year}`;
   };
 
-  const totalPages = Math.ceil(filteredInvoices.length / itemsPerPage);
   const paginatedData = filteredInvoices.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
@@ -105,10 +128,18 @@ const ListInvoice = () => {
       const refreshedInvoice = await getInvoiceWithDetails(updatedInvoice.id);
       refreshedInvoice.partnerName = refreshedInvoice.partner?.name || "N/A";
 
-      setInvoices((prev) =>
+      setAllInvoices((prev) =>
         prev.map((invoice) =>
           invoice.id === refreshedInvoice.id ? refreshedInvoice : invoice
         )
+      );
+
+      applyFilters(
+        allInvoices.map((invoice) =>
+          invoice.id === refreshedInvoice.id ? refreshedInvoice : invoice
+        ),
+        searchName,
+        searchPartner
       );
 
       setIsEditModalOpen(false);
@@ -123,8 +154,15 @@ const ListInvoice = () => {
   const handleDeleteInvoice = async (id) => {
     try {
       await deleteInvoice(id);
-      setInvoices((prev) => prev.filter((invoice) => invoice.id !== id));
+      const updatedInvoices = allInvoices.filter(
+        (invoice) => invoice.id !== id
+      );
+      setAllInvoices(updatedInvoices);
+
+      applyFilters(updatedInvoices, searchName, searchPartner);
+
       console.log("Xóa hóa đơn:", id);
+
       if (paginatedData.length === 1 && currentPage > 1) {
         setCurrentPage(currentPage - 1);
       }
@@ -135,11 +173,9 @@ const ListInvoice = () => {
 
   const handleAddInvoice = async (newInvoice) => {
     try {
-      const response = await createInvoice(newInvoice);
       setIsAddModalOpen(false);
       await fetchInvoices();
       alert("Thêm hóa đơn thành công!");
-      console.log("Thêm hóa đơn mới thành công:", response);
     } catch (error) {
       console.error("Lỗi khi thêm hóa đơn:", error);
       alert("Đã xảy ra lỗi khi thêm hóa đơn!");
@@ -148,16 +184,20 @@ const ListInvoice = () => {
 
   const handleSearchNameChange = (e) => {
     setSearchName(e.target.value);
-    setCurrentPage(1);
   };
 
   const handleSearchPartnerChange = (e) => {
     setSearchPartner(e.target.value);
-    setCurrentPage(1);
   };
 
   const handleSearch = () => {
+    applyFilters(allInvoices, searchName, searchPartner);
     setCurrentPage(1);
+  };
+
+  const handleChangeItemsPerPage = (e) => {
+    const newItemsPerPage = parseInt(e.target.value);
+    setItemsPerPage(newItemsPerPage);
   };
 
   const formatCurrency = (amount) => {
@@ -263,115 +303,124 @@ const ListInvoice = () => {
         </div>
 
         <div className="overflow-x-auto bg-white mt-6">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-gray-200">
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 w-1/7">
-                  Mã hóa đơn
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 w-1/7">
-                  Số tiền
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 w-1/7">
-                  Ngày lập
-                </th>
-                <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700 w-1/7">
-                  Mã đơn hàng
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 w-1/7">
-                  Tên đối tác
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 w-1/7">
-                  Loại hóa đơn
-                </th>
-                <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700 w-1/7">
-                  Hành động
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {paginatedData.length > 0 ? (
-                paginatedData.map((invoice) => (
-                  <tr
-                    key={invoice.id}
-                    className="hover:bg-gray-100 transition-colors"
-                  >
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-center font-medium text-gray-900">
-                        {invoice.id}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-left text-gray-900">
-                        {formatCurrency(invoice.moneyAmount)} VNĐ
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-left text-gray-900">
-                        {formatDate(invoice.createdAt)}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-center text-gray-900">
-                        {invoice.orderId}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        {invoice.partnerName || "N/A"}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        {getInvoiceTypeName(invoice.invoiceTypeId)}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
-                      <div className="flex justify-center space-x-3">
-                        <button
-                          onClick={() => handleViewDetail(invoice)}
-                          className="text-blue-500 hover:text-blue-700 transition-colors"
-                          title="Xem chi tiết"
-                        >
-                          <FaEye className="h-5 w-5" />
-                        </button>
-                        <button
-                          onClick={() => handleEditClick(invoice)}
-                          className="text-green-600 hover:text-green-700 transition-colors"
-                          title="Sửa"
-                        >
-                          <FaEdit className="h-5 w-5" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteInvoice(invoice.id)}
-                          className="text-red-500 hover:text-red-700 transition-colors"
-                          title="Xóa"
-                        >
-                          <FaRegTrashAlt className="h-5 w-5" />
-                        </button>
-                      </div>
+          {isLoading ? (
+            <div className="text-center py-4">
+              <p>Đang tải dữ liệu...</p>
+            </div>
+          ) : (
+            <table className="w-full">
+              <thead>
+                <tr className="bg-gray-200">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 w-1/7">
+                    Mã hóa đơn
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 w-1/7">
+                    Số tiền
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 w-1/7">
+                    Ngày lập
+                  </th>
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700 w-1/7">
+                    Mã đơn hàng
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 w-1/7">
+                    Tên đối tác
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 w-1/7">
+                    Loại hóa đơn
+                  </th>
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700 w-1/7">
+                    Hành động
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {paginatedData.length > 0 ? (
+                  paginatedData.map((invoice) => (
+                    <tr
+                      key={invoice.id}
+                      className="hover:bg-gray-100 transition-colors"
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-center font-medium text-gray-900">
+                          {invoice.id}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-left text-gray-900">
+                          {formatCurrency(invoice.moneyAmount)} VNĐ
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-left text-gray-900">
+                          {formatDate(invoice.createdAt)}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-center text-gray-900">
+                          {invoice.orderId}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">
+                          {invoice.partnerName || "N/A"}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">
+                          {getInvoiceTypeName(invoice.invoiceTypeId)}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        <div className="flex justify-center space-x-3">
+                          <button
+                            onClick={() => handleViewDetail(invoice)}
+                            className="text-blue-500 hover:text-blue-700 transition-colors"
+                            title="Xem chi tiết"
+                          >
+                            <FaEye className="h-5 w-5" />
+                          </button>
+                          <button
+                            onClick={() => handleEditClick(invoice)}
+                            className="text-green-600 hover:text-green-700 transition-colors"
+                            title="Sửa"
+                          >
+                            <FaEdit className="h-5 w-5" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteInvoice(invoice.id)}
+                            className="text-red-500 hover:text-red-700 transition-colors"
+                            title="Xóa"
+                          >
+                            <FaRegTrashAlt className="h-5 w-5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan="7"
+                      className="px-6 py-4 text-center text-sm text-gray-500"
+                    >
+                      Không tìm thấy hóa đơn nào.
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td
-                    colSpan="7"
-                    className="px-6 py-4 text-center text-sm text-gray-500"
-                  >
-                    Không tìm thấy hóa đơn nào.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                )}
+              </tbody>
+            </table>
+          )}
         </div>
 
         <div className="flex items-center justify-between mt-6">
           <p className="text-sm text-gray-600">
-            Hiển thị {(currentPage - 1) * itemsPerPage + 1} đến{" "}
-            {Math.min(currentPage * itemsPerPage, filteredInvoices.length)} của{" "}
-            {filteredInvoices.length} bản ghi
+            Hiển thị{" "}
+            {filteredInvoices.length === 0
+              ? 0
+              : (currentPage - 1) * itemsPerPage + 1}{" "}
+            đến {Math.min(currentPage * itemsPerPage, filteredInvoices.length)}{" "}
+            của {filteredInvoices.length} bản ghi
           </p>
           <div className="flex space-x-2">
             <button
@@ -424,7 +473,7 @@ const ListInvoice = () => {
               onClick={() =>
                 setCurrentPage((prev) => Math.min(prev + 1, totalPages))
               }
-              disabled={currentPage === totalPages}
+              disabled={currentPage === totalPages || totalPages === 0}
               className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               Tiếp

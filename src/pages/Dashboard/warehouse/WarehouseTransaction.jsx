@@ -82,6 +82,15 @@ const WarehouseTransaction = () => {
     fetchWarehouseTransaction();
   }, []);
 
+  const formatDate = (dateString) => {
+    if (!dateString) return "Invalid Date";
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "Invalid Date";
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
   const handleSearch = () => {
     const filtered = warehouseTransaction.filter((item) =>
       displayColumns.some((col) => {
@@ -222,7 +231,7 @@ const WarehouseTransaction = () => {
                         className="py-3 px-4 text-sm text-gray-600 whitespace-nowrap text-left"
                       >
                         {col.key === "createdAt"
-                          ? new Date(row[col.key]).toLocaleDateString()
+                          ? formatDate(row[col.key])
                           : row[col.key]}
                       </td>
                     ))}
@@ -259,20 +268,26 @@ const WarehouseTransaction = () => {
             </tbody>
           </table>
         </div>
-        <div className="flex justify-end mt-4 space-x-2">
-          <button
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-            className="px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-600 hover:bg-gray-100 disabled:opacity-50 transition-all"
-          >
-            Trước
-          </button>
-          <div className="flex items-center space-x-2">
-            {[...Array(totalPages)].map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setCurrentPage(i + 1)}
-                className={`
+        <div className="flex justify-between mt-4 space-x-2">
+          <p className="text-sm text-gray-600">
+            Hiển thị {(currentPage - 1) * itemsPerPage + 1} đến{" "}
+            {Math.min(currentPage * itemsPerPage, filteredData.length)} của{" "}
+            {filteredData.length} bản ghi
+          </p>
+          <div className="flex space-x-2">
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-600 hover:bg-gray-100 disabled:opacity-50 transition-all"
+            >
+              Trước
+            </button>
+            <div className="flex items-center space-x-2">
+              {[...Array(totalPages)].map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setCurrentPage(i + 1)}
+                  className={`
                     w-8 h-8 rounded-md text-sm 
                     ${
                       currentPage === i + 1
@@ -281,20 +296,21 @@ const WarehouseTransaction = () => {
                     }
                     transition-colors
                   `}
-              >
-                {i + 1}
-              </button>
-            ))}
+                >
+                  {i + 1}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+              }
+              disabled={currentPage === totalPages}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 disabled:opacity-50 transition-all"
+            >
+              Tiếp
+            </button>
           </div>
-          <button
-            onClick={() =>
-              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-            }
-            disabled={currentPage === totalPages}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 disabled:opacity-50 transition-all"
-          >
-            Tiếp
-          </button>
         </div>
       </div>
     </div>

@@ -1,7 +1,7 @@
 import axios from "axios";
 import { getOrderById } from "./orderApi";
 import { partnerApi } from "./partnerApi";
-
+import { getProductById } from "./productApi";
 const BASE_REST_API_URL = "http://localhost:8080/api/invoices";
 
 const axiosInstance = axios.create({
@@ -33,8 +33,6 @@ export const getInvoiceById = async (invoiceId) => {
     throw error;
   }
 };
-
-import { getProductById } from "./productApi";
 
 export const getInvoiceWithDetails = async (invoiceId) => {
   try {
@@ -129,9 +127,16 @@ export const getPartnerNameFromOrderId = async (orderId) => {
   }
 };
 
-export const getAllInvoicesWithPartnerName = async () => {
+export const getAllInvoicesWithPartnerName = async (
+  pageNo,
+  pageSize,
+  sortBy,
+  sortDir
+) => {
   try {
-    const response = await axiosInstance.get("/invoices");
+    const response = await axiosInstance.get(
+      `/invoices?pageNo=${pageNo}&pageSize=${pageSize}&sortBy=${sortBy}&sortDir=${sortDir}`
+    );
     const invoices = response.data.content || [];
     const invoicesWithPartnerName = await Promise.all(
       invoices.map(async (invoice) => {
@@ -143,7 +148,10 @@ export const getAllInvoicesWithPartnerName = async () => {
         return { ...invoice, partnerName };
       })
     );
-    return { ...response.data, content: invoicesWithPartnerName };
+    return {
+      ...response.data,
+      content: invoicesWithPartnerName,
+    };
   } catch (error) {
     console.error("Error fetching invoices with partner name:", error);
     throw error;
