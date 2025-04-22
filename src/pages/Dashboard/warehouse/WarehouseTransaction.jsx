@@ -11,8 +11,9 @@ import { getOrderById } from "@/api/orderApi";
 import { getDeliveryStatusById } from "@/api/deliveryStatusApi";
 import { getWarehouseById } from "@/api/warehouseApi";
 import { getWarehouseTransactionTypeById } from "@/api/warehouseTransactionTypeApi";
-import AddWarehouseTransactionModal from "@/components/Dashboard/warehouse/AddWarehouseTransactionModal";
-import EditWarehouseTransactionModal from "@/components/Dashboard/warehouse/EditWarehouseTransactionModal";
+// import AddWarehouseTransactionModal from "@/components/Dashboard/warehouse/AddWarehouseTransactionModal";
+// import EditWarehouseTransactionModal from "@/components/Dashboard/warehouse/EditWarehouseTransactionModal";
+import ToggleWarehouseTransaction from "@/components/Dashboard/warehouse/ToggleWarehouseTransaction";
 import { toast } from "react-toastify";
 
 const WarehouseTransaction = () => {
@@ -127,7 +128,6 @@ const WarehouseTransaction = () => {
     setIsEditModalOpen(false);
     setCurrentEditItem(null);
     await fetchWarehouseTransaction();
-    toast.success("Cập nhật giao dịch kho thành công");
   };
 
   const handleDelete = async (item) => {
@@ -151,8 +151,8 @@ const WarehouseTransaction = () => {
 
   return (
     <div className="w-full bg-white shadow-lg rounded-lg overflow-hidden">
-      {currentEditItem && (
-        <EditWarehouseTransactionModal
+      {isEditModalOpen && currentEditItem && (
+        <ToggleWarehouseTransaction
           isOpen={isEditModalOpen}
           onClose={() => {
             setIsEditModalOpen(false);
@@ -160,15 +160,16 @@ const WarehouseTransaction = () => {
           }}
           onSubmit={handleEditSubmit}
           initialData={currentEditItem}
-          title="Chỉnh sửa giao dịch kho"
+          mode="edit"
         />
       )}
 
       {isAddModalOpen && (
-        <AddWarehouseTransactionModal
+        <ToggleWarehouseTransaction
           isOpen={isAddModalOpen}
           onClose={() => setIsAddModalOpen(false)}
           onSubmit={handleAddNew}
+          mode="add"
         />
       )}
 

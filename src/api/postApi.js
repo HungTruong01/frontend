@@ -4,6 +4,23 @@ const BASE_REST_API_URL = "http://localhost:8080/api/posts";
 
 axios.defaults.withCredentials = true; // Đảm bảo axios gửi cookies cùng yêu cầu
 
+// Thêm interceptors để debug
+axios.interceptors.request.use((request) => {
+  console.log("Starting Request", request);
+  return request;
+});
+
+axios.interceptors.response.use(
+  (response) => {
+    console.log("Response:", response);
+    return response;
+  },
+  (error) => {
+    console.log("Error Response:", error.response || error);
+    return Promise.reject(error);
+  }
+);
+
 export const getPostById = async (id) => {
   try {
     const response = await axios.get(`${BASE_REST_API_URL}/${id}`);
@@ -22,10 +39,14 @@ export const getAllPosts = (pageNo, pageSize, sortBy, sortDir) => {
   return axios.get(url);
 };
 
-// Tạo bài viết, axios sẽ tự động thiết lập khi gửi form data
+// Tạo bài viết, sửa cấu hình Content-Type
 export const createPost = async (formData) => {
   try {
-    const response = await axios.post(BASE_REST_API_URL, formData);
+    const response = await axios.post(BASE_REST_API_URL, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
     return response.data;
   } catch (error) {
     console.error(
@@ -36,10 +57,14 @@ export const createPost = async (formData) => {
   }
 };
 
-// Cập nhật bài viết
+// Cập nhật bài viết, thêm headers
 export const updatePost = async (id, formData) => {
   try {
-    const response = await axios.put(`${BASE_REST_API_URL}/${id}`, formData);
+    const response = await axios.put(`${BASE_REST_API_URL}/${id}`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
     return response.data;
   } catch (error) {
     console.error(

@@ -25,9 +25,8 @@ const AddInvoiceModal = ({
   const [selectedOrderDetails, setSelectedOrderDetails] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [orderPaidAmount, setOrderPaidAmount] = useState(0); // Thêm state cho số tiền đã thanh toán
+  const [orderPaidAmount, setOrderPaidAmount] = useState(0);
 
-  // Điền sẵn dữ liệu từ preselectedOrderData
   useEffect(() => {
     if (isOpen && preselectedOrderData) {
       setFormData({
@@ -40,12 +39,10 @@ const AddInvoiceModal = ({
         ],
       });
       setFilteredOrders([preselectedOrderData]);
-      // Nếu có dữ liệu về số tiền đã thanh toán
       if (preselectedOrderData.paidMoney !== undefined) {
         setOrderPaidAmount(preselectedOrderData.paidMoney);
       }
     } else if (isOpen) {
-      // Reset form data when opening modal without preselected data
       setFormData({
         partnerId: "",
         invoiceTypeId: "",
@@ -59,7 +56,6 @@ const AddInvoiceModal = ({
     }
   }, [isOpen, preselectedOrderData]);
 
-  // Tải dữ liệu partners và invoiceTypes
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -83,7 +79,6 @@ const AddInvoiceModal = ({
     }
   }, [isOpen]);
 
-  // Fetch orders when partnerId changes
   useEffect(() => {
     const fetchOrdersByPartner = async () => {
       if (formData.partnerId) {
@@ -93,7 +88,6 @@ const AddInvoiceModal = ({
           const ordersData = await getOrdersByPartnerId(partnerId);
           setFilteredOrders(ordersData.content || []);
 
-          // Reset selected order when partner changes
           if (formData.invoiceDetails[0]?.orderId) {
             setFormData((prev) => ({
               ...prev,
@@ -117,7 +111,6 @@ const AddInvoiceModal = ({
     fetchOrdersByPartner();
   }, [formData.partnerId]);
 
-  // Tải chi tiết đơn hàng khi orderId thay đổi
   useEffect(() => {
     const fetchOrderDetails = async () => {
       const selectedOrderId =
@@ -126,7 +119,6 @@ const AddInvoiceModal = ({
       if (selectedOrderId) {
         setLoading(true);
         try {
-          // Lấy thông tin chi tiết đơn hàng từ API
           const orderData = await getOrderById(selectedOrderId);
 
           if (!orderData || !orderData.orderDetails?.length) {
@@ -140,7 +132,6 @@ const AddInvoiceModal = ({
             return;
           }
 
-          // Cập nhật số tiền đã thanh toán của đơn hàng
           setOrderPaidAmount(orderData.paidMoney || 0);
 
           const details = orderData.orderDetails;
@@ -247,7 +238,6 @@ const AddInvoiceModal = ({
         return;
       }
 
-      // Kiểm tra số tiền không được vượt quá số tiền còn lại
       const remainingAmount = calculateRemainingAmount();
       if (submitData.moneyAmount > remainingAmount) {
         setError("Số tiền thanh toán không được vượt quá số tiền còn lại");
@@ -255,10 +245,9 @@ const AddInvoiceModal = ({
         return;
       }
 
-      // Gọi API để tạo hóa đơn
       const response = await createInvoice(submitData);
-      onSubmit(response); // Trả kết quả về component cha
-      onClose(); // Đóng modal
+      onSubmit(response);
+      onClose();
     } catch (err) {
       setError("Lỗi khi tạo hóa đơn: " + err.message);
       console.error("Error creating invoice:", err);
@@ -288,19 +277,15 @@ const AddInvoiceModal = ({
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-5xl transform transition-all max-h-[90vh] flex flex-col">
-        <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-blue-700">
+        <div className="px-6 py-4 border-b border-gray-200 ">
           <div className="flex justify-between items-center">
             <div>
-              <h2 className="text-2xl font-bold text-white">
-                Thêm hóa đơn mới
-              </h2>
-              <p className="text-white/80 text-sm mt-1">
-                Nhập thông tin hóa đơn
-              </p>
+              <h2 className="text-2xl font-bold">Thêm hóa đơn mới</h2>
+              <p className=" text-sm mt-1">Nhập thông tin hóa đơn</p>
             </div>
             <button
               onClick={onClose}
-              className="text-white/80 hover:text-white transition-colors duration-200 focus:outline-none p-2 hover:bg-white/10 rounded-full"
+              className=" hover:text-gray-500 transition-colors duration-200 focus:outline-none p-2 hover:bg-white/10 rounded-full"
             >
               <FaTimes className="h-5 w-5" />
             </button>

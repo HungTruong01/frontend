@@ -27,10 +27,12 @@ const ListPost = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [currentPost, setCurrentPost] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const columns = [
     { key: "id", label: "Mã bài đăng" },
     { key: "title", label: "Tiêu đề" },
+    { key: "thumbnail", label: "Thumbnail" },
     { key: "posted_at", label: "Ngày đăng" },
     { key: "updated_at", label: "Ngày cập nhật" },
   ];
@@ -39,13 +41,17 @@ const ListPost = () => {
     listPosts();
   }, []);
 
-  const listPosts = () => {
-    getAllPosts(0, 10, "id", "asc")
-      .then((res) => {
-        setPosts(res.data.content);
-        console.log(res.data.content);
-      })
-      .catch((error) => console.error(error));
+  const listPosts = async () => {
+    setIsLoading(true);
+    try {
+      const res = await getAllPosts(0, 10, "id", "asc");
+      setPosts(res.data.content);
+    } catch (error) {
+      console.error("Lỗi khi tải danh sách bài đăng:", error);
+      toast.error("Không thể tải danh sách bài đăng");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const filterPosts = () => {
@@ -66,39 +72,39 @@ const ListPost = () => {
   const handleAddNew = async (newPost) => {
     try {
       const formData = new FormData();
-      const postData = {
+
+      // Chỉ gửi các trường backend cần
+      const postDto = {
         title: newPost.title,
         content: newPost.content,
-        posted_at: newPost.posted_at,
-        updated_at: newPost.updated_at,
       };
+
       formData.append(
         "post",
-        new Blob([JSON.stringify(postData)], { type: "application/json" })
+        new Blob([JSON.stringify(postDto)], { type: "application/json" })
       );
+
       if (newPost.thumbnailFile) {
         formData.append("thumbnail", newPost.thumbnailFile);
       }
 
-      console.log("Sending formData:", {
-        post: postData,
-        thumbnail: newPost.thumbnailFile
-          ? newPost.thumbnailFile.name
-          : "No file",
-      });
-
       await createPost(formData);
       toast.success("Thêm bài đăng thành công");
-      listPosts();
+      await listPosts();
       setIsAddModalOpen(false);
+      return Promise.resolve();
     } catch (error) {
-      toast.error("Không thể thêm bài đăng");
+      const errorMessage =
+        error.response?.data?.message || "Không thể thêm bài đăng";
+      toast.error(errorMessage);
       console.error("Error adding post:", error);
+      return Promise.reject(error);
     }
   };
 
   const handleEditClick = async (post) => {
     try {
+      setIsLoading(true);
       // Lấy thông tin chi tiết của bài đăng để chỉnh sửa
       const detailPost = await getPostById(post.id);
       setCurrentPost(detailPost);
@@ -106,6 +112,8 @@ const ListPost = () => {
     } catch (error) {
       toast.error("Không thể tải thông tin bài đăng");
       console.error("Error fetching post details:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -117,7 +125,7 @@ const ListPost = () => {
         title: updatedPost.title,
         content: updatedPost.content,
         posted_at: updatedPost.posted_at || updatedPost.postedAt,
-        updated_at: updatedPost.updated_at,
+        updated_at: new Date().toISOString(),
       };
 
       formData.append(
@@ -130,48 +138,61 @@ const ListPost = () => {
         formData.append("thumbnail", updatedPost.thumbnailFile);
       }
 
-      console.log("Updating with formData:", {
-        post: postData,
-        thumbnail: updatedPost.thumbnailFile
-          ? updatedPost.thumbnailFile.name
-          : "No file change",
-      });
-
       await updatePost(updatedPost.id, formData);
       toast.success("Cập nhật bài đăng thành công");
-      listPosts();
+      await listPosts();
       setIsEditModalOpen(false);
       setCurrentPost(null);
+      return Promise.resolve();
     } catch (error) {
-      toast.error("Không thể cập nhật bài đăng");
+      toast.error(
+        error.response?.data?.message || "Không thể cập nhật bài đăng"
+      );
       console.error("Error updating post:", error.response?.data || error);
+      return Promise.reject(error);
     }
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return "Invalid Date";
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) return "Invalid Date";
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
+    if (!dateString) return "N/A";
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return "N/A";
+      const day = String(date.getDate()).padStart(2, "0");
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const year = date.getFullYear();
+      return `${day}/${month}/${year}`;
+    } catch (error) {
+      return "N/A";
+    }
   };
 
-  const handleViewDetail = (post) => {
-    setCurrentPost(post);
-    setIsDetailModalOpen(true);
+  const handleViewDetail = async (post) => {
+    try {
+      setIsLoading(true);
+      const detailPost = await getPostById(post.id);
+      setCurrentPost(detailPost);
+      setIsDetailModalOpen(true);
+    } catch (error) {
+      toast.error("Không thể tải chi tiết bài đăng");
+      console.error("Error fetching post details:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleDelete = async (post) => {
     if (window.confirm(`Bạn có chắc chắn muốn xóa bài đăng "${post.title}"?`)) {
       try {
+        setIsLoading(true);
         await deletePost(post.id);
         toast.success("Xóa bài đăng thành công");
-        listPosts();
+        await listPosts();
       } catch (error) {
-        toast.error("Không thể xóa bài đăng");
+        toast.error(error.response?.data?.message || "Không thể xóa bài đăng");
         console.error("Error deleting post:", error);
+      } finally {
+        setIsLoading(false);
       }
     }
   };
@@ -236,6 +257,7 @@ const ListPost = () => {
             <button
               onClick={() => setIsAddModalOpen(true)}
               className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              disabled={isLoading}
             >
               <FaPlus className="h-5 w-5 mr-2" />
               Thêm mới
@@ -261,60 +283,89 @@ const ListPost = () => {
               </tr>
             </thead>
             <tbody>
-              {paginatedData.map((post) => (
-                <tr
-                  key={post.id}
-                  className="border-b border-gray-100 hover:bg-gray-50"
-                >
-                  <td className="py-3 px-4 text-left">{post.id}</td>
-                  <td className="py-3 px-4 text-left">{post.title}</td>
-                  <td className="py-3 px-4 text-left">
-                    {formatDate(post.postedAt)}
-                  </td>
-                  <td className="py-3 px-4 text-left">
-                    {formatDate(post.updatedAt)}
-                  </td>
-                  <td className="py-3 px-4 text-center">
-                    <div className="flex justify-center space-x-3">
-                      <button
-                        onClick={() => handleViewDetail(post)}
-                        className="text-blue-500 hover:text-blue-700"
-                        title="Xem chi tiết"
-                      >
-                        <FaEye className="h-5 w-5" />
-                      </button>
-                      <button
-                        onClick={() => handleEditClick(post)}
-                        className="text-blue-500 hover:text-blue-700"
-                        title="Sửa"
-                      >
-                        <FaRegEdit className="h-5 w-5" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(post)}
-                        className="text-red-500 hover:text-red-700"
-                        title="Xóa"
-                      >
-                        <FaRegTrashAlt className="h-5 w-5" />
-                      </button>
-                    </div>
+              {isLoading ? (
+                <tr>
+                  <td colSpan={columns.length + 1} className="py-4 text-center">
+                    Đang tải dữ liệu...
                   </td>
                 </tr>
-              ))}
+              ) : paginatedData.length === 0 ? (
+                <tr>
+                  <td colSpan={columns.length + 1} className="py-4 text-center">
+                    Không có dữ liệu
+                  </td>
+                </tr>
+              ) : (
+                paginatedData.map((post) => (
+                  <tr
+                    key={post.id}
+                    className="border-b border-gray-100 hover:bg-gray-50"
+                  >
+                    <td className="py-3 px-4 text-left">{post.id}</td>
+                    <td className="py-3 px-4 text-left">{post.title}</td>
+                    <td className="py-3 px-4 text-left">
+                      {post.thumbnailUrl ? (
+                        <img
+                          src={post.thumbnailUrl}
+                          alt={`Thumbnail for ${post.title}`}
+                          className="h-16 w-24 object-cover rounded-md"
+                        />
+                      ) : (
+                        <span className="text-gray-400">Không có ảnh</span>
+                      )}
+                    </td>
+                    <td className="py-3 px-4 text-left">
+                      {formatDate(post.postedAt)}
+                    </td>
+                    <td className="py-3 px-4 text-left">
+                      {formatDate(post.updatedAt)}
+                    </td>
+                    <td className="py-3 px-4 text-center">
+                      <div className="flex justify-center space-x-3">
+                        <button
+                          onClick={() => handleViewDetail(post)}
+                          className="text-blue-500 hover:text-blue-700"
+                          title="Xem chi tiết"
+                          disabled={isLoading}
+                        >
+                          <FaEye className="h-5 w-5" />
+                        </button>
+                        <button
+                          onClick={() => handleEditClick(post)}
+                          className="text-blue-500 hover:text-blue-700"
+                          title="Sửa"
+                          disabled={isLoading}
+                        >
+                          <FaRegEdit className="h-5 w-5" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(post)}
+                          className="text-red-500 hover:text-red-700"
+                          title="Xóa"
+                          disabled={isLoading}
+                        >
+                          <FaRegTrashAlt className="h-5 w-5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
 
         <div className="flex items-center justify-between mt-6">
           <p className="text-sm text-gray-600">
-            Hiển thị {(currentPage - 1) * itemsPerPage + 1} đến{" "}
-            {Math.min(currentPage * itemsPerPage, filteredData.length)} của{" "}
+            Hiển thị{" "}
+            {filteredData.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}{" "}
+            đến {Math.min(currentPage * itemsPerPage, filteredData.length)} của{" "}
             {filteredData.length} bản ghi
           </p>
           <div className="flex space-x-2">
             <button
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
+              disabled={currentPage === 1 || isLoading}
               className="px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-600 hover:bg-gray-100 disabled:opacity-50"
             >
               Trước
@@ -324,6 +375,7 @@ const ListPost = () => {
                 <button
                   key={i}
                   onClick={() => setCurrentPage(i + 1)}
+                  disabled={isLoading}
                   className={`w-8 h-8 rounded-md text-sm ${
                     currentPage === i + 1
                       ? "bg-blue-600 text-white"
@@ -338,7 +390,7 @@ const ListPost = () => {
               onClick={() =>
                 setCurrentPage((prev) => Math.min(prev + 1, totalPages))
               }
-              disabled={currentPage === totalPages}
+              disabled={currentPage === totalPages || isLoading}
               className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 disabled:opacity-50"
             >
               Tiếp

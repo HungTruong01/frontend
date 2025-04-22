@@ -4,13 +4,17 @@ import { toast } from "react-toastify";
 import { getAllProducts, getProductById } from "@/api/productApi";
 import { getAllInventoryAdjustmentType } from "@/api/inventoryAdjustmentTypesApi";
 import { getAllWarehouse } from "@/api/warehouseApi";
-import { updateInventoryAdjustment } from "@/api/inventoryAdjustmentApi";
+import {
+  createInventoryAdjustment,
+  updateInventoryAdjustment,
+} from "@/api/inventoryAdjustmentApi";
 
-const EditInventoryAdjustmentModal = ({
+const ToggleInventoryAdjustment = ({
   isOpen,
   onClose,
   onSubmit,
-  initialData,
+  initialData = null,
+  isEditing = false,
 }) => {
   const [adjustmentData, setAdjustmentData] = useState({
     id: "",
@@ -28,7 +32,7 @@ const EditInventoryAdjustmentModal = ({
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
-    if (isOpen && initialData) {
+    if (isOpen && isEditing && initialData) {
       setAdjustmentData({
         id: initialData.id,
         productId: initialData.productId,
@@ -36,8 +40,10 @@ const EditInventoryAdjustmentModal = ({
         inventoryAdjustmentTypeId: initialData.inventoryAdjustmentTypeId,
         quantity: initialData.quantity,
       });
+    } else if (isOpen && !isEditing) {
+      formData();
     }
-  }, [isOpen, initialData]);
+  }, [isOpen, initialData, isEditing]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -52,7 +58,7 @@ const EditInventoryAdjustmentModal = ({
         setAdjustmentTypes(typesRes.content || typesRes || []);
         setWarehouses(warehousesRes.content || warehousesRes || []);
 
-        if (initialData?.productId) {
+        if (isEditing && initialData?.productId) {
           const productData = await getProductById(initialData.productId);
           setSelectedProduct(productData);
         }
@@ -65,7 +71,7 @@ const EditInventoryAdjustmentModal = ({
     if (isOpen) {
       fetchData();
     }
-  }, [isOpen, initialData?.productId]);
+  }, [isOpen, isEditing, initialData?.productId]);
 
   useEffect(() => {
     const fetchProductDetails = async () => {
@@ -86,6 +92,18 @@ const EditInventoryAdjustmentModal = ({
     fetchProductDetails();
   }, [adjustmentData.productId]);
 
+  const formData = () => {
+    setAdjustmentData({
+      id: "",
+      productId: "",
+      warehouseId: "",
+      inventoryAdjustmentTypeId: "",
+      quantity: "",
+    });
+    setSelectedProduct(null);
+    setErrors({});
+  };
+
   const validateForm = () => {
     const newErrors = {};
     if (!adjustmentData.productId)
@@ -99,9 +117,6 @@ const EditInventoryAdjustmentModal = ({
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
-  const formatCurrency = (amount) => {
-    return `${new Intl.NumberFormat("vi-VN").format(amount)}`;
   };
 
   const handleSubmit = async (e) => {
@@ -120,12 +135,22 @@ const EditInventoryAdjustmentModal = ({
         quantity: Number(adjustmentData.quantity),
       };
 
-      await updateInventoryAdjustment(adjustmentData.id, submitData);
+      if (isEditing) {
+        await updateInventoryAdjustment(adjustmentData.id, submitData);
+      } else {
+        await createInventoryAdjustment(submitData);
+      }
+
       await onSubmit();
       onClose();
     } catch (error) {
-      console.error("Lỗi khi cập nhật điều chỉnh:", error);
-      toast.error("Lỗi khi cập nhật điều chỉnh tồn kho");
+      console.error(
+        `Lỗi khi ${isEditing ? "cập nhật" : "thêm"} điều chỉnh:`,
+        error
+      );
+      toast.error(
+        `Lỗi khi ${isEditing ? "cập nhật" : "thêm"} điều chỉnh tồn kho`
+      );
     } finally {
       setLoading(false);
     }
@@ -142,6 +167,10 @@ const EditInventoryAdjustmentModal = ({
     }
   };
 
+  const formatCurrency = (amount) => {
+    return `${new Intl.NumberFormat("vi-VN").format(amount)}`;
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -149,7 +178,9 @@ const EditInventoryAdjustmentModal = ({
       <div className="bg-white rounded-lg p-8 w-full max-w-2xl shadow-xl">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-semibold text-gray-800">
-            Chỉnh sửa điều chỉnh tồn kho
+            {isEditing
+              ? "Chỉnh sửa điều chỉnh tồn kho"
+              : "Thêm mới điều chỉnh tồn kho"}
           </h2>
           <button
             onClick={onClose}
@@ -180,6 +211,9 @@ const EditInventoryAdjustmentModal = ({
                   </option>
                 ))}
               </select>
+              {errors.productId && (
+                <p className="mt-1 text-sm text-red-500">{errors.productId}</p>
+              )}
             </div>
 
             <div>
@@ -202,7 +236,9 @@ const EditInventoryAdjustmentModal = ({
                 ))}
               </select>
               {errors.warehouseId && (
-                <p className="mt-1 text-sm text-red-500">{errors.warehouseId}</p>
+                <p className="mt-1 text-sm text-red-500">
+                  {errors.warehouseId}
+                </p>
               )}
             </div>
 
@@ -254,6 +290,7 @@ const EditInventoryAdjustmentModal = ({
             </div>
           </div>
 
+          {/* Product details section */}
           {selectedProduct && (
             <div className="mt-4 p-4 bg-gray-50 rounded-lg">
               <h3 className="text-lg font-medium text-gray-900 mb-3">
@@ -295,7 +332,7 @@ const EditInventoryAdjustmentModal = ({
               disabled={loading}
               className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
             >
-              {loading ? "Đang xử lý..." : "Cập nhật"}
+              {loading ? "Đang xử lý..." : isEditing ? "Cập nhật" : "Thêm mới"}
             </button>
           </div>
         </form>
@@ -304,4 +341,4 @@ const EditInventoryAdjustmentModal = ({
   );
 };
 
-export default EditInventoryAdjustmentModal;
+export default ToggleInventoryAdjustment;

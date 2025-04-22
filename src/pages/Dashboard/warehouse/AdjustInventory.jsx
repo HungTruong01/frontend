@@ -10,9 +10,7 @@ import { FaSearch, FaRegTrashAlt, FaEye, FaEdit } from "react-icons/fa";
 import { GoPlus } from "react-icons/go";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import AddInventoryAdjustmentModal from "@/components/Dashboard/warehouse/AddInventoryAdjustmentModal";
-import EditInventoryAdjustmentModal from "@/components/Dashboard/warehouse/EditInventoryAdjustmentModal";
-
+import ToggleInventoryAdjustment from "@/components/Dashboard/warehouse/ToggleWarehouseTransfer";
 const AdjustInventory = () => {
   const [adjustments, setAdjustments] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
@@ -121,7 +119,7 @@ const AdjustInventory = () => {
         })
       );
 
-      console.log("Enriched adjustments:", enrichedAdjustments);
+      // console.log("Enriched adjustments:", enrichedAdjustments);
       setAdjustments(enrichedAdjustments);
       setFilteredData(enrichedAdjustments);
     } catch (error) {
@@ -206,8 +204,8 @@ const AdjustInventory = () => {
 
   return (
     <div className="w-full bg-white shadow-lg rounded-lg overflow-hidden">
-      {currentEditItem && (
-        <EditInventoryAdjustmentModal
+      {isEditModalOpen && currentEditItem && (
+        <ToggleInventoryAdjustment
           isOpen={isEditModalOpen}
           onClose={() => {
             setIsEditModalOpen(false);
@@ -215,15 +213,16 @@ const AdjustInventory = () => {
           }}
           onSubmit={handleEditSubmit}
           initialData={currentEditItem}
-          title="Chỉnh sửa điều chỉnh tồn kho"
+          isEditing={true}
         />
       )}
 
       {isAddModalOpen && (
-        <AddInventoryAdjustmentModal
+        <ToggleInventoryAdjustment
           isOpen={isAddModalOpen}
           onClose={() => setIsAddModalOpen(false)}
           onSubmit={handleAddNew}
+          isEditing={false}
         />
       )}
 

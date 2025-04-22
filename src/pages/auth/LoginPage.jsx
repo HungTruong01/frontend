@@ -1,8 +1,5 @@
 import React, { useState } from "react";
-import {
-  loginCallAPI,
-  saveLoggedInUser,
-} from "@/api/authService";
+import { loginCallAPI, saveLoggedInUser } from "@/api/authService";
 import { useNavigate } from "react-router-dom";
 
 const LoginComponent = () => {

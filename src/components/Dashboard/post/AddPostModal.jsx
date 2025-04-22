@@ -34,18 +34,24 @@ const AddPostModal = ({ isOpen, onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
     title: "",
     content: "",
-    thumbnailFile: null, // Lưu file ảnh thay vì URL
-    posted_at: new Date().toISOString().split("T")[0], // Định dạng yyyy-mm-dd
-    updated_at: new Date().toISOString().split("T")[0],
+    thumbnailFile: null,
+  });
+
+  const [errors, setErrors] = useState({
+    title: "",
+    content: "",
   });
 
   const [filePreview, setFilePreview] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (quill && isOpen) {
       quill.clipboard.dangerouslyPasteHTML(formData.content || "");
       quill.on("text-change", () => {
         setFormData((prev) => ({ ...prev, content: quill.root.innerHTML }));
+        // Clear error when user types
+        setErrors((prev) => ({ ...prev, content: "" }));
       });
     }
   }, [quill, isOpen]);
@@ -57,21 +63,38 @@ const AddPostModal = ({ isOpen, onClose, onSubmit }) => {
         title: "",
         content: "",
         thumbnailFile: null,
-        posted_at: new Date().toISOString().split("T")[0],
-        updated_at: new Date().toISOString().split("T")[0],
       });
       setFilePreview(null);
+      setErrors({
+        title: "",
+        content: "",
+      });
+      setIsSubmitting(false);
     }
   }, [isOpen, quill]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    // Clear error when user types
+    setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
+      // Validate file type
+      if (!file.type.startsWith("image/")) {
+        alert("Vui lòng chọn file hình ảnh!");
+        return;
+      }
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert("Kích thước file không được vượt quá 5MB!");
+        return;
+      }
+
       setFormData((prev) => ({ ...prev, thumbnailFile: file }));
       const reader = new FileReader();
       reader.onload = (e) => setFilePreview(e.target.result);
@@ -83,16 +106,43 @@ const AddPostModal = ({ isOpen, onClose, onSubmit }) => {
     fileInputRef.current.click();
   };
 
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!formData.title.trim()) {
+      newErrors.title = "Vui lòng nhập tiêu đề";
+    }
+
+    if (!formData.content.trim() || formData.content === "<p><br></p>") {
+      newErrors.content = "Vui lòng nhập nội dung";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsSubmitting(true);
+
     const submitData = {
       title: formData.title,
       content: formData.content,
       thumbnailFile: formData.thumbnailFile,
-      posted_at: formData.posted_at,
-      updated_at: formData.updated_at,
     };
-    onSubmit(submitData);
+
+    onSubmit(submitData)
+      .catch((err) => {
+        console.error("Error submitting form:", err);
+      })
+      .finally(() => {
+        setIsSubmitting(false);
+      });
   };
 
   if (!isOpen) return null;
@@ -117,23 +167,28 @@ const AddPostModal = ({ isOpen, onClose, onSubmit }) => {
         <form onSubmit={handleSubmit} className="p-6 flex-1 overflow-y-auto">
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Tiêu đề
+              Tiêu đề <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               name="title"
               value={formData.title}
               onChange={handleChange}
-              className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={`w-full px-4 py-2 border-2 ${
+                errors.title ? "border-red-500" : "border-gray-300"
+              } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
               placeholder="Nhập tiêu đề bài đăng"
               required
             />
+            {errors.title && (
+              <p className="mt-1 text-sm text-red-500">{errors.title}</p>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Ảnh/Video
+                Ảnh Thumbnail
               </label>
               <div className="flex mb-2">
                 <button
@@ -160,16 +215,28 @@ const AddPostModal = ({ isOpen, onClose, onSubmit }) => {
                   />
                 </div>
               )}
+              {!filePreview && (
+                <div className="mt-2 border-2 border-gray-200 rounded-lg p-2 h-[200px] flex items-center justify-center text-gray-400">
+                  Chưa có hình ảnh thumbnail
+                </div>
+              )}
             </div>
           </div>
 
           <div className="mt-6">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Nội dung
+              Nội dung <span className="text-red-500">*</span>
             </label>
-            <div className="border-2 border-gray-300 rounded-lg max-h-[500px] overflow-y-auto">
+            <div
+              className={`border-2 ${
+                errors.content ? "border-red-500" : "border-gray-300"
+              } rounded-lg max-h-[500px] overflow-y-auto`}
+            >
               <div ref={quillRef} className="min-h-[300px]" />
             </div>
+            {errors.content && (
+              <p className="mt-1 text-sm text-red-500">{errors.content}</p>
+            )}
           </div>
         </form>
 
@@ -179,15 +246,17 @@ const AddPostModal = ({ isOpen, onClose, onSubmit }) => {
               type="button"
               onClick={onClose}
               className="px-5 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+              disabled={isSubmitting}
             >
               Hủy
             </button>
             <button
               type="submit"
               onClick={handleSubmit}
-              className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              disabled={isSubmitting}
             >
-              Thêm mới
+              {isSubmitting ? "Đang xử lý..." : "Thêm mới"}
             </button>
           </div>
         </div>

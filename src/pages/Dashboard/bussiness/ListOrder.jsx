@@ -21,7 +21,6 @@ const ListOrder = () => {
   const [partners, setPartners] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Status ID for completed orders (assuming "completed" status has ID 1 based on your color scheme)
   const completedStatusId = 1;
 
   const fetchOrders = async () => {
@@ -149,7 +148,7 @@ const ListOrder = () => {
   };
 
   const handleAddClick = () => {
-    navigate("/dashboard/bussiness/add-order");
+    navigate("/dashboard/business/order-management/create");
   };
 
   const handleViewDetail = async (order) => {
@@ -175,7 +174,6 @@ const ListOrder = () => {
     fetchOrders();
   };
 
-  // Check if an order is completed
   const isOrderCompleted = (order) => {
     return order.orderStatusId === completedStatusId;
   };

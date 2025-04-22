@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { FiSearch } from "react-icons/fi";
 import { FaRegTrashAlt, FaEye, FaEdit, FaPlus } from "react-icons/fa";
-import AddProductModal from "@/components/Dashboard/product/AddProductModal";
-import EditProductModal from "@/components/Dashboard/product/EditProductModal";
+import ToggleProductModal from "@/components/Dashboard/product/ToggleProductModal";
 import ProductDetailModal from "@/components/Dashboard/product/ProductDetailModal";
 import {
   getAllProducts,
@@ -33,7 +32,7 @@ const ListProduct = () => {
   const fetchProducts = async () => {
     try {
       const response = await getAllProducts(0, 100, "id", "asc");
-      console.log("product data", response.data.content);
+      // console.log("product data", response.data.content);
       setProducts(response.data.content);
     } catch (error) {
       console.error("Error fetching products:", error);
@@ -139,7 +138,7 @@ const ListProduct = () => {
         name: updatedProduct.name,
         description: updatedProduct.description,
         price: Number(updatedProduct.price),
-        quantity: Number(updatedProduct.quantity),
+        // quantity: Number(updatedProduct.quantity),
         productTypeId: Number(updatedProduct.productTypeId),
         productUnitId: Number(updatedProduct.productUnitId),
       };
@@ -185,17 +184,19 @@ const ListProduct = () => {
 
   return (
     <div className="w-full bg-white shadow-lg rounded-lg overflow-hidden">
-      <AddProductModal
+      <ToggleProductModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onSubmit={handleAddSubmit}
+        mode="add"
       />
 
-      <EditProductModal
+      <ToggleProductModal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         onSubmit={handleEditSubmit}
         product={selectedProduct}
+        mode="edit"
       />
 
       <ProductDetailModal

@@ -2,11 +2,17 @@ import React, { useState, useEffect } from "react";
 import { FaTimes } from "react-icons/fa";
 import { toast } from "react-toastify";
 import { getAllProducts, getProductById } from "@/api/productApi";
-import { getAllInventoryAdjustmentType } from "@/api/inventoryAdjustmentTypesApi"; // Fixed function name
+import { getAllInventoryAdjustmentType } from "@/api/inventoryAdjustmentTypesApi";
 import { getAllWarehouse } from "@/api/warehouseApi";
 import { createInventoryAdjustment } from "@/api/inventoryAdjustmentApi";
 
-const AddInventoryAdjustmentModal = ({ isOpen, onClose, onSubmit }) => {
+const ToggleInventoryAdjustment = ({
+  isOpen,
+  onClose,
+  onSubmit,
+  initialData = null,
+  mode = "add",
+}) => {
   const [adjustmentData, setAdjustmentData] = useState({
     productId: "",
     warehouseId: "",
@@ -108,7 +114,6 @@ const AddInventoryAdjustmentModal = ({ isOpen, onClose, onSubmit }) => {
     }
   };
 
-  // Add this useEffect to fetch product details when product changes
   useEffect(() => {
     const fetchProductDetails = async () => {
       if (!adjustmentData.productId) {
@@ -132,7 +137,6 @@ const AddInventoryAdjustmentModal = ({ isOpen, onClose, onSubmit }) => {
     return `${new Intl.NumberFormat("vi-VN").format(amount)}`;
   };
 
-  // Move the product details section inside the return statement, after the form fields
   return (
     <div className="fixed inset-0 bg-black/20 backdrop-blur-xs flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-8 w-full max-w-2xl shadow-xl">
@@ -248,7 +252,6 @@ const AddInventoryAdjustmentModal = ({ isOpen, onClose, onSubmit }) => {
             </div>
           </div>
 
-          {/* Add product details section here */}
           {selectedProduct && (
             <div className="mt-4 p-4 bg-gray-50 rounded-lg">
               <h3 className="text-lg font-medium text-gray-900 mb-3">
@@ -299,4 +302,4 @@ const AddInventoryAdjustmentModal = ({ isOpen, onClose, onSubmit }) => {
   );
 };
 
-export default AddInventoryAdjustmentModal;
+export default ToggleInventoryAdjustment;

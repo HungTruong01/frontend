@@ -9,12 +9,10 @@ import {
   getAllDeliveryStatus,
   getDeliveryStatusById,
 } from "@/api/deliveryStatusApi";
-import { getInventoryAdjustmentTypeById } from "@/api/inventoryAdjustmentTypesApi";
 import { FaSearch, FaRegTrashAlt, FaEye, FaEdit } from "react-icons/fa";
 import { GoPlus } from "react-icons/go";
 import { toast } from "react-toastify";
-import AddIWarehouseTransferModal from "@/components/Dashboard/warehouse/AddIWarehouseTransferModal";
-import EditWarehouseTransferModal from "@/components/Dashboard/warehouse/EditWarehouseTransferModal";
+import ToggleWarehouseTransfer from "@/components/Dashboard/warehouse/ToggleWarehouseTransfer";
 import { useNavigate } from "react-router-dom";
 
 const WarehouseTransfer = () => {
@@ -50,7 +48,7 @@ const WarehouseTransfer = () => {
                 getWarehouseById(transfer.sourceWarehouseId),
                 getWarehouseById(transfer.destinationWarehouseId),
                 getProductById(transfer.productId),
-                getDeliveryStatusById(transfer.statusId), // Thay đổi này
+                getDeliveryStatusById(transfer.statusId),
               ]);
 
             return {
@@ -118,7 +116,6 @@ const WarehouseTransfer = () => {
   const handleAddNew = async () => {
     setIsAddModalOpen(false);
     await fetchData();
-    toast.success("Thêm mới chuyển kho thành công");
   };
 
   const handleViewDetail = (transferId) => {
@@ -134,7 +131,6 @@ const WarehouseTransfer = () => {
     setIsEditModalOpen(false);
     setCurrentEditItem(null);
     await fetchData();
-    toast.success("Cập nhật chuyển kho thành công");
   };
 
   const handleDelete = async (item) => {
@@ -158,8 +154,8 @@ const WarehouseTransfer = () => {
 
   return (
     <div className="w-full bg-white shadow-lg rounded-lg overflow-hidden">
-      {currentEditItem && (
-        <EditWarehouseTransferModal
+      {isEditModalOpen && currentEditItem && (
+        <ToggleWarehouseTransfer
           isOpen={isEditModalOpen}
           onClose={() => {
             setIsEditModalOpen(false);
@@ -167,17 +163,16 @@ const WarehouseTransfer = () => {
           }}
           onSubmit={handleEditSubmit}
           initialData={currentEditItem}
-          title="Chỉnh sửa chuyển kho"
+          mode="edit"
         />
       )}
 
-      {isAddModalOpen && (
-        <AddIWarehouseTransferModal
-          isOpen={isAddModalOpen}
-          onClose={() => setIsAddModalOpen(false)}
-          onSubmit={handleAddNew}
-        />
-      )}
+      <ToggleWarehouseTransfer
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onSubmit={handleAddNew}
+        mode="add"
+      />
 
       <div className="p-6">
         <div className="flex justify-between items-center mb-6">

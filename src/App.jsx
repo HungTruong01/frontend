@@ -13,18 +13,18 @@ import DashBoardHome from "./pages/Dashboard/DashBoardHome";
 import AccountList from "./pages/Dashboard/system/AccountList";
 import RoleUser from "./pages/Dashboard/system/RoleUser";
 
-import ListPost from "./pages/Dashboard/ListPost";
-import OrderStatus from "./pages/Dashboard/OrderStatus";
-import OverviewDashboard from "./pages/Dashboard/OverviewDashboard";
-import ReasonInventoryAdjust from "./pages/Dashboard/ReasonInventoryAdjust";
-import TypeOrder from "./pages/Dashboard/TypeOrder";
-import TypePartner from "./pages/Dashboard/TypePartner";
-import TypeProduct from "./pages/Dashboard/TypeProduct";
-import TypeTransactionWareHouse from "./pages/Dashboard/TypeTransactionWareHouse";
-import ListProduct from "./pages/Dashboard/warehouse/ListProduct";
-import UnitPage from "./pages/Dashboard/UnitPage";
+import ListPost from "@/pages/Dashboard/ListPost";
+import OrderStatus from "@/pages/Dashboard/categories/OrderStatus";
+import OverviewDashboard from "@/pages/Dashboard/OverviewDashboard";
+import ReasonInventoryAdjust from "@/pages/Dashboard/categories/ReasonInventoryAdjust";
+import TypeOrder from "@/pages/Dashboard/categories/TypeOrder";
+import TypePartner from "@/pages/Dashboard/categories/TypePartner";
+import TypeProduct from "@/pages/Dashboard/categories/TypeProduct";
+import TypeTransactionWareHouse from "@/pages/Dashboard/categories/TypeTransactionWareHouse";
+import ListProduct from "@/pages/Dashboard/warehouse/ListProduct";
+import UnitPage from "@/pages/Dashboard/categories/UnitPage";
 
-import ListWarehouse from "./pages/Dashboard/ListWarehouse";
+import ListWarehouse from "@/pages/Dashboard/categories/ListWarehouse";
 import InventoryProduct from "./pages/Dashboard/warehouse/InventoryProduct";
 import WarehouseTransaction from "./pages/Dashboard/warehouse/WarehouseTransaction";
 import WarehouseTransactionDetail from "./pages/Dashboard/warehouse/WarehouseTransactionDetail";
@@ -40,10 +40,10 @@ import IncomeReport from "./pages/Dashboard/reports/IncomeReport";
 import RevenueReport from "./pages/Dashboard/reports/RevenueReport";
 
 import LoginPage from "./pages/auth/LoginPage";
-import InvoiceType from "./pages/Dashboard/InvoiceType";
-import DeliveryStatus from "./pages/Dashboard/DeliveryStatus";
-import AddOrder from "./pages/Dashboard/bussiness/AddOrder";
-import EditOrder from "./pages/Dashboard/bussiness/EditOrder";
+import InvoiceType from "./pages/Dashboard/categories/InvoiceType";
+import DeliveryStatus from "./pages/Dashboard/categories/DeliveryStatus";
+
+import OrderForm from "./components/Dashboard/order/OrderForm";
 import ListInvoice from "./pages/Dashboard/bussiness/ListInvoice";
 import FormEditAccount from "./pages/Dashboard/system/FormEditAccount";
 import ErrorPopup from "./components/Dashboard/ErrorPopUp";
@@ -113,10 +113,14 @@ const App = () => {
           <Route path="posts/post-list" element={<ListPost />} />
           <Route path="business/partner-list" element={<ListPartner />} />
           <Route path="business/order-management" element={<ListOrder />} />
-          <Route path="bussiness/add-order" element={<AddOrder />} />
+
           <Route
-            path="business/order-management/edit/:id"
-            element={<EditOrder />}
+            path="/dashboard/business/order-management/create"
+            element={<OrderForm mode="add" />}
+          />
+          <Route
+            path="/dashboard/business/order-management/edit/:id"
+            element={<OrderForm mode="edit" />}
           />
           <Route path="business/invoice-management" element={<ListInvoice />} />
           <Route

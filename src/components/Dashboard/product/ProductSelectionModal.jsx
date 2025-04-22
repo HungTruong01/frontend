@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { FaTimes, FaSearch, FaPlus } from "react-icons/fa";
-import AddProductModal from "./AddProductModal";
+import ToggleProductModal from "./ToggleProductModal";
 import { getAllProducts } from "@/api/productApi";
 import { getAllProductUnits } from "@/api/productUnitApi";
 
@@ -52,14 +52,22 @@ const ProductSelectionModal = ({
     setIsOpenAddProduct(true);
   };
 
+  const handleAddSubmit = async () => {
+    await fetchProducts();
+    setIsOpenAddProduct(false);
+  };
+
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/20 backdrop-blur-lg flex items-center justify-center z-50">
-      <AddProductModal
+      <ToggleProductModal
         isOpen={isOpenAddProduct}
         onClose={() => setIsOpenAddProduct(false)}
+        onSubmit={handleAddSubmit}
+        mode="add"
       />
+
       <div className="bg-white p-6 w-full max-w-4xl max-h-[80vh] overflow-y-auto rounded-lg shadow-xl">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold text-gray-800">Chọn sản phẩm</h2>
@@ -83,12 +91,13 @@ const ProductSelectionModal = ({
             <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
           </div>
         </div>
+
         <div className="flex justify-start items-center">
           {orderTypes === "Đơn hàng nhập" && (
             <button
               type="button"
               onClick={handleAddProduct}
-              className="flex items-center px-4 py-2 rounded-lg bg-blue-500 text-white text-sm mb-4 cursor-pointer "
+              className="flex items-center px-4 py-2 rounded-lg bg-blue-500 text-white text-sm mb-4 cursor-pointer"
             >
               <FaPlus className="mr-1" />
               Thêm mới sản phẩm

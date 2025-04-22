@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { FaSearch, FaEye, FaRegEdit, FaPlus } from "react-icons/fa";
 import { partnerApi } from "@/api/partnerApi";
-import AddPartnerModal from "@/components/Dashboard/partner/AddPartnerModal";
-import EditPartnerModal from "@/components/Dashboard/partner/EditPartnerModal";
 import PartnerDetailModal from "@/components/Dashboard/partner/PartnerDetailModal";
+import TogglePartnerModal from "@/components/Dashboard/partner/TogglePartnerModal";
 import { toast } from "react-toastify";
 
 const ListPartner = () => {
@@ -130,22 +129,17 @@ const ListPartner = () => {
 
   return (
     <div className="w-full bg-white shadow-lg rounded-lg overflow-hidden">
-      <AddPartnerModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        onSubmit={handleAddNew}
+      <TogglePartnerModal
+        isOpen={isAddModalOpen || isEditModalOpen}
+        onClose={() => {
+          setIsAddModalOpen(false);
+          setIsEditModalOpen(false);
+          setCurrentPartner(null);
+        }}
+        onSubmit={isAddModalOpen ? handleAddNew : handleEditSubmit}
+        mode={isAddModalOpen ? "add" : "edit"}
+        partner={currentPartner}
       />
-      {currentPartner && (
-        <EditPartnerModal
-          isOpen={isEditModalOpen}
-          onClose={() => {
-            setIsEditModalOpen(false);
-            setCurrentPartner(null);
-          }}
-          onSubmit={handleEditSubmit}
-          partner={currentPartner}
-        />
-      )}
       {currentPartner && (
         <PartnerDetailModal
           isOpen={isDetailModalOpen}
