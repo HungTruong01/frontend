@@ -20,7 +20,7 @@ const SideNav = ({ menuItems, onToggle }) => {
 
   const handleLogout = () => {
     logout();
-    navigate("/login"); // Chuyển hướng về trang login sau khi logout
+    navigate("/login");
   };
 
   const toggleSidebar = () => {
@@ -60,7 +60,7 @@ const SideNav = ({ menuItems, onToggle }) => {
     <div className="relative h-full">
       <aside
         className={`fixed inset-y-0 left-0  bg-white border-r border-gray-200 h-screen flex flex-col rounded-r-2xl mt-2 transition-all duration-300 ${
-          isCollapsed ? "w-20" : "w-64"
+          isCollapsed ? "w-20" : "w-60"
         }`}
       >
         <button
@@ -168,9 +168,7 @@ const SideNav = ({ menuItems, onToggle }) => {
             title={isCollapsed ? "Logout" : ""}
           >
             <MdLogout className="h-6 w-6" />
-            {!isCollapsed && (
-              <a className="text-base font-medium">Logout</a>
-            )}
+            {!isCollapsed && <a className="text-base font-medium">Logout</a>}
           </button>
         </div>
       </aside>

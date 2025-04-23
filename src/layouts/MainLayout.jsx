@@ -15,7 +15,7 @@ const MainLayout = () => {
     <div className="flex min-h-screen bg-gray-200">
       <div
         className={`transition-all duration-300 flex-shrink-0 ${
-          sidebarCollapsed ? "w-20" : "w-64"
+          sidebarCollapsed ? "w-20" : "w-60"
         }`}
       >
         <SideNav menuItems={menuItem} onToggle={handleSidebarToggle} />

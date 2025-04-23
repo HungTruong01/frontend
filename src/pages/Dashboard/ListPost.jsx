@@ -32,7 +32,6 @@ const ListPost = () => {
   const columns = [
     { key: "id", label: "Mã bài đăng" },
     { key: "title", label: "Tiêu đề" },
-    { key: "thumbnail", label: "Thumbnail" },
     { key: "posted_at", label: "Ngày đăng" },
     { key: "updated_at", label: "Ngày cập nhật" },
   ];
@@ -44,7 +43,7 @@ const ListPost = () => {
   const listPosts = async () => {
     setIsLoading(true);
     try {
-      const res = await getAllPosts(0, 10, "id", "asc");
+      const res = await getAllPosts(0, 100, "id", "asc");
       setPosts(res.data.content);
     } catch (error) {
       console.error("Lỗi khi tải danh sách bài đăng:", error);
@@ -73,7 +72,6 @@ const ListPost = () => {
     try {
       const formData = new FormData();
 
-      // Chỉ gửi các trường backend cần
       const postDto = {
         title: newPost.title,
         content: newPost.content,
@@ -105,7 +103,6 @@ const ListPost = () => {
   const handleEditClick = async (post) => {
     try {
       setIsLoading(true);
-      // Lấy thông tin chi tiết của bài đăng để chỉnh sửa
       const detailPost = await getPostById(post.id);
       setCurrentPost(detailPost);
       setIsEditModalOpen(true);
@@ -119,7 +116,6 @@ const ListPost = () => {
 
   const handleEditSubmit = async (updatedPost) => {
     try {
-      // Tạo FormData tương tự như khi thêm mới
       const formData = new FormData();
       const postData = {
         title: updatedPost.title,
@@ -133,7 +129,6 @@ const ListPost = () => {
         new Blob([JSON.stringify(postData)], { type: "application/json" })
       );
 
-      // Nếu có file ảnh mới được tải lên
       if (updatedPost.thumbnailFile) {
         formData.append("thumbnail", updatedPost.thumbnailFile);
       }
@@ -303,17 +298,6 @@ const ListPost = () => {
                   >
                     <td className="py-3 px-4 text-left">{post.id}</td>
                     <td className="py-3 px-4 text-left">{post.title}</td>
-                    <td className="py-3 px-4 text-left">
-                      {post.thumbnailUrl ? (
-                        <img
-                          src={post.thumbnailUrl}
-                          alt={`Thumbnail for ${post.title}`}
-                          className="h-16 w-24 object-cover rounded-md"
-                        />
-                      ) : (
-                        <span className="text-gray-400">Không có ảnh</span>
-                      )}
-                    </td>
                     <td className="py-3 px-4 text-left">
                       {formatDate(post.postedAt)}
                     </td>

@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { FaRegTrashAlt, FaEye, FaEdit, FaPlus, FaSearch } from "react-icons/fa";
+import {
+  FaRegTrashAlt,
+  FaEye,
+  FaEdit,
+  FaPlus,
+  FaSearch,
+  FaFileExport,
+} from "react-icons/fa";
 import InvoiceDetailModal from "@/components/Dashboard/invoice/InvoiceDetailModal";
 import AddInvoiceModal from "@/components/Dashboard/invoice/AddInvoiceModal";
 import EditInvoiceModal from "@/components/Dashboard/invoice/EditInvoiceModal";
@@ -12,14 +19,18 @@ import {
   getAllInvoices,
 } from "@/api/invoiceApi";
 import { getAllInvoiceTypes } from "@/api/invoiceTypeApi";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
+import { toast } from "react-toastify";
 
 const ListInvoice = () => {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
-  const [searchName, setSearchName] = useState("");
+  const [searchType, setSearchType] = useState("");
   const [searchPartner, setSearchPartner] = useState("");
+  const [searchDate, setSearchDate] = useState("");
   const [itemsPerPage, setItemsPerPage] = useState(7);
   const [currentPage, setCurrentPage] = useState(1);
   const [allInvoices, setAllInvoices] = useState([]);
@@ -36,7 +47,7 @@ const ListInvoice = () => {
       const allInvoicesData = response.content || [];
       setAllInvoices(allInvoicesData);
       setTotalElements(allInvoicesData.length);
-      applyFilters(allInvoicesData, searchName, searchPartner);
+      applyFilters(allInvoicesData, searchType, searchPartner, searchDate);
       setIsLoading(false);
     } catch (error) {
       console.log("Lỗi khi lấy hóa đơn", error);
@@ -58,18 +69,21 @@ const ListInvoice = () => {
     fetchInvoiceType();
   }, []);
 
-  // Áp dụng bộ lọc và cập nhật trạng thái
-  const applyFilters = (invoices, nameFilter, partnerFilter) => {
+  const applyFilters = (invoices, typeFilter, partnerFilter, dateFilter) => {
     const filtered = invoices.filter((invoice) => {
-      const matchName = String(invoice.id)
-        .toLowerCase()
-        .includes(nameFilter.toLowerCase());
+      const matchType =
+        typeFilter === "" || invoice.invoiceTypeId === parseInt(typeFilter);
       const matchPartner =
-        !partnerFilter ||
+        partnerFilter === "" ||
         invoice.partnerName
           ?.toLowerCase()
           .includes(partnerFilter.toLowerCase());
-      return matchName && matchPartner;
+      const matchDate =
+        dateFilter === "" ||
+        (invoice.createdAt &&
+          new Date(invoice.createdAt).toISOString().split("T")[0] ===
+            dateFilter);
+      return matchType && matchPartner && matchDate;
     });
 
     setFilteredInvoices(filtered);
@@ -77,20 +91,23 @@ const ListInvoice = () => {
     setTotalPages(Math.ceil(filtered.length / itemsPerPage));
   };
 
-  // Cập nhật lọc khi thay đổi tìm kiếm
   useEffect(() => {
-    applyFilters(allInvoices, searchName, searchPartner);
+    applyFilters(allInvoices, searchType, searchPartner, searchDate);
     setCurrentPage(1);
-  }, [searchName, searchPartner, allInvoices, itemsPerPage]);
+  }, [searchType, searchPartner, searchDate, allInvoices, itemsPerPage]);
 
   const formatDate = (dateString) => {
-    if (!dateString) return "Invalid Date";
+    if (!dateString) return "N/A";
     const date = new Date(dateString);
-    if (isNaN(date.getTime())) return "Invalid Date";
+    if (isNaN(date.getTime())) return "N/A";
     const day = String(date.getDate()).padStart(2, "0");
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const year = date.getFullYear();
     return `${day}/${month}/${year}`;
+  };
+
+  const formatCurrency = (amount) => {
+    return `${new Intl.NumberFormat("vi-VN").format(amount)}`;
   };
 
   const paginatedData = filteredInvoices.slice(
@@ -100,7 +117,7 @@ const ListInvoice = () => {
 
   const getInvoiceTypeName = (invoiceId) => {
     const type = invoiceType.find((type) => type.id === invoiceId);
-    return type ? type.name : "Unknown";
+    return type ? type.name : "Không xác định";
   };
 
   const handleAddClick = () => {
@@ -138,16 +155,17 @@ const ListInvoice = () => {
         allInvoices.map((invoice) =>
           invoice.id === refreshedInvoice.id ? refreshedInvoice : invoice
         ),
-        searchName,
-        searchPartner
+        searchType,
+        searchPartner,
+        searchDate
       );
 
       setIsEditModalOpen(false);
       setSelectedInvoice(null);
-      alert("Cập nhật hóa đơn thành công!");
+      toast.success("Cập nhật hóa đơn thành công!");
     } catch (err) {
       console.error("Lỗi khi cập nhật hóa đơn:", err);
-      alert("Đã xảy ra lỗi khi cập nhật hóa đơn.");
+      toast.error("Đã xảy ra lỗi khi cập nhật hóa đơn.");
     }
   };
 
@@ -159,7 +177,7 @@ const ListInvoice = () => {
       );
       setAllInvoices(updatedInvoices);
 
-      applyFilters(updatedInvoices, searchName, searchPartner);
+      applyFilters(updatedInvoices, searchType, searchPartner, searchDate);
 
       console.log("Xóa hóa đơn:", id);
 
@@ -182,16 +200,8 @@ const ListInvoice = () => {
     }
   };
 
-  const handleSearchNameChange = (e) => {
-    setSearchName(e.target.value);
-  };
-
-  const handleSearchPartnerChange = (e) => {
-    setSearchPartner(e.target.value);
-  };
-
   const handleSearch = () => {
-    applyFilters(allInvoices, searchName, searchPartner);
+    applyFilters(allInvoices, searchType, searchPartner, searchDate);
     setCurrentPage(1);
   };
 
@@ -200,11 +210,6 @@ const ListInvoice = () => {
     setItemsPerPage(newItemsPerPage);
   };
 
-  const formatCurrency = (amount) => {
-    return `${new Intl.NumberFormat("vi-VN").format(amount)}`;
-  };
-
-  // Hàm tạo danh sách các nút trang hiển thị
   const getPageNumbers = () => {
     const maxPagesToShow = 5;
     const pages = [];
@@ -259,6 +264,10 @@ const ListInvoice = () => {
               Danh sách hóa đơn
             </h1>
             <div className="flex items-center space-x-4">
+              <button className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
+                <FaFileExport className="h-5 w-5 mr-2" />
+                Xuất file
+              </button>
               <button
                 onClick={handleAddClick}
                 className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
@@ -270,26 +279,33 @@ const ListInvoice = () => {
           </div>
           <div className="flex items-center space-x-4">
             <div className="relative flex-1">
+              <select
+                value={searchType}
+                onChange={(e) => setSearchType(e.target.value)}
+                className="w-full px-4 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              >
+                <option value="">Tất cả loại hóa đơn</option>
+                {invoiceType.map((type) => (
+                  <option key={type.id} value={type.id}>
+                    {type.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="relative flex-1">
               <input
-                type="text"
-                placeholder="Tìm theo mã hóa đơn..."
-                value={searchName}
-                onChange={handleSearchNameChange}
+                type="date"
+                value={searchDate}
+                onChange={(e) => setSearchDate(e.target.value)}
                 className="w-full px-4 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
               />
-              <button
-                onClick={handleSearch}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-              >
-                <FaSearch className="h-4 w-4" />
-              </button>
             </div>
             <div className="relative flex-1">
               <input
                 type="text"
                 placeholder="Tìm theo tên đối tác..."
                 value={searchPartner}
-                onChange={handleSearchPartnerChange}
+                onChange={(e) => setSearchPartner(e.target.value)}
                 className="w-full px-4 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
               />
               <button
@@ -387,13 +403,6 @@ const ListInvoice = () => {
                           >
                             <FaEdit className="h-5 w-5" />
                           </button>
-                          {/* <button
-                            onClick={() => handleDeleteInvoice(invoice.id)}
-                            className="text-red-500 hover:text-red-700 transition-colors"
-                            title="Xóa"
-                          >
-                            <FaRegTrashAlt className="h-5 w-5" />
-                          </button> */}
                         </div>
                       </td>
                     </tr>

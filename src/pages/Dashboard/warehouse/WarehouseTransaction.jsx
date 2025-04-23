@@ -11,8 +11,6 @@ import { getOrderById } from "@/api/orderApi";
 import { getDeliveryStatusById } from "@/api/deliveryStatusApi";
 import { getWarehouseById } from "@/api/warehouseApi";
 import { getWarehouseTransactionTypeById } from "@/api/warehouseTransactionTypeApi";
-// import AddWarehouseTransactionModal from "@/components/Dashboard/warehouse/AddWarehouseTransactionModal";
-// import EditWarehouseTransactionModal from "@/components/Dashboard/warehouse/EditWarehouseTransactionModal";
 import ToggleWarehouseTransaction from "@/components/Dashboard/warehouse/ToggleWarehouseTransaction";
 import { toast } from "react-toastify";
 
@@ -65,7 +63,7 @@ const WarehouseTransaction = () => {
               warehouseName: "Lỗi kho",
               orderCode: "Lỗi đơn hàng",
               statusName: "Lỗi trạng thái",
-              transactionTypeName: "Lỗi loại",
+              transactionTypeName: "Lỗi loại giao dịch",
             };
           }
         })

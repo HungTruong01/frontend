@@ -1,16 +1,27 @@
 import React from "react";
 import { FaTimes, FaCheckCircle } from "react-icons/fa";
+import { motion } from "framer-motion";
 
 const SuccessPopup = ({ onClose, successMessage }) => {
   const message =
     successMessage || "Đăng nhập thành công! Chào mừng bạn trở lại.";
 
   return (
-    <div
+    <motion.div
       className="fixed inset-0 bg-black/20 flex items-center justify-center z-[1000]"
       style={{ backdropFilter: "blur(2px)" }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
     >
-      <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
+      <motion.div
+        className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        transition={{ duration: 0.3 }}
+      >
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold text-green-600 flex items-center">
             <FaCheckCircle className="mr-2" />
@@ -49,8 +60,8 @@ const SuccessPopup = ({ onClose, successMessage }) => {
             </button>
           </div>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 

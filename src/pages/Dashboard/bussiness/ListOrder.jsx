@@ -1,6 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaRegTrashAlt, FaEye, FaEdit, FaPlus } from "react-icons/fa";
+import {
+  FaRegTrashAlt,
+  FaEye,
+  FaEdit,
+  FaPlus,
+  FaFileExport,
+} from "react-icons/fa";
 import OrderDetailModal from "@/components/Dashboard/order/OrderDetailModal";
 import { getAllOrders, getOrderById } from "@/api/orderApi";
 import { getAllOrderTypes } from "@/api/orderTypeApi";
@@ -13,6 +19,7 @@ const ListOrder = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [searchStatus, setSearchStatus] = useState("");
   const [searchType, setSearchType] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [itemsPerPage] = useState(7);
   const [currentPage, setCurrentPage] = useState(1);
   const [orders, setOrders] = useState([]);
@@ -26,12 +33,7 @@ const ListOrder = () => {
   const fetchOrders = async () => {
     try {
       const response = await getAllOrders(0, 100, "id", "asc");
-      if (response && response.content) {
-        setOrders(response.content);
-      } else {
-        setOrders([]);
-        console.log("No orders found or unexpected response format");
-      }
+      setOrders(response.content);
     } catch (error) {
       console.log("Error fetching orders", error);
       setOrders([]);
@@ -41,11 +43,7 @@ const ListOrder = () => {
   const fetchOrderTypes = async () => {
     try {
       const response = await getAllOrderTypes();
-      if (response && response.content) {
-        setOrderType(response.content);
-      } else {
-        setOrderType([]);
-      }
+      setOrderType(response.content);
     } catch (error) {
       console.log("Error fetching order types", error);
       setOrderType([]);
@@ -55,11 +53,7 @@ const ListOrder = () => {
   const fetchOrderStatus = async () => {
     try {
       const response = await getAllOrderStatus();
-      if (response && response.content) {
-        setOrderStatus(response.content);
-      } else {
-        setOrderStatus([]);
-      }
+      setOrderStatus(response.content);
     } catch (error) {
       console.log("Error fetching order status", error);
       setOrderStatus([]);
@@ -68,7 +62,6 @@ const ListOrder = () => {
 
   const fetchPartners = async () => {
     try {
-      // Provide explicit values for pagination parameters
       const response = await partnerApi.getAllPartners(0, 100, "id", "asc");
       setPartners(response.content);
     } catch (error) {
@@ -97,9 +90,22 @@ const ListOrder = () => {
   const filteredOrders = orders
     ? orders.filter((order) => {
         const matchStatus =
-          searchStatus === "" || order.status === searchStatus;
-        const matchType = searchType === "" || order.orderType === searchType;
-        return matchStatus && matchType;
+          searchStatus === "" || order.orderStatusId === parseInt(searchStatus);
+        const matchType =
+          searchType === "" || order.orderTypeId === parseInt(searchType);
+        const matchQuery =
+          searchQuery === "" ||
+          order.id
+            .toString()
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
+          (
+            partners.find((partner) => partner.id === order.partnerId)?.name ||
+            ""
+          )
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase());
+        return matchStatus && matchType && matchQuery;
       })
     : [];
 
@@ -204,6 +210,10 @@ const ListOrder = () => {
             Danh sách đơn hàng
           </h1>
           <div className="flex items-center space-x-4">
+            <button className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
+              <FaFileExport className="h-5 w-5 mr-2" />
+              Xuất file
+            </button>
             <button
               onClick={handleAddClick}
               className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
@@ -217,6 +227,18 @@ const ListOrder = () => {
         <div className="flex items-center space-x-4 mb-6">
           <div className="flex-1">
             <label className="block text-sm font-medium text-gray-700 mb-1">
+              Tìm kiếm
+            </label>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Nhập mã đơn hoặc tên đối tác"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+          <div className="flex-1">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               Trạng thái đơn hàng
             </label>
             <select
@@ -226,7 +248,7 @@ const ListOrder = () => {
             >
               <option value="">Tất cả</option>
               {orderStatus.map((status) => (
-                <option key={status.id} value={status.name}>
+                <option key={status.id} value={status.id}>
                   {status.name}
                 </option>
               ))}
@@ -243,7 +265,7 @@ const ListOrder = () => {
             >
               <option value="">Tất cả</option>
               {orderType.map((type) => (
-                <option key={type.id} value={type.name}>
+                <option key={type.id} value={type.id}>
                   {type.name}
                 </option>
               ))}

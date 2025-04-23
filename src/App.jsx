@@ -46,8 +46,6 @@ import DeliveryStatus from "./pages/Dashboard/categories/DeliveryStatus";
 import OrderForm from "./components/Dashboard/order/OrderForm";
 import ListInvoice from "./pages/Dashboard/bussiness/ListInvoice";
 import FormEditAccount from "./pages/Dashboard/system/FormEditAccount";
-import ErrorPopup from "./components/Dashboard/ErrorPopUp";
-import SuccessPopup from "./components/Dashboard/SuccessPopup";
 import { isUserLoggedIn } from "./api/authService";
 
 // Component để bảo vệ các route
@@ -75,8 +73,6 @@ const App = () => {
           element={<NewDetail />}
         />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/error" element={<ErrorPopup />} />
-        <Route path="/success" element={<SuccessPopup />} />
 
         {/* Protected routes */}
         <Route

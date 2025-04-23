@@ -4,7 +4,10 @@ import { partnerApi } from "@/api/partnerApi";
 import { getAllInvoiceTypes } from "@/api/invoiceTypeApi";
 import { getAllOrders, getOrderById } from "@/api/orderApi";
 import { getProductById } from "@/api/productApi";
-
+import { BsBoxSeam } from "react-icons/bs";
+import { FaUser } from "react-icons/fa";
+import { FaInfoCircle } from "react-icons/fa";
+import { FaGift } from "react-icons/fa6";
 const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
   const [formData, setFormData] = useState({
     id: "",
@@ -27,7 +30,6 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
   });
   const [orderDetails, setOrderDetails] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -58,7 +60,6 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
                 .replace(/\B(?=(\d{3})+(?!\d))/g, ".") || "",
           });
 
-          // Cập nhật thông tin đối tác
           if (invoice.partner) {
             setPartnerDetails({
               name: invoice.partner.name || "",
@@ -68,7 +69,6 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
             });
           }
 
-          // Lọc đơn hàng theo đối tác
           if (partnerId) {
             const filtered = ordersData.content.filter(
               (order) => order.partnerId === parseInt(partnerId)
@@ -89,7 +89,6 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
     fetchInitialData();
   }, [isOpen, invoice]);
 
-  // Cập nhật danh sách đơn hàng khi đối tác thay đổi
   useEffect(() => {
     if (formData.partnerId) {
       const filtered = orders.filter(
@@ -97,7 +96,6 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
       );
       setFilteredOrders(filtered);
 
-      // Reset orderId if not valid
       const orderExists = filtered.some(
         (order) => order.id === parseInt(formData.orderId)
       );
@@ -106,7 +104,6 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
         setOrderDetails([]);
       }
 
-      // Cập nhật thông tin đối tác
       const selectedPartner = partners.find(
         (p) => p.id === parseInt(formData.partnerId)
       );
@@ -130,7 +127,6 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
     }
   }, [formData.partnerId, orders, partners]);
 
-  // Cập nhật chi tiết đơn hàng khi mã đơn hàng thay đổi
   useEffect(() => {
     const fetchOrderDetails = async () => {
       const selectedOrderId = parseInt(formData.orderId, 10) || null;
@@ -179,7 +175,6 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
           );
 
           setOrderDetails(detailedItems);
-          // Sử dụng orderData.totalMoney thay vì tính lại
           setFormData((prev) => ({
             ...prev,
             totalAmount: orderData.totalMoney || 0,
@@ -222,7 +217,6 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
     const paidAmount = parseFloat(formData.paidAmount?.replace(/\./g, "")) || 0;
     const totalAmount = parseFloat(formData.totalAmount) || 0;
 
-    // Kiểm tra paidAmount hợp lệ
     if (paidAmount > totalAmount) {
       setError(
         `Số tiền thanh toán (${paidAmount.toLocaleString()} VNĐ) không được vượt quá tổng tiền đơn hàng (${totalAmount.toLocaleString()} VNĐ)`
@@ -255,285 +249,319 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
     const paidAmount = parseFloat(formData.paidAmount?.replace(/\./g, "")) || 0;
     const totalAmount = parseFloat(formData.totalAmount) || 0;
     const order = orders.find((o) => o.id === parseInt(formData.orderId));
-    const otherPaidMoney = (order?.paidMoney || 0) - (invoice.moneyAmount || 0); // Trừ tiền của hóa đơn hiện tại
+    const otherPaidMoney = (order?.paidMoney || 0) - (invoice.moneyAmount || 0);
     return Math.max(totalAmount - otherPaidMoney - paidAmount, 0);
   };
 
   const calculateTotalPaidForOrder = () => {
     const order = orders.find((o) => o.id === parseInt(formData.orderId));
-    const otherPaidMoney = (order?.paidMoney || 0) - (invoice.moneyAmount || 0); // Trừ tiền của hóa đơn hiện tại
+    const otherPaidMoney = (order?.paidMoney || 0) - (invoice.moneyAmount || 0);
     return otherPaidMoney;
   };
 
   if (!isOpen || !invoice) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-5xl transform transition-all max-h-[90vh] flex flex-col">
-        <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-blue-700">
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+      <div className="bg-gradient-to-b from-white to-gray-50 rounded-2xl shadow-2xl w-full max-w-5xl transform transition-all max-h-[90vh] flex flex-col overflow-hidden">
+        <div className="px-8 py-6 border-b border-blue-100 bg-blue-500 text-white">
           <div className="flex justify-between items-center">
             <div>
-              <h2 className="text-2xl font-bold text-white">Sửa hóa đơn</h2>
-              <p className="text-white/80 text-sm mt-1">
+              <h2 className="text-2xl font-bold">Sửa hóa đơn</h2>
+              <p className="text-blue-100 text-sm mt-1">
                 Cập nhật thông tin hóa đơn
               </p>
             </div>
             <button
               onClick={onClose}
-              className="text-white/80 hover:text-white transition-colors duration-200 focus:outline-none p-2 hover:bg-white/10 rounded-full"
+              className="hover:bg-white/20 transition-colors duration-200 focus:outline-none p-3 rounded-full"
+              aria-label="Đóng"
             >
               <FaTimes className="h-5 w-5" />
             </button>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 flex-1 overflow-y-auto">
-          {loading && <p className="text-blue-500">Đang tải dữ liệu...</p>}
-          {error && <p className="text-red-500">{error}</p>}
+        <form onSubmit={handleSubmit} className="p-8 flex-1 overflow-y-auto">
+          {loading && (
+            <div className="mb-4 py-2 px-4 bg-blue-50 text-blue-700 rounded-lg flex items-center">
+              <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                  fill="none"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                />
+              </svg>
+              Đang xử lý...
+            </div>
+          )}
 
-          <div className="grid grid-cols gap-8">
-            <div className="col-span-2 space-y-6">
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <div className="flex justify-between">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                    Thông tin chung
-                  </h3>
+          <div className="space-y-8">
+            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
+              <h3 className="text-lg font-semibold text-gray-800 mb-5 flex items-center">
+                <FaInfoCircle className="h-5 w-5 mr-2 text-blue-600" />
+                Thông tin chung
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Mã hóa đơn <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="id"
+                    value={formData.id}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
+                    readOnly
+                  />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Mã hóa đơn <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      name="id"
-                      value={formData.id}
-                      className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg bg-gray-50"
-                      readOnly
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Loại hóa đơn <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      name="invoiceTypeId"
-                      value={formData.invoiceTypeId}
-                      onChange={handleChange}
-                      className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 bg-white"
-                      required
-                    >
-                      {invoiceTypes.map((type) => (
-                        <option key={type.id} value={type.id}>
-                          {type.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Đối tác <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      name="partnerId"
-                      value={formData.partnerId}
-                      onChange={handleChange}
-                      className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 bg-white"
-                      required
-                    >
-                      <option value="">Chọn đối tác</option>
-                      {partners.map((partner) => (
-                        <option key={partner.id} value={partner.id}>
-                          {partner.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Mã đơn hàng <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      name="orderId"
-                      value={formData.orderId}
-                      onChange={handleChange}
-                      className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 bg-white"
-                      required
-                    >
-                      <option value="">Chọn mã đơn hàng</option>
-                      {filteredOrders.map((order) => (
-                        <option key={order.id} value={order.id}>
-                          {order.code || `DH${order.id}`}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Loại hóa đơn <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    name="invoiceTypeId"
+                    value={formData.invoiceTypeId}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white hover:border-blue-300"
+                    required
+                  >
+                    <option value="">Chọn loại hóa đơn</option>
+                    {invoiceTypes.map((type) => (
+                      <option key={type.id} value={type.id}>
+                        {type.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Đối tác <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    name="partnerId"
+                    value={formData.partnerId}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white hover:border-blue-300"
+                    required
+                  >
+                    <option value="">Chọn đối tác</option>
+                    {partners.map((partner) => (
+                      <option key={partner.id} value={partner.id}>
+                        {partner.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Mã đơn hàng <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    name="orderId"
+                    value={formData.orderId}
+                    onChange={handleChange}
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
+                      !formData.partnerId
+                        ? "bg-gray-100 border-gray-200 text-gray-500 cursor-not-allowed"
+                        : "bg-white border-gray-300 hover:border-blue-300"
+                    }`}
+                    required
+                    disabled={!formData.partnerId}
+                  >
+                    <option value="">Chọn mã đơn hàng</option>
+                    {filteredOrders.map((order) => (
+                      <option key={order.id} value={order.id}>
+                        {order.code || `DH${order.id}`}
+                      </option>
+                    ))}
+                  </select>
+                  {!formData.partnerId && (
+                    <p className="text-xs text-blue-600 mt-2 flex items-center">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4 mr-1"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9a1 1 0 00-1-1z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      Vui lòng chọn đối tác trước
+                    </p>
+                  )}
                 </div>
               </div>
+            </div>
 
-              <div className="border border-gray-200 p-6 rounded-xl">
-                <div className="flex items-center mb-4">
-                  <h3 className="text-lg font-semibold text-gray-800">
-                    Thông tin đối tác
-                  </h3>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+            {formData.partnerId && (
+              <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
+                <h3 className="text-lg font-semibold text-gray-800 mb-5 flex items-center">
+                  <FaUser className="h-4 w-4 text-blue-600 mr-2" />
+                  Thông tin đối tác
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                    <span className="text-sm text-gray-500 block mb-1">
                       Tên đối tác
-                    </label>
-                    <input
-                      type="text"
-                      value={partnerDetails.name}
-                      className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg bg-gray-50"
-                      readOnly
-                    />
+                    </span>
+                    <p className="font-medium text-gray-800">
+                      {partnerDetails.name || "Chưa chọn"}
+                    </p>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                    <span className="text-sm text-gray-500 block mb-1">
                       Số điện thoại
-                    </label>
-                    <input
-                      type="text"
-                      value={partnerDetails.phone}
-                      className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg bg-gray-50"
-                      readOnly
-                    />
+                    </span>
+                    <p className="font-medium text-gray-800">
+                      {partnerDetails.phone || "Chưa chọn"}
+                    </p>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                    <span className="text-sm text-gray-500 block mb-1">
                       Email
-                    </label>
-                    <input
-                      type="email"
-                      value={partnerDetails.email}
-                      className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg bg-gray-50"
-                      readOnly
-                    />
+                    </span>
+                    <p className="font-medium text-gray-800">
+                      {partnerDetails.email || "Chưa chọn"}
+                    </p>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                    <span className="text-sm text-gray-500 block mb-1">
                       Địa chỉ
-                    </label>
-                    <input
-                      type="text"
-                      value={partnerDetails.address}
-                      className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg bg-gray-50"
-                      readOnly
-                    />
+                    </span>
+                    <p className="font-medium text-gray-800">
+                      {partnerDetails.address || "Chưa chọn"}
+                    </p>
                   </div>
                 </div>
               </div>
+            )}
 
-              <div className="border border-gray-200 p-6 rounded-xl">
-                <div className="flex items-center mb-4">
-                  <h3 className="text-lg font-semibold text-gray-800">
-                    Chi tiết đơn hàng
-                  </h3>
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="bg-white">
-                        <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">
-                          Sản phẩm
-                        </th>
-                        <th className="px-4 py-3 text-right text-sm font-semibold text-gray-600">
-                          Số lượng
-                        </th>
-                        <th className="px-4 py-3 text-right text-sm font-semibold text-gray-600">
-                          Đơn giá
-                        </th>
-                        <th className="px-4 py-3 text-right text-sm font-semibold text-gray-600">
-                          Thành tiền
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {orderDetails.length > 0 ? (
-                        orderDetails.map((item, index) => (
-                          <tr key={index} className="border-t border-gray-200">
-                            <td className="px-4 py-3">{item.productName}</td>
-                            <td className="px-4 py-3 text-right">
-                              {item.quantity}
-                            </td>
-                            <td className="px-4 py-3 text-right">
-                              {item.unitPrice?.toLocaleString()} VNĐ
-                            </td>
-                            <td className="px-4 py-3 text-right font-medium">
-                              {item.total?.toLocaleString()} VNĐ
-                            </td>
-                          </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td
-                            colSpan="4"
-                            className="px-4 py-3 text-center text-gray-500"
-                          >
-                            Chưa có chi tiết đơn hàng cho mã đơn hàng đã chọn
+            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
+              <h3 className="text-lg font-semibold text-gray-800 mb-5 flex items-center">
+                <FaGift className="h-4 w-4 text-blue-600 mr-2" />
+                Chi tiết đơn hàng
+              </h3>
+              <div className="overflow-x-auto bg-gray-50 rounded-xl border border-gray-200">
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700">
+                      <th className="px-6 py-4 text-left text-sm font-semibold">
+                        Sản phẩm
+                      </th>
+                      <th className="px-6 py-4 text-right text-sm font-semibold">
+                        Số lượng
+                      </th>
+                      <th className="px-6 py-4 text-right text-sm font-semibold">
+                        Đơn giá
+                      </th>
+                      <th className="px-6 py-4 text-right text-sm font-semibold">
+                        Thành tiền
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {orderDetails.length > 0 ? (
+                      orderDetails.map((item, index) => (
+                        <tr
+                          key={index}
+                          className={`border-t border-gray-200 ${
+                            index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                          }`}
+                        >
+                          <td className="px-6 py-4">{item.productName}</td>
+                          <td className="px-6 py-4 text-right">
+                            {item.quantity}
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            {item.unitPrice?.toLocaleString()} VNĐ
+                          </td>
+                          <td className="px-6 py-4 text-right font-medium">
+                            {item.total?.toLocaleString()} VNĐ
                           </td>
                         </tr>
-                      )}
-                    </tbody>
-                    <tfoot>
-                      <tr className="bg-white border-t-2 border-gray-200">
+                      ))
+                    ) : (
+                      <tr>
                         <td
-                          colSpan="3"
-                          className="px-3 py-3 text-right font-semibold text-gray-800"
+                          colSpan="4"
+                          className="px-6 py-12 text-center text-gray-500"
                         >
-                          Tổng cộng:
-                        </td>
-                        <td className="px-3 py-3 text-right font-bold text-blue-600 text-lg">
-                          {parseFloat(
-                            formData.totalAmount || 0
-                          ).toLocaleString()}{" "}
-                          VNĐ
+                          <div className="flex flex-col items-center">
+                            <BsBoxSeam className="h-12 w-12 text-gray-400 mb-3" />
+                            Chưa có chi tiết đơn hàng
+                          </div>
                         </td>
                       </tr>
-                      <tr className="bg-white">
-                        <td
-                          colSpan="3"
-                          className="px-3 py-3 text-right font-semibold text-gray-800"
-                        >
-                          Tổng tiền đã thanh toán (khác):
-                        </td>
-                        <td className="px-3 py-3 text-right font-bold text-gray-600 text-lg">
-                          {calculateTotalPaidForOrder().toLocaleString()} VNĐ
-                        </td>
-                      </tr>
-                      <tr className="bg-white">
-                        <td
-                          colSpan="3"
-                          className="px-3 py-3 text-right font-semibold text-gray-800"
-                        >
-                          Số tiền thanh toán (hóa đơn này):
-                        </td>
-                        <td className="px-3 py-3 text-right font-bold">
-                          <input
-                            type="text"
-                            name="paidAmount"
-                            value={formData.paidAmount}
-                            onChange={handleChange}
-                            className="w-full px-2 py-1 border border-gray-200 rounded-lg text-right bg-white"
-                            placeholder="Nhập số tiền thanh toán"
-                          />
-                        </td>
-                      </tr>
-                      <tr className="bg-white">
-                        <td
-                          colSpan="3"
-                          className="px-3 py-3 text-right font-semibold text-gray-800"
-                        >
-                          Số tiền còn lại:
-                        </td>
-                        <td className="px-3 py-3 text-right font-bold text-green-600 text-lg">
-                          {calculateRemainingAmount().toLocaleString()} VNĐ
-                        </td>
-                      </tr>
-                    </tfoot>
-                  </table>
-                </div>
+                    )}
+                  </tbody>
+                  <tfoot>
+                    <tr className="bg-blue-50 border-t-2 border-blue-100">
+                      <td
+                        colSpan="3"
+                        className="px-6 pt-6 text-right font-semibold text-gray-800"
+                      >
+                        Tổng cộng:
+                      </td>
+                      <td className="px-6 pt-6 text-right font-bold text-blue-700 text-lg">
+                        {parseFloat(formData.totalAmount || 0).toLocaleString()}{" "}
+                        VNĐ
+                      </td>
+                    </tr>
+                    <tr className="bg-blue-50">
+                      <td
+                        colSpan="3"
+                        className="px-6 py-2 text-right font-semibold text-gray-800"
+                      >
+                        Tổng tiền đã thanh toán (khác):
+                      </td>
+                      <td className="px-6 py-2 text-right font-bold text-gray-600 text-lg">
+                        {calculateTotalPaidForOrder().toLocaleString()} VNĐ
+                      </td>
+                    </tr>
+                    <tr className="bg-blue-50">
+                      <td
+                        colSpan="3"
+                        className="px-6 py-2 text-right font-semibold text-gray-800"
+                      >
+                        Số tiền thanh toán (hóa đơn này):
+                      </td>
+                      <td className="px-6 py-2 text-right font-bold">
+                        <input
+                          type="text"
+                          name="paidAmount"
+                          value={formData.paidAmount}
+                          onChange={handleChange}
+                          className="w-full p-2 border border-gray-200 rounded-lg text-black text-right bg-white"
+                          placeholder="Nhập số tiền trả (VNĐ)"
+                        />
+                      </td>
+                    </tr>
+                    <tr className="bg-blue-50">
+                      <td
+                        colSpan="3"
+                        className="px-6 py-2 text-right font-semibold text-gray-800"
+                      >
+                        Số tiền còn lại:
+                      </td>
+                      <td className="px-6 py-2 text-right font-bold text-green-600 text-lg">
+                        {calculateRemainingAmount().toLocaleString()} VNĐ
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
               </div>
             </div>
           </div>
@@ -552,8 +580,9 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
               type="submit"
               onClick={handleSubmit}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 shadow-md hover:shadow-lg"
+              disabled={loading}
             >
-              Lưu thay đổi
+              {loading ? "Đang xử lý..." : "Lưu thay đổi"}
             </button>
           </div>
         </div>

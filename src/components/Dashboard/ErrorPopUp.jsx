@@ -2,17 +2,16 @@ import React from "react";
 import { FaTimes, FaExclamationTriangle } from "react-icons/fa";
 
 const ErrorPopup = ({ onClose, errorMessage }) => {
-  // Bỏ điều kiện kiểm tra isOpen để modal luôn hiển thị
   const message =
     errorMessage ||
     "Tên đăng nhập hoặc mật khẩu không chính xác. Vui lòng thử lại.";
 
   return (
     <div
-      className="fixed inset-0 bg-black/20 flex items-center justify-center z-[1000]"
+      className="fixed inset-0 bg-black/20 flex items-center justify-center z-[1000] animate-fadeIn"
       style={{ backdropFilter: "blur(2px)" }}
     >
-      <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
+      <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl transform transition-all animate-slideIn">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold text-red-600 flex items-center">
             <FaExclamationTriangle className="mr-2" />
@@ -46,7 +45,6 @@ const ErrorPopup = ({ onClose, errorMessage }) => {
           <div className="flex justify-end space-x-3 mt-4">
             <button
               onClick={() => {
-                // Có thể thêm hành động chuyển đến trang quên mật khẩu ở đây
                 onClose();
               }}
               className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition-colors"
