@@ -68,10 +68,7 @@ const App = () => {
         <Route path="/service" element={<Service />} />
         <Route path="/products" element={<Products />} />
         <Route path="/news" element={<News />} />
-        <Route
-          path="/news/food-logistics-optimization"
-          element={<NewDetail />}
-        />
+        <Route path="/news/:slug" element={<NewDetail />} />
         <Route path="/login" element={<LoginPage />} />
 
         {/* Protected routes */}
