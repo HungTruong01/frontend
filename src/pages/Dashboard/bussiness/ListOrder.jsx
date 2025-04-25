@@ -12,6 +12,7 @@ import { getAllOrders, getOrderById } from "@/api/orderApi";
 import { getAllOrderTypes } from "@/api/orderTypeApi";
 import { getAllOrderStatus } from "@/api/orderStatusApi";
 import { partnerApi } from "@/api/partnerApi";
+import { exportExcel } from "@/utils/exportExcel";
 
 const ListOrder = () => {
   const navigate = useNavigate();
@@ -125,6 +126,19 @@ const ListOrder = () => {
     return `${day}/${month}/${year}`;
   };
 
+  const handleExportExcel = () => {
+    const exportData = filteredOrders.map((order) => ({
+      STT: order.id,
+      "Ngày tạo": formatDate(order.createdAt),
+      "Đối tác": getPartnerName(order.partnerId),
+      "Loại đơn": getOrderTypeName(order.orderTypeId),
+      "Tổng tiền": formatCurrency(order.totalMoney),
+      "Đã trả": formatCurrency(order.paidMoney),
+      "Trạng thái": getOrderStatusName(order.orderStatusId),
+    }));
+    exportExcel(exportData, "Danh sách đơn hàng", "Đơn hàng");
+  };
+
   const getOrderTypeName = (orderTypeId) => {
     const type = orderType.find((type) => type.id === orderTypeId);
     return type ? type.name : "Unknown";
@@ -210,7 +224,10 @@ const ListOrder = () => {
             Danh sách đơn hàng
           </h1>
           <div className="flex items-center space-x-4">
-            <button className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
+            <button
+              onClick={handleExportExcel}
+              className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+            >
               <FaFileExport className="h-5 w-5 mr-2" />
               Xuất file
             </button>
