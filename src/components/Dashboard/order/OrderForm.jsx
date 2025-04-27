@@ -301,39 +301,41 @@ const OrderForm = ({ mode = "add" }) => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {orderItems.map((item) => (
-                      <tr key={item.id}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {item.product}
-                        </td>
-                        <td className="px-6 py-4">
-                          <input
-                            type="number"
-                            value={item.quantity}
-                            onChange={(e) =>
-                              handleQuantityChange(item.id, e.target.value)
-                            }
-                            min="1"
-                            className="w-20 px-2 py-1 border border-gray-300 rounded-md"
-                          />
-                        </td>
-                        <td className="px-6 py-4 text-blue-600 text-sm">
-                          {item.price.toLocaleString()}
-                        </td>
-                        <td className="px-6 py-4 text-blue-600 text-sm">
-                          {(item.price * item.quantity).toLocaleString()}
-                        </td>
-                        <td className="px-6 py-4 text-right">
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveItem(item.id)}
-                            className="text-red-500 hover:text-red-700"
-                          >
-                            <FaTrash />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
+                    {orderItems.map((item) => {
+                      return (
+                        <tr key={item.id}>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {item.product}
+                          </td>
+                          <td className="px-6 py-4">
+                            <input
+                              type="number"
+                              value={item.quantity}
+                              onChange={(e) =>
+                                handleQuantityChange(item.id, e.target.value)
+                              }
+                              min="1"
+                              className="w-20 px-2 py-1 border border-gray-300 rounded-md"
+                            />
+                          </td>
+                          <td className="px-6 py-4 text-blue-600 text-sm">
+                            {item?.price?.toLocaleString()}
+                          </td>
+                          <td className="px-6 py-4 text-blue-600 text-sm">
+                            {(item.price * item.quantity).toLocaleString()}
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveItem(item.id)}
+                              className="text-red-500 hover:text-red-700"
+                            >
+                              <FaTrash />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
