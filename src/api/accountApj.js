@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_REST_API_URL = "http://localhost:8080/api/users";
+const BASE_REST_API_URL = "http://localhost:3000/api/users";
 
 axios.defaults.withCredentials = true;
 
@@ -25,7 +25,7 @@ export const getAccountById = async (id) => {
 export const createAccount = async (accountData) => {
   try {
     const response = await axios.post(
-      "http://localhost:8080/api/auth/register",
+      "http://localhost:3000/api/auth/register",
       accountData
     );
     return response.data;

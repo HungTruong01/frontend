@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_API_URL = "http://localhost:8080/api/products";
+const BASE_API_URL = "http://localhost:3000/api/products";
 
 axios.defaults.withCredentials = true;
 

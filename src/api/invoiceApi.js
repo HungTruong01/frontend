@@ -2,10 +2,10 @@ import axios from "axios";
 import { getOrderById } from "./orderApi";
 import { partnerApi } from "./partnerApi";
 import { getProductById } from "./productApi";
-const BASE_REST_API_URL = "http://localhost:8080/api/invoices";
+const BASE_REST_API_URL = "http://localhost:3000/api/invoices";
 
 const axiosInstance = axios.create({
-  baseURL: "http://localhost:8080/api",
+  baseURL: "http://localhost:3000/api",
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",

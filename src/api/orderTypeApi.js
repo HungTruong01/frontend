@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_REST_API_URL = "http://localhost:8080/api/order-types";
+const BASE_REST_API_URL = "http://localhost:3000/api/order-types";
 
 axios.defaults.withCredentials = true;
 

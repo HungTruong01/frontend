@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const BASE_REST_API_URL =
-  "http://localhost:8080/api/warehouse-transaction-types";
+  "http://localhost:3000/api/warehouse-transaction-types";
 
 axios.defaults.withCredentials = true;
 

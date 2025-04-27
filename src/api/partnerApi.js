@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:8080/api";
+const API_URL = "http://localhost:3000/api";
 const axiosInstance = axios.create({
   baseURL: API_URL,
   timeout: 10000, // Timeout sau 10 giây

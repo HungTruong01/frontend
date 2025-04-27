@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_REST_API_URL = "http://localhost:8080/api/invoice-types";
+const BASE_REST_API_URL = "http://localhost:3000/api/invoice-types";
 
 axios.defaults.withCredentials = true;
 
