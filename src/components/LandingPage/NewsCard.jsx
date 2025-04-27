@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 const NewsCard = ({ id, title, date, image, excerpt, link }) => {
   return (
@@ -6,7 +7,7 @@ const NewsCard = ({ id, title, date, image, excerpt, link }) => {
       key={id}
       className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 max-w-xs h-[380px] relative"
     >
-      <a href={link} target="_blank" rel="noopener noreferrer">
+      <Link to={link} className="block h-full">
         {/* Hình ảnh */}
         <div className="h-36 overflow-hidden">
           <img
@@ -39,7 +40,7 @@ const NewsCard = ({ id, title, date, image, excerpt, link }) => {
         <p className="absolute bottom-4 left-6 text-blue-600 font-semibold text-sm">
           Đọc thêm →
         </p>
-      </a>
+      </Link>
     </div>
   );
 };

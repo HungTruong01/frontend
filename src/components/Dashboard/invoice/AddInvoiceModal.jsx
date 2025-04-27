@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { FaTimes } from "react-icons/fa";
 import { partnerApi } from "@/api/partnerApi";
 import { getAllInvoiceTypes } from "@/api/invoiceTypeApi";
 import { getProductById } from "@/api/productApi";
 import { createInvoice } from "@/api/invoiceApi";
 import { getOrdersByPartnerId, getOrderById } from "@/api/orderApi";
 import { BsBoxSeam } from "react-icons/bs";
-import { FaUser } from "react-icons/fa";
-import { FaInfoCircle } from "react-icons/fa";
+import { FaUser, FaTimes, FaInfoCircle } from "react-icons/fa";
 import { FaGift } from "react-icons/fa6";
 const AddInvoiceModal = ({
   isOpen,

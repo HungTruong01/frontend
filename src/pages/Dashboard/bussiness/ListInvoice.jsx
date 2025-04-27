@@ -19,7 +19,6 @@ import {
   getAllInvoices,
 } from "@/api/invoiceApi";
 import { getAllInvoiceTypes } from "@/api/invoiceTypeApi";
-import jsPDF from "jspdf";
 import "jspdf-autotable";
 import { toast } from "react-toastify";
 
