@@ -1,4 +1,9 @@
-import { analyzeWithCondition } from "@/api/orderApi";
+import {
+  analyzeWithCondition,
+  analyzeWithConditionQuality,
+  analyzeWithConditionYear,
+} from "@/api/orderApi";
+import { exportExcel } from "@/utils/exportExcel";
 import React, { useEffect, useState } from "react";
 import { FaDownload, FaFilter } from "react-icons/fa";
 
@@ -13,17 +18,14 @@ const RevenueReport = () => {
     monthly: {
       labels: ["Tháng 1", "Tháng 2", "Tháng 3"],
       revenue: [5000000, 6000000, 5500000],
-      profit: [1500000, 1800000, 1650000],
     },
     quarterly: {
       labels: ["Q1", "Q2", "Q3"],
       revenue: [16500000, 18000000, 17000000],
-      profit: [4950000, 5400000, 5100000],
     },
     yearly: {
       labels: ["2023", "2024", "2025"],
       revenue: [60000000, 65000000, 70000000],
-      profit: [18000000, 19500000, 21000000],
     },
   };
 
@@ -32,31 +34,58 @@ const RevenueReport = () => {
     (sum, val) => sum + val,
     0
   );
-  const totalProfit = sampleData[filter].profit.reduce(
-    (sum, val) => sum + val,
-    0
-  );
-  const profitMargin = ((totalProfit / totalRevenue) * 100).toFixed(2);
+  // const totalProfit = sampleData[filter].profit.reduce(
+  //   (sum, val) => sum + val,
+  //   0
+  // );
+  // const profitMargin = ((totalProfit / totalRevenue) * 100).toFixed(2);
 
   useEffect(() => {
     const getData = async () => {
       setReportData([]);
       setSevenueData(0);
-      const data = await analyzeWithCondition(timeRange);
+      let data;
+      if (filter === "monthly") {
+        data = await analyzeWithCondition(timeRange);
+      } else if (filter === "quarterly") {
+        data = await analyzeWithConditionQuality(timeRange);
+      } else if (filter === "yearly") {
+        data = await analyzeWithConditionYear();
+      }
+
       const revenueData = data?.content
-        .map((item) => item.revenue)
+        .map((item) => +item.revenue)
         ?.reduce((sum, val) => sum + val, 0);
       setSevenueData(revenueData);
       setReportData(data?.content);
     };
     getData();
-  }, [timeRange]);
+  }, [timeRange, filter]);
 
   // Hàm xử lý tải xuống báo cáo
   const handleDownload = () => {
     alert(
       "Tải xuống báo cáo dưới dạng PDF hoặc Excel (chưa triển khai thực tế)."
     );
+  };
+
+  const handleExportExcel = () => {
+    const exportData = reportData.map((order) => ({
+      Tháng: order.month,
+      "Doanh thu": +order.revenue.toLocaleString(),
+    }));
+
+    const totalRevenue = reportData.reduce(
+      (sum, order) => sum + +order.revenue,
+      0
+    );
+
+    exportData.push({
+      Tháng: "Tổng",
+      "Doanh thu": totalRevenue.toLocaleString(),
+    });
+
+    exportExcel(exportData, "Doanh thu theo tháng", "Doanh thu");
   };
 
   return (
@@ -92,7 +121,7 @@ const RevenueReport = () => {
             </div>
             {/* Nút tải xuống */}
             <button
-              onClick={handleDownload}
+              onClick={handleExportExcel}
               className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
             >
               <FaDownload className="mr-2" />
@@ -121,9 +150,7 @@ const RevenueReport = () => {
             <h3 className="text-sm font-medium text-gray-600">
               Tỷ lệ lợi nhuận
             </h3>
-            <p className="text-2xl font-semibold text-purple-600">
-              {profitMargin}%
-            </p>
+            <p className="text-2xl font-semibold text-purple-600">{0}%</p>
           </div>
         </div>
 
@@ -154,10 +181,10 @@ const RevenueReport = () => {
                 >
                   {/* <td className="py-3 px-4 text-sm text-gray-600">{label}</td> */}
                   <td className="py-3 px-4 text-sm text-gray-600 text-right">
-                    {item?.month.toLocaleString()}
+                    {item?.year || item?.month}
                   </td>
                   <td className="py-3 px-4 text-sm text-gray-600 text-right">
-                    {item?.revenue.toLocaleString()}
+                    {+item?.revenue?.toLocaleString()}
                   </td>
                   <td className="py-3 px-4 text-sm text-gray-600 text-right">
                     {/* {(

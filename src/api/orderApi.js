@@ -78,3 +78,23 @@ export const analyzeWithCondition = async (year) => {
     throw error;
   }
 };
+export const analyzeWithConditionQuality = async (year) => {
+  try {
+    const response = await axios.get(`${BASE_REST_API_URL}/quarterly-revenue`, {
+      params: { year },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Xảy ra lỗi:", error);
+    throw error;
+  }
+};
+export const analyzeWithConditionYear = async (year) => {
+  try {
+    const response = await axios.get(`${BASE_REST_API_URL}/year-revenue`);
+    return response.data;
+  } catch (error) {
+    console.error("Xảy ra lỗi:", error);
+    throw error;
+  }
+};
