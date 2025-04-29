@@ -1,9 +1,12 @@
-import React, { useState } from "react";
+import { analyzeWithCondition } from "@/api/orderApi";
+import React, { useEffect, useState } from "react";
 import { FaDownload, FaFilter } from "react-icons/fa";
 
 const RevenueReport = () => {
-  const [filter, setFilter] = useState("monthly"); // Bộ lọc: hàng tháng, hàng quý, hàng năm
-  const [timeRange, setTimeRange] = useState("2025"); // Phạm vi thời gian
+  const [filter, setFilter] = useState("monthly");
+  const [timeRange, setTimeRange] = useState("2025");
+  const [reportData, setReportData] = useState([]);
+  const [revenueData, setSevenueData] = useState(0);
 
   // Dữ liệu mẫu (có thể thay bằng dữ liệu thực từ API)
   const sampleData = {
@@ -34,6 +37,20 @@ const RevenueReport = () => {
     0
   );
   const profitMargin = ((totalProfit / totalRevenue) * 100).toFixed(2);
+
+  useEffect(() => {
+    const getData = async () => {
+      setReportData([]);
+      setSevenueData(0);
+      const data = await analyzeWithCondition(timeRange);
+      const revenueData = data?.content
+        .map((item) => item.revenue)
+        ?.reduce((sum, val) => sum + val, 0);
+      setSevenueData(revenueData);
+      setReportData(data?.content);
+    };
+    getData();
+  }, [timeRange]);
 
   // Hàm xử lý tải xuống báo cáo
   const handleDownload = () => {
@@ -91,16 +108,14 @@ const RevenueReport = () => {
               Tổng doanh thu
             </h3>
             <p className="text-2xl font-semibold text-green-600">
-              {totalRevenue.toLocaleString()} VND
+              {revenueData.toLocaleString()} VND
             </p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow-md">
             <h3 className="text-sm font-medium text-gray-600">
               Tổng lợi nhuận
             </h3>
-            <p className="text-2xl font-semibold text-blue-600">
-              {totalProfit.toLocaleString()} VND
-            </p>
+            <p className="text-2xl font-semibold text-blue-600">{0} VND</p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow-md">
             <h3 className="text-sm font-medium text-gray-600">
@@ -132,6 +147,30 @@ const RevenueReport = () => {
               </tr>
             </thead>
             <tbody>
+              {reportData?.reverse()?.map((item, index) => (
+                <tr
+                  key={index}
+                  className="border-b border-gray-100 hover:bg-gray-50"
+                >
+                  {/* <td className="py-3 px-4 text-sm text-gray-600">{label}</td> */}
+                  <td className="py-3 px-4 text-sm text-gray-600 text-right">
+                    {item?.month.toLocaleString()}
+                  </td>
+                  <td className="py-3 px-4 text-sm text-gray-600 text-right">
+                    {item?.revenue.toLocaleString()}
+                  </td>
+                  <td className="py-3 px-4 text-sm text-gray-600 text-right">
+                    {/* {(
+                      (sampleData[filter].profit[index] /
+                        sampleData[filter].revenue[index]) *
+                      100
+                    ).toFixed(2)}
+                    % */}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+            {/* <tbody>
               {sampleData[filter].labels.map((label, index) => (
                 <tr
                   key={index}
@@ -154,7 +193,7 @@ const RevenueReport = () => {
                   </td>
                 </tr>
               ))}
-            </tbody>
+            </tbody> */}
           </table>
         </div>
       </div>

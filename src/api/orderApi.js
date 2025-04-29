@@ -66,3 +66,15 @@ export const deleteOrder = async (orderId) => {
     throw error;
   }
 };
+
+export const analyzeWithCondition = async (year) => {
+  try {
+    const response = await axios.get(`${BASE_REST_API_URL}/monthly-revenue`, {
+      params: { year },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Xảy ra lỗi:", error);
+    throw error;
+  }
+};
