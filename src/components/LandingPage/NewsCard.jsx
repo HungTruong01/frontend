@@ -2,6 +2,8 @@ import React from "react";
 import { Link } from "react-router-dom";
 
 const NewsCard = ({ id, title, date, image, excerpt, link }) => {
+  
+
   return (
     <div
       key={id}
@@ -30,7 +32,7 @@ const NewsCard = ({ id, title, date, image, excerpt, link }) => {
 
           {/* Mô tả trong một div và cắt nội dung khi dài */}
           <div className="overflow-hidden">
-            <p className="text-gray-600 mb-6 text-ellipsis line-clamp-3">
+            <p className="text-justify text-gray-600 mb-6 text-ellipsis line-clamp-3">
               {excerpt}
             </p>
           </div>

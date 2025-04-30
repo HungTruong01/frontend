@@ -11,8 +11,8 @@ const ProductCard = ({ id, name, description, imageUrl, category }) => {
 
       {/* Nội dung sản phẩm */}
       <div className="px-6 py-4 pb-16">
-        <h3 className="font-bold text-lg mb-1">{name}</h3>
-        <p className="text-gray-600 text-sm">{description}</p>
+        <h3 className="font-bold text-lg mb-1 line-clamp-2">{name}</h3>
+        <p className="text-justify text-gray-600 text-sm line-clamp-3">{description}</p>
       </div>
 
       {/* Category */}

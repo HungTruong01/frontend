@@ -1,77 +1,62 @@
-import React, { useState } from "react";
-import newsbanner from "../../assets/newsbanner.png";
-import newsbanner2 from "../../assets/newsbanner2.png";
-import newsbanner3 from "../../assets/newsbanner3.png";
+import React, { useState, useEffect } from "react";
 import NewsCard from "./NewsCard";
 import Pagination from "./Pagination";
 import RecentPosts from "./RecentPosts";
-
-const newsItems = [
-  {
-    id: 1,
-    title: "Bí quyết tối ưu chi phí vận tải thực phẩm",
-    date: "23/02/2025",
-    image: newsbanner,
-    excerpt: "Chi phí vận chuyển luôn là bài toán lớn...",
-    link: "/news/food-logistics-optimization",
-  },
-  {
-    id: 2,
-    title: "Xu hướng nhập khẩu thực phẩm năm 2025",
-    date: "23/02/2025",
-    image: newsbanner2,
-    excerpt: "Ngành thực phẩm nhập khẩu đang có...",
-    link: "/news/food-import-trends",
-  },
-  {
-    id: 3,
-    title: "Quy định kiểm định thực phẩm nhập khẩu",
-    date: "23/02/2025",
-    image: newsbanner3,
-    excerpt: "Chính sách kiểm định thực phẩm ngày càng siết chặt...",
-    link: "/news/food-inspection-policy",
-  },
-  {
-    id: 4,
-    title: "Tối ưu chi phí vận tải thực phẩm",
-    date: "23/02/2025",
-    image: newsbanner,
-    excerpt: "Làm thế nào để tối ưu chi phí mà vẫn đảm bảo chất lượng...",
-    link: "/news/food-logistics-optimization",
-  },
-  {
-    id: 5,
-    title: "Xu hướng nhập khẩu thực phẩm",
-    date: "23/02/2025",
-    image: newsbanner2,
-    excerpt:
-      "Phân tích những mặt hàng tiềm năng và quy trình bảo quản Phân tích những mặt hàng tiềm năng và quy trình bảo quản Phân tích những mặt hàng tiềm năng và quy trình bảo quản Phân tích những mặt hàng tiềm năng và quy trình bảo quản",
-    link: "/news/food-import-trends",
-  },
-];
+import { getAllPosts } from "@/api/postApi";
 
 const NewsPage = () => {
+  const [posts, setPosts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 9;
+  const itemsPerPage = 8;
+  const [totalPages, setTotalPages] = useState(1);
 
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = newsItems.slice(indexOfFirstItem, indexOfLastItem);
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const response = await getAllPosts(
+          currentPage - 1,
+          itemsPerPage,
+          "postedAt",
+          "desc"
+        );
+
+        const mappedPosts = response.data.content.map((post) => ({
+          id: post.id,
+          title: post.title,
+          excerpt:
+            post.content
+              .replace(/<[^>]+>/g, "")
+              .slice(0, 100)
+              .trim() + "...",
+          date: new Date(post.postedAt).toLocaleDateString("vi-VN"),
+          image: post.thumbnail, // Dùng trực tiếp URL thumbnail
+          link: `/news/${post.id}`,
+        }));
+
+        setPosts(mappedPosts);
+        setTotalPages(response.data.totalPages);
+      } catch (error) {
+        console.error("Failed to fetch posts:", error);
+      }
+    };
+
+    fetchPosts();
+  }, [currentPage]);
 
   return (
     <div className="w-full min-h-[80vh] bg-white flex flex-col items-center">
-      <div className="max-w-6xl px-6 py-6 w-full">
+      <div className="max-w-7xl px-6 py-6 w-full">
         {/* Tiêu đề trang tin tức */}
         <h2 className="font-semibold text-3xl mb-3 text-left md:text-center">
           Tin tức
         </h2>
-        <p className="text-gray-600 mb-5 text-left md:text-center">
+        <p className="text-gray-600 mb-10 text-left md:text-center">
           Thông tin xuất nhập khẩu, khuyến mãi và ưu đãi
         </p>
 
         {/* Danh sách tin tức */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
-          {currentItems.map((item) => (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          {posts.map((item) => (
             <NewsCard key={item.id} {...item} />
           ))}
         </div>
@@ -81,7 +66,7 @@ const NewsPage = () => {
           <Pagination
             currentPage={currentPage}
             setCurrentPage={setCurrentPage}
-            totalPages={Math.ceil(newsItems.length / itemsPerPage)}
+            totalPages={totalPages}
           />
         </div>
 
