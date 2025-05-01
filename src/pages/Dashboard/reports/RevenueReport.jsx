@@ -62,16 +62,9 @@ const RevenueReport = () => {
     getData();
   }, [timeRange, filter]);
 
-  // Hàm xử lý tải xuống báo cáo
-  const handleDownload = () => {
-    alert(
-      "Tải xuống báo cáo dưới dạng PDF hoặc Excel (chưa triển khai thực tế)."
-    );
-  };
-
   const handleExportExcel = () => {
     const exportData = reportData.map((order) => ({
-      Tháng: order.month,
+      Label: order.label,
       "Doanh thu": +order.revenue.toLocaleString(),
     }));
 
@@ -81,7 +74,7 @@ const RevenueReport = () => {
     );
 
     exportData.push({
-      Tháng: "Tổng",
+      Label: "Tổng",
       "Doanh thu": totalRevenue.toLocaleString(),
     });
 
@@ -181,7 +174,7 @@ const RevenueReport = () => {
                 >
                   {/* <td className="py-3 px-4 text-sm text-gray-600">{label}</td> */}
                   <td className="py-3 px-4 text-sm text-gray-600 text-right">
-                    {item?.year || item?.month}
+                    {item?.label}
                   </td>
                   <td className="py-3 px-4 text-sm text-gray-600 text-right">
                     {+item?.revenue?.toLocaleString()}
@@ -197,30 +190,6 @@ const RevenueReport = () => {
                 </tr>
               ))}
             </tbody>
-            {/* <tbody>
-              {sampleData[filter].labels.map((label, index) => (
-                <tr
-                  key={index}
-                  className="border-b border-gray-100 hover:bg-gray-50"
-                >
-                  <td className="py-3 px-4 text-sm text-gray-600">{label}</td>
-                  <td className="py-3 px-4 text-sm text-gray-600 text-right">
-                    {sampleData[filter].revenue[index].toLocaleString()}
-                  </td>
-                  <td className="py-3 px-4 text-sm text-gray-600 text-right">
-                    {sampleData[filter].profit[index].toLocaleString()}
-                  </td>
-                  <td className="py-3 px-4 text-sm text-gray-600 text-right">
-                    {(
-                      (sampleData[filter].profit[index] /
-                        sampleData[filter].revenue[index]) *
-                      100
-                    ).toFixed(2)}
-                    %
-                  </td>
-                </tr>
-              ))}
-            </tbody> */}
           </table>
         </div>
       </div>
