@@ -17,9 +17,13 @@ const OrderForm = ({ mode = "add" }) => {
   const navigate = useNavigate();
   const { id } = useParams();
   const [orderItems, setOrderItems] = useState([]);
+
+  console.log(orderItems);
+
   const [partners, setPartners] = useState([]);
   const [orderTypes, setOrderTypes] = useState([]);
   const [products, setProducts] = useState([]);
+
   const [selectedPartner, setSelectedPartner] = useState("");
   const [selectedOrderType, setSelectedOrderType] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
@@ -81,6 +85,8 @@ const OrderForm = ({ mode = "add" }) => {
 
   const calculateTotal = () =>
     orderItems.reduce((sum, i) => sum + i.quantity * i.price, 0);
+  const calculateTotalProfit = () =>
+    orderItems.reduce((sum, i) => sum + i.profit, 0);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -89,6 +95,9 @@ const OrderForm = ({ mode = "add" }) => {
       return;
     }
     const totalMoney = calculateTotal();
+    const totalProfit = calculateTotalProfit();
+
+    console.log(totalProfit);
 
     try {
       if (isEdit) {
@@ -110,12 +119,14 @@ const OrderForm = ({ mode = "add" }) => {
           orderStatusId: selectedStatus,
           totalMoney,
           paidMoney: currentPaidMoney,
+          profitMoney: totalProfit,
         });
         toast.success("Đã cập nhật đơn hàng");
       } else {
         const res = await createOrder({
           partnerId: selectedPartner,
           orderTypeId: selectedOrderType,
+          profitMoney: totalProfit,
           totalMoney,
         });
         await createOrderDetails(
@@ -157,6 +168,9 @@ const OrderForm = ({ mode = "add" }) => {
         product: product.name,
         quantity: 1,
         price: product.price,
+        profit: product.exportPrice - product.importPrice,
+        exportPrice: product.exportPrice,
+        importPrice: product.importPrice,
       },
     ]);
     setIsProductModalOpen(false);
@@ -171,7 +185,13 @@ const OrderForm = ({ mode = "add" }) => {
     if (!isNaN(quantity) && quantity > 0) {
       setOrderItems(
         orderItems.map((item) =>
-          item.id === id ? { ...item, quantity } : item
+          item.id === id
+            ? {
+                ...item,
+                quantity,
+                profit: (item.exportPrice - item.importPrice) * quantity,
+              }
+            : item
         )
       );
     }

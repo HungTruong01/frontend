@@ -12,6 +12,7 @@ const RevenueReport = () => {
   const [timeRange, setTimeRange] = useState("2025");
   const [reportData, setReportData] = useState([]);
   const [revenueData, setSevenueData] = useState(0);
+  const [profitData, setProfitData] = useState(0);
 
   // Dữ liệu mẫu (có thể thay bằng dữ liệu thực từ API)
   const sampleData = {
@@ -31,6 +32,10 @@ const RevenueReport = () => {
 
   // Tổng doanh thu và lợi nhuận
   const totalRevenue = sampleData[filter].revenue.reduce(
+    (sum, val) => sum + val,
+    0
+  );
+  const totalProfit = sampleData[filter].revenue.reduce(
     (sum, val) => sum + val,
     0
   );
@@ -56,6 +61,10 @@ const RevenueReport = () => {
       const revenueData = data?.content
         .map((item) => +item.revenue)
         ?.reduce((sum, val) => sum + val, 0);
+      const profitData = data?.content
+        .map((item) => +item.profit)
+        ?.reduce((sum, val) => sum + val, 0);
+      setProfitData(profitData);
       setSevenueData(revenueData);
       setReportData(data?.content);
     };
@@ -137,13 +146,17 @@ const RevenueReport = () => {
             <h3 className="text-sm font-medium text-gray-600">
               Tổng lợi nhuận
             </h3>
-            <p className="text-2xl font-semibold text-blue-600">{0} VND</p>
+            <p className="text-2xl font-semibold text-blue-600">
+              {profitData} VND
+            </p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow-md">
             <h3 className="text-sm font-medium text-gray-600">
               Tỷ lệ lợi nhuận
             </h3>
-            <p className="text-2xl font-semibold text-purple-600">{0}%</p>
+            <p className="text-2xl font-semibold text-purple-600">
+              {((profitData / revenueData) * 100).toFixed(2)}%
+            </p>
           </div>
         </div>
 
@@ -179,12 +192,10 @@ const RevenueReport = () => {
                     {Number.parseInt(item?.revenue).toLocaleString()}
                   </td>
                   <td className="py-3 px-4 text-sm text-gray-600 text-right">
-                    {/* {(
-                      (sampleData[filter].profit[index] /
-                        sampleData[filter].revenue[index]) *
-                      100
-                    ).toFixed(2)}
-                    % */}
+                    {Number.parseInt(item?.profit).toLocaleString()}
+                  </td>
+                  <td className="py-3 px-4 text-sm text-gray-600 text-right">
+                    {((item.profit / item?.revenue) * 100).toFixed(2)}%
                   </td>
                 </tr>
               ))}
