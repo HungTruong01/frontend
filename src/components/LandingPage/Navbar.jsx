@@ -1,18 +1,9 @@
+// eslint-disable-next-line no-unused-vars
 import { AnimatePresence, motion } from "framer-motion";
 import React, { useEffect, useState } from "react";
 import { FaBars, FaTimes } from "react-icons/fa";
-import { IoIosArrowDown, IoMdSearch } from "react-icons/io";
 import { Link } from "react-router-dom";
 import logo from "../../assets/logo.png";
-
-const Products = [
-  { "id": 1, "name": "Rau Củ Tươi", "link": "/fresh-vegetables" },
-  { "id": 2, "name": "Thịt Tươi", "link": "/fresh-meat" },
-  { "id": 3, "name": "Hải Sản Tươi", "link": "/fresh-seafood" },
-  { "id": 4, "name": "Trái Cây Tươi", "link": "/fresh-fruits" },
-  { "id": 5, "name": "Sữa và Sản Phẩm Sữa", "link": "/dairy-products" },
-  { "id": 6, "name": "Thực Phẩm Chế Biến Sẵn", "link": "/processed-foods" }
-]
 
 const Navbar = () => {
   const [productDropdownOpen, setProductDropdownOpen] = useState(false);
@@ -51,7 +42,7 @@ const Navbar = () => {
             onMouseLeave={() => setProductDropdownOpen(false)}
           >
             <Link to="/products" className="flex items-center gap-1 font-semibold uppercase hover:text-blue-600">
-              Sản phẩm <IoIosArrowDown />
+              Sản phẩm
             </Link>
 
             <AnimatePresence>
@@ -63,15 +54,6 @@ const Navbar = () => {
                   transition={{ duration: 0.3 }}
                   className="absolute top-full left-0 mt-2 w-56 bg-white shadow-lg rounded-lg"
                 >
-                  {Products.map((product) => (
-                    <Link
-                      key={product.id}
-                      to={product.link}
-                      className="block px-4 py-3 border-b border-gray-100 hover:text-blue-600"
-                    >
-                      {product.name}
-                    </Link>
-                  ))}
                 </motion.div>
               )}
             </AnimatePresence>
@@ -101,7 +83,6 @@ const Navbar = () => {
                     onClick={() => setMobileProductOpen(!mobileProductOpen)}
                   >
                     <span>Sản phẩm</span>
-                    <IoIosArrowDown className={`transition-transform ${mobileProductOpen ? "rotate-180" : ""}`} />
                   </button>
 
                   <AnimatePresence>
@@ -113,16 +94,6 @@ const Navbar = () => {
                         transition={{ duration: 0.3 }}
                         className="bg-gray-50 pl-4"
                       >
-                        {Products.map((product) => (
-                          <Link
-                            key={product.id}
-                            to={product.link}
-                            className="block px-2 py-3 border-b border-gray-100 hover:text-blue-600"
-                            onClick={() => setMobileMenuOpen(false)}
-                          >
-                            {product.name}
-                          </Link>
-                        ))}
                       </motion.div>
                     )}
                   </AnimatePresence>

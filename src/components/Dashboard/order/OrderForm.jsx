@@ -17,9 +17,13 @@ const OrderForm = ({ mode = "add" }) => {
   const navigate = useNavigate();
   const { id } = useParams();
   const [orderItems, setOrderItems] = useState([]);
+
+  console.log(orderItems);
+
   const [partners, setPartners] = useState([]);
   const [orderTypes, setOrderTypes] = useState([]);
   const [products, setProducts] = useState([]);
+
   const [selectedPartner, setSelectedPartner] = useState("");
   const [selectedOrderType, setSelectedOrderType] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
@@ -80,7 +84,9 @@ const OrderForm = ({ mode = "add" }) => {
   };
 
   const calculateTotal = () =>
-    orderItems.reduce((sum, i) => sum + i.quantity * i.exportPrice, 0);
+    orderItems.reduce((sum, i) => sum + i.quantity * i.price, 0);
+  const calculateTotalProfit = () =>
+    orderItems.reduce((sum, i) => sum + i.profit, 0);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -89,6 +95,9 @@ const OrderForm = ({ mode = "add" }) => {
       return;
     }
     const totalMoney = calculateTotal();
+    const totalProfit = calculateTotalProfit();
+
+    console.log(totalProfit);
 
     try {
       if (isEdit) {
@@ -110,12 +119,14 @@ const OrderForm = ({ mode = "add" }) => {
           orderStatusId: selectedStatus,
           totalMoney,
           paidMoney: currentPaidMoney,
+          profitMoney: totalProfit,
         });
         toast.success("Đã cập nhật đơn hàng");
       } else {
         const res = await createOrder({
           partnerId: selectedPartner,
           orderTypeId: selectedOrderType,
+          profitMoney: totalProfit,
           totalMoney,
         });
         await createOrderDetails(
@@ -156,7 +167,10 @@ const OrderForm = ({ mode = "add" }) => {
         id: product.id,
         product: product.name,
         quantity: 1,
+        price: product.price,
+        profit: product.exportPrice - product.importPrice,
         exportPrice: product.exportPrice,
+        importPrice: product.importPrice,
       },
     ]);
     setIsProductModalOpen(false);
@@ -171,7 +185,13 @@ const OrderForm = ({ mode = "add" }) => {
     if (!isNaN(quantity) && quantity > 0) {
       setOrderItems(
         orderItems.map((item) =>
-          item.id === id ? { ...item, quantity } : item
+          item.id === id
+            ? {
+                ...item,
+                quantity,
+                profit: (item.exportPrice - item.importPrice) * quantity,
+              }
+            : item
         )
       );
     }
@@ -301,39 +321,41 @@ const OrderForm = ({ mode = "add" }) => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {orderItems.map((item) => (
-                      <tr key={item.id}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {item.product}
-                        </td>
-                        <td className="px-6 py-4">
-                          <input
-                            type="number"
-                            value={item.quantity}
-                            onChange={(e) =>
-                              handleQuantityChange(item.id, e.target.value)
-                            }
-                            min="1"
-                            className="w-20 px-2 py-1 border border-gray-300 rounded-md"
-                          />
-                        </td>
-                        <td className="px-6 py-4 text-blue-600 text-sm">
-                          {item.exportPrice.toLocaleString()}
-                        </td>
-                        <td className="px-6 py-4 text-blue-600 text-sm">
-                          {(item.exportPrice * item.quantity).toLocaleString()}
-                        </td>
-                        <td className="px-6 py-4 text-right">
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveItem(item.id)}
-                            className="text-red-500 hover:text-red-700"
-                          >
-                            <FaTrash />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
+                    {orderItems.map((item) => {
+                      return (
+                        <tr key={item.id}>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {item.product}
+                          </td>
+                          <td className="px-6 py-4">
+                            <input
+                              type="number"
+                              value={item.quantity}
+                              onChange={(e) =>
+                                handleQuantityChange(item.id, e.target.value)
+                              }
+                              min="1"
+                              className="w-20 px-2 py-1 border border-gray-300 rounded-md"
+                            />
+                          </td>
+                          <td className="px-6 py-4 text-blue-600 text-sm">
+                            {item?.price?.toLocaleString()}
+                          </td>
+                          <td className="px-6 py-4 text-blue-600 text-sm">
+                            {(item.price * item.quantity).toLocaleString()}
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveItem(item.id)}
+                              className="text-red-500 hover:text-red-700"
+                            >
+                              <FaTrash />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

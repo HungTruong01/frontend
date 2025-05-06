@@ -7,6 +7,7 @@ import { getOrdersByPartnerId, getOrderById } from "@/api/orderApi";
 import { BsBoxSeam } from "react-icons/bs";
 import { FaUser, FaTimes, FaInfoCircle } from "react-icons/fa";
 import { FaGift } from "react-icons/fa6";
+import { toast } from "react-toastify";
 const AddInvoiceModal = ({
   isOpen,
   onClose,
@@ -209,7 +210,6 @@ const AddInvoiceModal = ({
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError(null);
 
     try {
       const paidAmount = formData.paidAmount
@@ -224,19 +224,19 @@ const AddInvoiceModal = ({
       };
 
       if (!submitData.invoiceTypeId) {
-        setError("Vui lòng chọn loại hóa đơn");
+        toast.error("Vui lòng chọn loại hóa đơn");
         setLoading(false);
         return;
       }
 
       if (!submitData.orderId) {
-        setError("Vui lòng chọn đơn hàng");
+        toast.error("Vui lòng chọn đơn hàng");
         setLoading(false);
         return;
       }
 
       if (!submitData.moneyAmount) {
-        setError("Vui lòng nhập số tiền");
+        toast.error("Vui lòng nhập số tiền");
         setLoading(false);
         return;
       }
@@ -249,7 +249,7 @@ const AddInvoiceModal = ({
 
       const remainingAmount = calculateRemainingAmount();
       if (submitData.moneyAmount > remainingAmount) {
-        setError("Số tiền thanh toán không được vượt quá số tiền còn lại");
+        toast.error("Số tiền thanh toán không được vượt quá số tiền còn lại");
         setLoading(false);
         return;
       }
@@ -258,7 +258,7 @@ const AddInvoiceModal = ({
       onSubmit(response);
       onClose();
     } catch (err) {
-      setError("Lỗi khi tạo hóa đơn: " + err.message);
+      toast.error("Lỗi khi tạo hóa đơn: " + err.message);
       console.error("Error creating invoice:", err);
     } finally {
       setLoading(false);

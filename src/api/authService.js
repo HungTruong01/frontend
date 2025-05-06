@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const AUTH_REST_BASE_API_URL = "http://localhost:8080/api/auth";
+const AUTH_REST_BASE_API_URL = "http://localhost:3000/api/auth";
 
 // Register API call
 export const registerCallAPI = (registerObj) =>

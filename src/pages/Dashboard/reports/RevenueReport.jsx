@@ -1,26 +1,32 @@
-import React, { useState } from "react";
+import {
+  analyzeWithCondition,
+  analyzeWithConditionQuality,
+  analyzeWithConditionYear,
+} from "@/api/orderApi";
+import { exportExcel } from "@/utils/exportExcel";
+import React, { useEffect, useState } from "react";
 import { FaDownload, FaFilter } from "react-icons/fa";
 
 const RevenueReport = () => {
-  const [filter, setFilter] = useState("monthly"); // Bộ lọc: hàng tháng, hàng quý, hàng năm
-  const [timeRange, setTimeRange] = useState("2025"); // Phạm vi thời gian
+  const [filter, setFilter] = useState("monthly");
+  const [timeRange, setTimeRange] = useState("2025");
+  const [reportData, setReportData] = useState([]);
+  const [revenueData, setSevenueData] = useState(0);
+  const [profitData, setProfitData] = useState(0);
 
   // Dữ liệu mẫu (có thể thay bằng dữ liệu thực từ API)
   const sampleData = {
     monthly: {
       labels: ["Tháng 1", "Tháng 2", "Tháng 3"],
       revenue: [5000000, 6000000, 5500000],
-      profit: [1500000, 1800000, 1650000],
     },
     quarterly: {
       labels: ["Q1", "Q2", "Q3"],
       revenue: [16500000, 18000000, 17000000],
-      profit: [4950000, 5400000, 5100000],
     },
     yearly: {
       labels: ["2023", "2024", "2025"],
       revenue: [60000000, 65000000, 70000000],
-      profit: [18000000, 19500000, 21000000],
     },
   };
 
@@ -29,17 +35,59 @@ const RevenueReport = () => {
     (sum, val) => sum + val,
     0
   );
-  const totalProfit = sampleData[filter].profit.reduce(
+  const totalProfit = sampleData[filter].revenue.reduce(
     (sum, val) => sum + val,
     0
   );
-  const profitMargin = ((totalProfit / totalRevenue) * 100).toFixed(2);
+  // const totalProfit = sampleData[filter].profit.reduce(
+  //   (sum, val) => sum + val,
+  //   0
+  // );
+  // const profitMargin = ((totalProfit / totalRevenue) * 100).toFixed(2);
 
-  // Hàm xử lý tải xuống báo cáo
-  const handleDownload = () => {
-    alert(
-      "Tải xuống báo cáo dưới dạng PDF hoặc Excel (chưa triển khai thực tế)."
+  useEffect(() => {
+    const getData = async () => {
+      setReportData([]);
+      setSevenueData(0);
+      let data;
+      if (filter === "monthly") {
+        data = await analyzeWithCondition(timeRange);
+      } else if (filter === "quarterly") {
+        data = await analyzeWithConditionQuality(timeRange);
+      } else if (filter === "yearly") {
+        data = await analyzeWithConditionYear();
+      }
+
+      const revenueData = data?.content
+        .map((item) => +item.revenue)
+        ?.reduce((sum, val) => sum + val, 0);
+      const profitData = data?.content
+        .map((item) => +item.profit)
+        ?.reduce((sum, val) => sum + val, 0);
+      setProfitData(profitData);
+      setSevenueData(revenueData);
+      setReportData(data?.content);
+    };
+    getData();
+  }, [timeRange, filter]);
+
+  const handleExportExcel = () => {
+    const exportData = reportData.map((order) => ({
+      Label: order.label,
+      "Doanh thu": +order.revenue.toLocaleString(),
+    }));
+
+    const totalRevenue = reportData.reduce(
+      (sum, order) => sum + +order.revenue,
+      0
     );
+
+    exportData.push({
+      Label: "Tổng",
+      "Doanh thu": totalRevenue.toLocaleString(),
+    });
+
+    exportExcel(exportData, "Doanh thu theo tháng", "Doanh thu");
   };
 
   return (
@@ -75,7 +123,7 @@ const RevenueReport = () => {
             </div>
             {/* Nút tải xuống */}
             <button
-              onClick={handleDownload}
+              onClick={handleExportExcel}
               className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
             >
               <FaDownload className="mr-2" />
@@ -91,7 +139,7 @@ const RevenueReport = () => {
               Tổng doanh thu
             </h3>
             <p className="text-2xl font-semibold text-green-600">
-              {totalRevenue.toLocaleString()} VND
+              {revenueData.toLocaleString()} VND
             </p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow-md">
@@ -99,7 +147,7 @@ const RevenueReport = () => {
               Tổng lợi nhuận
             </h3>
             <p className="text-2xl font-semibold text-blue-600">
-              {totalProfit.toLocaleString()} VND
+              {profitData} VND
             </p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow-md">
@@ -107,7 +155,7 @@ const RevenueReport = () => {
               Tỷ lệ lợi nhuận
             </h3>
             <p className="text-2xl font-semibold text-purple-600">
-              {profitMargin}%
+              {((profitData / revenueData) * 100).toFixed(2)}%
             </p>
           </div>
         </div>
@@ -132,25 +180,22 @@ const RevenueReport = () => {
               </tr>
             </thead>
             <tbody>
-              {sampleData[filter].labels.map((label, index) => (
+              {reportData?.reverse()?.map((item, index) => (
                 <tr
                   key={index}
                   className="border-b border-gray-100 hover:bg-gray-50"
                 >
-                  <td className="py-3 px-4 text-sm text-gray-600">{label}</td>
                   <td className="py-3 px-4 text-sm text-gray-600 text-right">
-                    {sampleData[filter].revenue[index].toLocaleString()}
+                    {item?.label}
                   </td>
                   <td className="py-3 px-4 text-sm text-gray-600 text-right">
-                    {sampleData[filter].profit[index].toLocaleString()}
+                    {Number.parseInt(item?.revenue).toLocaleString()}
                   </td>
                   <td className="py-3 px-4 text-sm text-gray-600 text-right">
-                    {(
-                      (sampleData[filter].profit[index] /
-                        sampleData[filter].revenue[index]) *
-                      100
-                    ).toFixed(2)}
-                    %
+                    {Number.parseInt(item?.profit).toLocaleString()}
+                  </td>
+                  <td className="py-3 px-4 text-sm text-gray-600 text-right">
+                    {((item.profit / item?.revenue) * 100).toFixed(2)}%
                   </td>
                 </tr>
               ))}

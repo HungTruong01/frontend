@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_REST_API_URL = "http://localhost:8080/api/orders";
+const BASE_REST_API_URL = "http://localhost:3000/api/orders";
 
 axios.defaults.withCredentials = true;
 
@@ -63,6 +63,38 @@ export const deleteOrder = async (orderId) => {
     return response.data;
   } catch (error) {
     console.error("Error deleting order:", error);
+    throw error;
+  }
+};
+
+export const analyzeWithCondition = async (year) => {
+  try {
+    const response = await axios.get(`${BASE_REST_API_URL}/monthly-revenue`, {
+      params: { year },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Xảy ra lỗi:", error);
+    throw error;
+  }
+};
+export const analyzeWithConditionQuality = async (year) => {
+  try {
+    const response = await axios.get(`${BASE_REST_API_URL}/quarterly-revenue`, {
+      params: { year },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Xảy ra lỗi:", error);
+    throw error;
+  }
+};
+export const analyzeWithConditionYear = async (year) => {
+  try {
+    const response = await axios.get(`${BASE_REST_API_URL}/year-revenue`);
+    return response.data;
+  } catch (error) {
+    console.error("Xảy ra lỗi:", error);
     throw error;
   }
 };
