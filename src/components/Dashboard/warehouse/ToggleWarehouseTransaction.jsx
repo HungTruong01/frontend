@@ -282,7 +282,7 @@ const ToggleWarehouseTransaction = ({
           onSubmit={handleSubmit}
           className="max-h-[calc(100vh-200px)] overflow-y-auto"
         >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 p-4 bg-gray-50 border border-gray-200 rounded-md">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Mã đơn hàng <span className="text-red-500">*</span>
@@ -292,8 +292,8 @@ const ToggleWarehouseTransaction = ({
                 value={transactionData.orderId}
                 onChange={handleChange}
                 required
-                disabled={isEdit} // Vô hiệu hóa trong chế độ chỉnh sửa
-                className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm ${
+                disabled={isEdit}
+                className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm ${
                   isEdit ? "bg-gray-100 cursor-not-allowed" : ""
                 }`}
               >
@@ -315,7 +315,7 @@ const ToggleWarehouseTransaction = ({
                 value={transactionData.warehouseId}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
               >
                 <option value="">Chọn kho</option>
                 {warehouses.map((warehouse) => (
@@ -335,7 +335,7 @@ const ToggleWarehouseTransaction = ({
                 value={transactionData.transactionTypeId}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
               >
                 <option value="">Chọn loại giao dịch</option>
                 {transactionTypes.map((type) => (
@@ -355,7 +355,7 @@ const ToggleWarehouseTransaction = ({
                 value={transactionData.statusId}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
               >
                 <option value="">Chọn trạng thái</option>
                 {statuses.map((status) => (
@@ -381,7 +381,7 @@ const ToggleWarehouseTransaction = ({
                   name="accountant"
                   value={transactionData.accountant}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                 >
                   <option value="">Chọn kế toán</option>
                   {employees.map((employee) => (
@@ -400,7 +400,7 @@ const ToggleWarehouseTransaction = ({
                   name="storekeeper"
                   value={transactionData.storekeeper}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                 >
                   <option value="">Chọn thủ kho</option>
                   {employees.map((employee) => (
@@ -419,7 +419,7 @@ const ToggleWarehouseTransaction = ({
                   name="createdBy"
                   value={transactionData.createdBy}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                 >
                   <option value="">Chọn người lập phiếu</option>
                   {employees.map((employee) => (
@@ -441,7 +441,7 @@ const ToggleWarehouseTransaction = ({
                       value={transactionData.participant}
                       onChange={handleChange}
                       placeholder="Nhập tên người giao hàng"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                     />
                   </div>
                 ) : (
@@ -453,7 +453,7 @@ const ToggleWarehouseTransaction = ({
                       name="participant"
                       value={transactionData.participant}
                       onChange={handleChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                     >
                       <option value="">Chọn người nhận hàng</option>
                       {employees.map((employee) => (

@@ -27,12 +27,9 @@ const WarehouseTransferDetail = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-
-        // Fetch warehouse transfer data
         const transferData = await getWarehouseTransferById(transferId);
         setAdjustmentData(transferData);
 
-        // Fetch related data in parallel
         const [productData, sourceData, destinationData, typeData] =
           await Promise.all([
             getProductById(transferData.productId),
@@ -206,7 +203,7 @@ const WarehouseTransferDetail = () => {
                 <div>
                   <span className="text-gray-500 font-medium">Giá:</span>
                   <span className="ml-2 text-blue-600 font-medium">
-                    {formatCurrency(product.price || 0)}
+                    {formatCurrency(product.exportPrice || 0)}
                   </span>
                 </div>
                 <div>

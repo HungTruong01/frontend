@@ -194,21 +194,21 @@ const menuItem = [
   },
   {
     icon: <FaChartBar {...iconStyles} />,
-    name: "Báo cáo thống kê",
+    name: "Báo cáo",
     path: "/dashboard/reports",
     subpages: [
       {
-        name: "Báo cáo doanh thu - lợi nhuận",
+        name: "Doanh thu - lợi nhuận",
         path: "/dashboard/reports/revenue-report",
         icon: <FaChartLine {...iconStyles} />,
       },
       {
-        name: "Báo cáo thu chi",
+        name: "Thu chi",
         path: "/dashboard/reports/income-and-expenditure-report",
         icon: <FiDollarSign {...iconStyles} />,
       },
       {
-        name: "Báo cáo công nợ",
+        name: "Công nợ",
         path: "/dashboard/reports/debt-report",
         icon: <FaBalanceScale {...iconStyles} />,
       },

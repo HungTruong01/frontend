@@ -6,11 +6,19 @@ import {
 import { getWarehouseById } from "@/api/warehouseApi";
 import { getProductById } from "@/api/productApi";
 import { getInventoryAdjustmentTypeById } from "@/api/inventoryAdjustmentTypesApi";
-import { FaSearch, FaRegTrashAlt, FaEye, FaEdit } from "react-icons/fa";
+import {
+  FaSearch,
+  FaRegTrashAlt,
+  FaEye,
+  FaEdit,
+  FaFileExport,
+} from "react-icons/fa";
 import { GoPlus } from "react-icons/go";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import ToggleInventoryAdjustment from "@/components/Dashboard/warehouse/ToggleWarehouseTransfer";
+import ToggleInventoryAdjustment from "@/components/Dashboard/warehouse/ToggleInventoryAdjustment";
+import { exportExcel } from "@/utils/exportExcel";
+
 const AdjustInventory = () => {
   const [adjustments, setAdjustments] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
@@ -119,7 +127,6 @@ const AdjustInventory = () => {
         })
       );
 
-      // console.log("Enriched adjustments:", enrichedAdjustments);
       setAdjustments(enrichedAdjustments);
       setFilteredData(enrichedAdjustments);
     } catch (error) {
@@ -196,6 +203,25 @@ const AdjustInventory = () => {
     }
   };
 
+  const handleExportExcel = () => {
+    const exportData = filteredData.map((adjustment) => ({
+      STT: adjustment.id,
+      "Số lượng": adjustment.quantity,
+      "Ngày tạo": formatDate(adjustment.createdAt),
+      "Lý do điều chỉnh": adjustment.adjustmentTypeName,
+      "Tên sản phẩm": adjustment.productName,
+      "Kho bãi": adjustment.warehouseName,
+    }));
+
+    exportExcel({
+      data: exportData,
+      fileName: "Danh sách điều chỉnh tồn kho",
+      sheetName: "Điều chỉnh tồn kho",
+      autoWidth: true,
+      zebraPattern: true,
+    });
+  };
+
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const paginatedData = filteredData.slice(
     (currentPage - 1) * itemsPerPage,
@@ -247,13 +273,22 @@ const AdjustInventory = () => {
                 <FaSearch className="h-4 w-4" />
               </button>
             </div>
-            <button
-              onClick={() => setIsAddModalOpen(true)}
-              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-            >
-              <GoPlus className="h-5 w-5 mr-2" />
-              Thêm mới
-            </button>
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={handleExportExcel}
+                className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+              >
+                <FaFileExport className="h-5 w-5 mr-2" />
+                Xuất file
+              </button>
+              <button
+                onClick={() => setIsAddModalOpen(true)}
+                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+              >
+                <GoPlus className="h-5 w-5 mr-2" />
+                Thêm mới
+              </button>
+            </div>
           </div>
         </div>
 

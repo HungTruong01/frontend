@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { partnerApi } from "@/api/partnerApi";
 import { getAllInvoiceTypes } from "@/api/invoiceTypeApi";
 import { getProductById } from "@/api/productApi";
@@ -8,6 +8,8 @@ import { BsBoxSeam } from "react-icons/bs";
 import { FaUser, FaTimes, FaInfoCircle } from "react-icons/fa";
 import { FaGift } from "react-icons/fa6";
 import { toast } from "react-toastify";
+import debounce from "lodash/debounce";
+
 const AddInvoiceModal = ({
   isOpen,
   onClose,
@@ -27,8 +29,32 @@ const AddInvoiceModal = ({
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [selectedOrderDetails, setSelectedOrderDetails] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [ordersLoading, setOrdersLoading] = useState(false);
   const [orderPaidAmount, setOrderPaidAmount] = useState(0);
   const [error, setError] = useState(null);
+
+  // Debounce fetchOrdersByPartner
+  const debouncedFetchOrders = useCallback(
+    debounce(async (partnerId) => {
+      if (!partnerId) {
+        setFilteredOrders([]);
+        setOrdersLoading(false);
+        return;
+      }
+      setOrdersLoading(true);
+      try {
+        const ordersData = await getOrdersByPartnerId(partnerId);
+        setFilteredOrders(ordersData.content || []);
+      } catch (err) {
+        setError("Không thể tải danh sách đơn hàng của đối tác.");
+        console.error(err);
+        setFilteredOrders([]);
+      } finally {
+        setOrdersLoading(false);
+      }
+    }, 300),
+    []
+  );
 
   useEffect(() => {
     if (isOpen && preselectedOrderData) {
@@ -43,9 +69,7 @@ const AddInvoiceModal = ({
         paymentType: "",
       });
       setFilteredOrders([preselectedOrderData]);
-      if (preselectedOrderData.paidMoney !== undefined) {
-        setOrderPaidAmount(preselectedOrderData.paidMoney);
-      }
+      setOrderPaidAmount(preselectedOrderData.paidMoney || 0);
     } else if (isOpen) {
       setFormData({
         partnerId: "",
@@ -69,7 +93,6 @@ const AddInvoiceModal = ({
           partnerApi.getAllPartners(0, 100, "id", "asc"),
           getAllInvoiceTypes(),
         ]);
-
         setPartners(partnersData.content || []);
         setInvoiceTypes(invoiceTypesData.content || []);
       } catch (err) {
@@ -85,110 +108,77 @@ const AddInvoiceModal = ({
   }, [isOpen]);
 
   useEffect(() => {
-    const fetchOrdersByPartner = async () => {
-      if (formData.partnerId) {
-        setLoading(true);
-        try {
-          const partnerId = parseInt(formData.partnerId, 10);
-          const ordersData = await getOrdersByPartnerId(partnerId);
-          setFilteredOrders(ordersData.content || []);
-
-          if (formData.invoiceDetails[0]?.orderId) {
-            setFormData((prev) => ({
-              ...prev,
-              invoiceDetails: [{ ...prev.invoiceDetails[0], orderId: "" }],
-              totalAmount: "",
-            }));
-            setSelectedOrderDetails([]);
-            setOrderPaidAmount(0);
-          }
-        } catch (err) {
-          setError("Không thể tải danh sách đơn hàng của đối tác.");
-          console.error(err);
-          setFilteredOrders([]);
-        } finally {
-          setLoading(false);
-        }
-      } else {
-        setFilteredOrders([]);
-      }
-    };
-    fetchOrdersByPartner();
-  }, [formData.partnerId]);
+    const partnerId = parseInt(formData.partnerId, 10);
+    debouncedFetchOrders(partnerId);
+    return () => debouncedFetchOrders.cancel();
+  }, [formData.partnerId, debouncedFetchOrders]);
 
   useEffect(() => {
     const fetchOrderDetails = async () => {
-      const selectedOrderId =
-        parseInt(formData.invoiceDetails[0]?.orderId, 10) || null;
-
-      if (selectedOrderId) {
-        setLoading(true);
-        try {
-          const orderData = await getOrderById(selectedOrderId);
-
-          if (!orderData || !orderData.orderDetails?.length) {
-            setError(
-              `Không tìm thấy chi tiết đơn hàng cho orderId ${selectedOrderId}`
-            );
-            setSelectedOrderDetails([]);
-            setFormData((prev) => ({ ...prev, totalAmount: "" }));
-            setOrderPaidAmount(0);
-            setLoading(false);
-            return;
-          }
-
-          setOrderPaidAmount(orderData.paidMoney || 0);
-
-          const details = orderData.orderDetails;
-          const detailedItems = await Promise.all(
-            details.map(async (detail, index) => {
-              try {
-                const product = await getProductById(detail.productId);
-                return {
-                  id: index + 1,
-                  productName: product?.name || `SP ${detail.productId}`,
-                  quantity: detail.quantity || 0,
-                  unitPrice: product?.exportPrice || 0,
-                  total: (detail.quantity || 0) * (product?.exportPrice || 0),
-                };
-              } catch (err) {
-                console.error("Lỗi lấy sản phẩm:", detail.productId, err);
-                return {
-                  id: index + 1,
-                  productName: `SP ${detail.productId}`,
-                  quantity: detail.quantity || 0,
-                  unitPrice: detail.unitPrice || 0,
-                  total: (detail.quantity || 0) * (detail.unitPrice || 0),
-                };
-              }
-            })
-          );
-
-          setSelectedOrderDetails(detailedItems);
-          const total = detailedItems.reduce(
-            (sum, item) => sum + item.total,
-            0
-          );
-          setFormData((prev) => ({ ...prev, totalAmount: total.toString() }));
-        } catch (err) {
-          setError("Không thể tải chi tiết đơn hàng.");
-          console.error(err);
-          setSelectedOrderDetails([]);
-        } finally {
-          setLoading(false);
-        }
-      } else {
+      const selectedOrderId = parseInt(formData.invoiceDetails[0]?.orderId, 10);
+      if (!selectedOrderId) {
         setSelectedOrderDetails([]);
         setFormData((prev) => ({ ...prev, totalAmount: "" }));
         setOrderPaidAmount(0);
         setError(null);
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const orderData = await getOrderById(selectedOrderId);
+        if (!orderData || !orderData.orderDetails?.length) {
+          setError(
+            `Không tìm thấy chi tiết đơn hàng cho orderId ${selectedOrderId}`
+          );
+          setSelectedOrderDetails([]);
+          setFormData((prev) => ({ ...prev, totalAmount: "" }));
+          setOrderPaidAmount(0);
+          return;
+        }
+
+        setOrderPaidAmount(orderData.paidMoney || 0);
+        const details = orderData.orderDetails;
+        const detailedItems = await Promise.all(
+          details.map(async (detail, index) => {
+            try {
+              const product = await getProductById(detail.productId);
+              return {
+                id: index + 1,
+                productName: product?.name || `SP ${detail.productId}`,
+                quantity: detail.quantity || 0,
+                unitPrice: product?.exportPrice || 0,
+                total: (detail.quantity || 0) * (product?.exportPrice || 0),
+              };
+            } catch (err) {
+              console.error("Lỗi lấy sản phẩm:", detail.productId, err);
+              return {
+                id: index + 1,
+                productName: `SP ${detail.productId}`,
+                quantity: detail.quantity || 0,
+                unitPrice: detail.exportPrice || 0,
+                total: (detail.quantity || 0) * (detail.exportPrice || 0),
+              };
+            }
+          })
+        );
+
+        setSelectedOrderDetails(detailedItems);
+        const total = detailedItems.reduce((sum, item) => sum + item.total, 0);
+        setFormData((prev) => ({ ...prev, totalAmount: total.toString() }));
+      } catch (err) {
+        setError("Không thể tải chi tiết đơn hàng.");
+        console.error(err);
+        setSelectedOrderDetails([]);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchOrderDetails();
   }, [formData.invoiceDetails[0]?.orderId]);
 
-  const handleChange = (e) => {
+  const handleChange = useCallback((e) => {
     const { name, value } = e.target;
     if (name === "paidAmount") {
       const numericValue = value.replace(/[^0-9]/g, "");
@@ -197,15 +187,24 @@ const AddInvoiceModal = ({
         [name]: numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, "."),
       }));
     } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+        ...(name === "partnerId" && {
+          invoiceDetails: [{ orderId: "", amount: "" }],
+        }),
+      }));
     }
-  };
+  }, []);
 
-  const handleDetailChange = (index, field, value) => {
-    const newDetails = [...formData.invoiceDetails];
-    newDetails[index] = { ...newDetails[index], [field]: value };
-    setFormData((prev) => ({ ...prev, invoiceDetails: newDetails }));
-  };
+  const handleDetailChange = useCallback(
+    (index, field, value) => {
+      const newDetails = [...formData.invoiceDetails];
+      newDetails[index] = { ...newDetails[index], [field]: value };
+      setFormData((prev) => ({ ...prev, invoiceDetails: newDetails }));
+    },
+    [formData.invoiceDetails]
+  );
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -220,7 +219,7 @@ const AddInvoiceModal = ({
         invoiceTypeId: parseInt(formData.invoiceTypeId) || null,
         moneyAmount: paidAmount,
         orderId: parseInt(formData.invoiceDetails[0]?.orderId) || null,
-        paymentType: formData.paymentType || null, // Thêm paymentType
+        paymentType: formData.paymentType || null,
       };
 
       if (!submitData.invoiceTypeId) {
@@ -265,26 +264,47 @@ const AddInvoiceModal = ({
     }
   };
 
-  const calculateRemainingAmount = () => {
+  const calculateRemainingAmount = useMemo(() => {
     const total = parseFloat(formData.totalAmount) || 0;
     return Math.max(total - orderPaidAmount, 0);
-  };
+  }, [formData.totalAmount, orderPaidAmount]);
 
-  const calculateTotalWithNewPayment = () => {
+  const calculateTotalWithNewPayment = useMemo(() => {
     const paid = parseFloat(formData.paidAmount?.replace(/\./g, "")) || 0;
     return orderPaidAmount + paid;
-  };
+  }, [formData.paidAmount, orderPaidAmount]);
 
-  const calculateNewRemainingAmount = () => {
+  const calculateNewRemainingAmount = useMemo(() => {
     const total = parseFloat(formData.totalAmount) || 0;
-    const paidWithNew = calculateTotalWithNewPayment();
+    const paidWithNew = calculateTotalWithNewPayment;
     return Math.max(total - paidWithNew, 0);
-  };
+  }, [formData.totalAmount, calculateTotalWithNewPayment]);
+
+  // Memoize partner and order options
+  const partnerOptions = useMemo(
+    () =>
+      partners.map((partner) => (
+        <option key={partner.id} value={partner.id}>
+          {partner.name}
+        </option>
+      )),
+    [partners]
+  );
+
+  const orderOptions = useMemo(
+    () =>
+      filteredOrders.map((order) => (
+        <option key={order.id} value={order.id}>
+          {order.code || `DH${order.id}`}
+        </option>
+      )),
+    [filteredOrders]
+  );
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-gradient-to-b from-white to-gray-50 rounded-2xl shadow-2xl w-full max-w-5xl transform transition-all max-h-[90vh] flex flex-col overflow-hidden">
         <div className="px-8 py-6 border-b border-blue-100 bg-blue-500 text-white">
           <div className="flex justify-between items-center">
@@ -346,11 +366,7 @@ const AddInvoiceModal = ({
                     required
                   >
                     <option value="">Chọn đối tác</option>
-                    {partners.map((partner) => (
-                      <option key={partner.id} value={partner.id}>
-                        {partner.name}
-                      </option>
-                    ))}
+                    {partnerOptions}
                   </select>
                 </div>
 
@@ -385,19 +401,17 @@ const AddInvoiceModal = ({
                       handleDetailChange(0, "orderId", e.target.value)
                     }
                     className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                      !formData.partnerId
+                      !formData.partnerId || ordersLoading
                         ? "bg-gray-100 border-gray-200 text-gray-500 cursor-not-allowed"
                         : "bg-white border-gray-300 hover:border-blue-300"
                     }`}
                     required
-                    disabled={!formData.partnerId}
+                    disabled={!formData.partnerId || ordersLoading}
                   >
-                    <option value="">Chọn mã đơn hàng</option>
-                    {filteredOrders.map((order) => (
-                      <option key={order.id} value={order.id}>
-                        {order.code || `DH${order.id}`}
-                      </option>
-                    ))}
+                    <option value="">
+                      {ordersLoading ? "Đang tải..." : "Chọn mã đơn hàng"}
+                    </option>
+                    {orderOptions}
                   </select>
                   {!formData.partnerId && (
                     <p className="text-xs text-blue-600 mt-2 flex items-center">
@@ -417,22 +431,22 @@ const AddInvoiceModal = ({
                     </p>
                   )}
                 </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Hình thức thanh toán <span className="text-red-500">*</span>
-                </label>
-                <select
-                  name="paymentType"
-                  value={formData.paymentType}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white hover:border-blue-300"
-                  required
-                >
-                  <option value="">Chọn hình thức thanh toán</option>
-                  <option value="Tiền mặt">Tiền mặt</option>
-                  <option value="Chuyển khoản">Chuyển khoản</option>
-                </select>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Hình thức thanh toán <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    name="paymentType"
+                    value={formData.paymentType}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white hover:border-blue-300"
+                    required
+                  >
+                    <option value="">Chọn hình thức</option>
+                    <option value="Tiền mặt">Tiền mặt</option>
+                    <option value="Chuyển khoản">Chuyển khoản</option>
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -598,7 +612,7 @@ const AddInvoiceModal = ({
                         Tổng tiền còn lại:
                       </td>
                       <td className="px-6 py-2 text-right font-bold text-green-600 text-lg">
-                        {calculateRemainingAmount().toLocaleString()} VNĐ
+                        {calculateRemainingAmount.toLocaleString()} VNĐ
                       </td>
                     </tr>
                     <tr className="bg-white">
@@ -629,8 +643,7 @@ const AddInvoiceModal = ({
                             Tổng tiền đã thanh toán (sau khi thêm):
                           </td>
                           <td className="px-3 py-1 text-right font-bold text-gray-600 text-lg">
-                            {calculateTotalWithNewPayment().toLocaleString()}{" "}
-                            VNĐ
+                            {calculateTotalWithNewPayment.toLocaleString()} VNĐ
                           </td>
                         </tr>
                         <tr className="bg-white">
@@ -641,7 +654,7 @@ const AddInvoiceModal = ({
                             Số tiền còn lại (sau khi thêm):
                           </td>
                           <td className="px-3 py-1 text-right font-bold text-green-600 text-lg">
-                            {calculateNewRemainingAmount().toLocaleString()} VNĐ
+                            {calculateNewRemainingAmount.toLocaleString()} VNĐ
                           </td>
                         </tr>
                       </>
@@ -677,4 +690,4 @@ const AddInvoiceModal = ({
   );
 };
 
-export default AddInvoiceModal;
+export default React.memo(AddInvoiceModal);

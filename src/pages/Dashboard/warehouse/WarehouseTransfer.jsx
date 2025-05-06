@@ -9,11 +9,18 @@ import {
   getAllDeliveryStatus,
   getDeliveryStatusById,
 } from "@/api/deliveryStatusApi";
-import { FaSearch, FaRegTrashAlt, FaEye, FaEdit } from "react-icons/fa";
+import {
+  FaSearch,
+  FaRegTrashAlt,
+  FaEye,
+  FaEdit,
+  FaFileExport,
+} from "react-icons/fa";
 import { GoPlus } from "react-icons/go";
 import { toast } from "react-toastify";
 import ToggleWarehouseTransfer from "@/components/Dashboard/warehouse/ToggleWarehouseTransfer";
 import { useNavigate } from "react-router-dom";
+import { exportExcel } from "@/utils/exportExcel";
 
 const WarehouseTransfer = () => {
   const [warehouseTransfer, setWarehouseTransfer] = useState([]);
@@ -59,10 +66,10 @@ const WarehouseTransfer = () => {
               productName: product?.name || `Sản phẩm ${transfer.productId}`,
               statusName: status?.name || "Trạng thái không rõ",
             };
-          } catch (innerErr) {
+          } catch (error) {
             console.error(
               `Lỗi khi lấy thông tin chi tiết chuyển kho ${transfer.id}:`,
-              innerErr
+              error
             );
             return {
               ...transfer,
@@ -86,6 +93,7 @@ const WarehouseTransfer = () => {
   useEffect(() => {
     fetchData();
   }, []);
+
   const formatDate = (dateString) => {
     if (!dateString) return "Invalid Date";
     const date = new Date(dateString);
@@ -95,6 +103,7 @@ const WarehouseTransfer = () => {
     const year = date.getFullYear();
     return `${day}/${month}/${year}`;
   };
+
   const handleSearch = () => {
     const filtered = warehouseTransfer.filter((item) =>
       displayColumns.some((col) => {
@@ -146,6 +155,26 @@ const WarehouseTransfer = () => {
     }
   };
 
+  const handleExportExcel = () => {
+    const exportData = filteredData.map((transfer) => ({
+      STT: transfer.id,
+      "Số lượng": transfer.quantity,
+      "Ngày tạo": formatDate(transfer.createdAt),
+      "Trạng thái": transfer.statusName,
+      "Tên sản phẩm": transfer.productName,
+      "Kho xuất": transfer.sourceWarehouseName,
+      "Kho nhập": transfer.destinationWarehouseName,
+    }));
+
+    exportExcel({
+      data: exportData,
+      fileName: "Danh sách chuyển kho",
+      sheetName: "Chuyển kho",
+      autoWidth: true,
+      zebraPattern: true,
+    });
+  };
+
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const paginatedData = filteredData.slice(
     (currentPage - 1) * itemsPerPage,
@@ -163,7 +192,7 @@ const WarehouseTransfer = () => {
           }}
           onSubmit={handleEditSubmit}
           initialData={currentEditItem}
-          mode="edit"
+          isEdit={true}
         />
       )}
 
@@ -171,7 +200,7 @@ const WarehouseTransfer = () => {
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onSubmit={handleAddNew}
-        mode="add"
+        isEdit={false}
       />
 
       <div className="p-6">
@@ -195,13 +224,22 @@ const WarehouseTransfer = () => {
                 <FaSearch className="h-4 w-4" />
               </button>
             </div>
-            <button
-              onClick={() => setIsAddModalOpen(true)}
-              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-            >
-              <GoPlus className="h-5 w-5 mr-2" />
-              Thêm mới
-            </button>
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={handleExportExcel}
+                className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+              >
+                <FaFileExport className="h-5 w-5 mr-2" />
+                Xuất file
+              </button>
+              <button
+                onClick={() => setIsAddModalOpen(true)}
+                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+              >
+                <GoPlus className="h-5 w-5 mr-2" />
+                Thêm mới
+              </button>
+            </div>
           </div>
         </div>
 

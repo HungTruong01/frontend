@@ -84,7 +84,7 @@ const OrderForm = ({ mode = "add" }) => {
   };
 
   const calculateTotal = () =>
-    orderItems.reduce((sum, i) => sum + i.quantity * i.price, 0);
+    orderItems.reduce((sum, i) => sum + i.quantity * i.exportPrice, 0);
   const calculateTotalProfit = () =>
     orderItems.reduce((sum, i) => sum + i.profit, 0);
 
@@ -339,10 +339,12 @@ const OrderForm = ({ mode = "add" }) => {
                             />
                           </td>
                           <td className="px-6 py-4 text-blue-600 text-sm">
-                            {item?.price?.toLocaleString()}
+                            {item?.exportPrice?.toLocaleString()}
                           </td>
                           <td className="px-6 py-4 text-blue-600 text-sm">
-                            {(item.price * item.quantity).toLocaleString()}
+                            {(
+                              item.exportPrice * item.quantity
+                            ).toLocaleString()}
                           </td>
                           <td className="px-6 py-4 text-right">
                             <button

@@ -4,16 +4,20 @@ import { toast } from "react-toastify";
 import { getAllProducts, getProductById } from "@/api/productApi";
 import { getAllInventoryAdjustmentType } from "@/api/inventoryAdjustmentTypesApi";
 import { getAllWarehouse } from "@/api/warehouseApi";
-import { createInventoryAdjustment } from "@/api/inventoryAdjustmentApi";
+import {
+  createInventoryAdjustment,
+  updateInventoryAdjustment,
+} from "@/api/inventoryAdjustmentApi";
 
 const ToggleInventoryAdjustment = ({
   isOpen,
   onClose,
   onSubmit,
   initialData = null,
-  mode = "add",
+  isEditing = false,
 }) => {
   const [adjustmentData, setAdjustmentData] = useState({
+    id: "",
     productId: "",
     warehouseId: "",
     inventoryAdjustmentTypeId: "",
@@ -28,6 +32,20 @@ const ToggleInventoryAdjustment = ({
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
+    if (isOpen && isEditing && initialData) {
+      setAdjustmentData({
+        id: initialData.id,
+        productId: initialData.productId,
+        warehouseId: initialData.warehouseId,
+        inventoryAdjustmentTypeId: initialData.inventoryAdjustmentTypeId,
+        quantity: initialData.quantity,
+      });
+    } else if (isOpen && !isEditing) {
+      formData();
+    }
+  }, [isOpen, initialData, isEditing]);
+
+  useEffect(() => {
     const fetchData = async () => {
       try {
         const [productsRes, typesRes, warehousesRes] = await Promise.all([
@@ -39,6 +57,11 @@ const ToggleInventoryAdjustment = ({
         setProducts(productsRes.data?.content || []);
         setAdjustmentTypes(typesRes.content || typesRes || []);
         setWarehouses(warehousesRes.content || warehousesRes || []);
+
+        if (isEditing && initialData?.productId) {
+          const productData = await getProductById(initialData.productId);
+          setSelectedProduct(productData);
+        }
       } catch (error) {
         console.error("Lỗi khi lấy dữ liệu:", error);
         toast.error("Không thể tải dữ liệu");
@@ -48,71 +71,7 @@ const ToggleInventoryAdjustment = ({
     if (isOpen) {
       fetchData();
     }
-  }, [isOpen]);
-
-  const resetForm = () => {
-    setAdjustmentData({
-      productId: "",
-      warehouseId: "",
-      inventoryAdjustmentTypeId: "",
-      quantity: "",
-    });
-    setSelectedProduct(null);
-    setErrors({});
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validateForm()) return;
-
-    try {
-      setLoading(true);
-      const submitData = {
-        ...adjustmentData,
-        productId: Number(adjustmentData.productId),
-        warehouseId: Number(adjustmentData.warehouseId),
-        inventoryAdjustmentTypeId: Number(
-          adjustmentData.inventoryAdjustmentTypeId
-        ),
-        quantity: Number(adjustmentData.quantity),
-      };
-
-      await createInventoryAdjustment(submitData);
-      await onSubmit();
-      onClose();
-    } catch (error) {
-      console.error("Lỗi khi thêm điều chỉnh:", error);
-      toast.error("Lỗi khi thêm điều chỉnh tồn kho");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const validateForm = () => {
-    const newErrors = {};
-    if (!adjustmentData.productId)
-      newErrors.productId = "Vui lòng chọn sản phẩm";
-    if (!adjustmentData.warehouseId)
-      newErrors.warehouseId = "Vui lòng chọn kho";
-    if (!adjustmentData.inventoryAdjustmentTypeId)
-      newErrors.inventoryAdjustmentTypeId = "Vui lòng chọn loại điều chỉnh";
-    if (!adjustmentData.quantity || adjustmentData.quantity <= 0)
-      newErrors.quantity = "Số lượng phải lớn hơn 0";
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setAdjustmentData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: undefined }));
-    }
-  };
+  }, [isOpen, isEditing, initialData?.productId]);
 
   useEffect(() => {
     const fetchProductDetails = async () => {
@@ -133,16 +92,95 @@ const ToggleInventoryAdjustment = ({
     fetchProductDetails();
   }, [adjustmentData.productId]);
 
+  const formData = () => {
+    setAdjustmentData({
+      id: "",
+      productId: "",
+      warehouseId: "",
+      inventoryAdjustmentTypeId: "",
+      quantity: "",
+    });
+    setSelectedProduct(null);
+    setErrors({});
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    if (!adjustmentData.productId)
+      newErrors.productId = "Vui lòng chọn sản phẩm";
+    if (!adjustmentData.warehouseId)
+      newErrors.warehouseId = "Vui lòng chọn kho";
+    if (!adjustmentData.inventoryAdjustmentTypeId)
+      newErrors.inventoryAdjustmentTypeId = "Vui lòng chọn loại điều chỉnh";
+    if (!adjustmentData.quantity || adjustmentData.quantity <= 0)
+      newErrors.quantity = "Số lượng phải lớn hơn 0";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+
+    try {
+      setLoading(true);
+      const submitData = {
+        ...adjustmentData,
+        productId: Number(adjustmentData.productId),
+        warehouseId: Number(adjustmentData.warehouseId),
+        inventoryAdjustmentTypeId: Number(
+          adjustmentData.inventoryAdjustmentTypeId
+        ),
+        quantity: Number(adjustmentData.quantity),
+      };
+
+      if (isEditing) {
+        await updateInventoryAdjustment(adjustmentData.id, submitData);
+      } else {
+        await createInventoryAdjustment(submitData);
+      }
+
+      await onSubmit();
+      onClose();
+    } catch (error) {
+      console.error(
+        `Lỗi khi ${isEditing ? "cập nhật" : "thêm"} điều chỉnh:`,
+        error
+      );
+      toast.error(
+        `Lỗi khi ${isEditing ? "cập nhật" : "thêm"} điều chỉnh tồn kho`
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setAdjustmentData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: undefined }));
+    }
+  };
+
   const formatCurrency = (amount) => {
     return `${new Intl.NumberFormat("vi-VN").format(amount)}`;
   };
 
+  if (!isOpen) return null;
+
   return (
-    <div className="fixed inset-0 bg-black/20 backdrop-blur-xs flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-8 w-full max-w-2xl shadow-xl">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-semibold text-gray-800">
-            Thêm mới điều chỉnh tồn kho
+            {isEditing
+              ? "Chỉnh sửa điều chỉnh tồn kho"
+              : "Thêm mới điều chỉnh tồn kho"}
           </h2>
           <button
             onClick={onClose}
@@ -252,6 +290,7 @@ const ToggleInventoryAdjustment = ({
             </div>
           </div>
 
+          {/* Product details section */}
           {selectedProduct && (
             <div className="mt-4 p-4 bg-gray-50 rounded-lg">
               <h3 className="text-lg font-medium text-gray-900 mb-3">
@@ -273,7 +312,7 @@ const ToggleInventoryAdjustment = ({
                 <div>
                   <p className="text-sm text-gray-500">Giá tiền</p>
                   <p className="text-sm font-medium text-gray-900">
-                    {formatCurrency(selectedProduct.price)}
+                    {formatCurrency(selectedProduct.exportPrice)}
                   </p>
                 </div>
               </div>
@@ -293,7 +332,7 @@ const ToggleInventoryAdjustment = ({
               disabled={loading}
               className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
             >
-              {loading ? "Đang xử lý..." : "Thêm mới"}
+              {loading ? "Đang xử lý..." : isEditing ? "Cập nhật" : "Thêm mới"}
             </button>
           </div>
         </form>
