@@ -24,7 +24,6 @@ const OrderStatus = () => {
   const fetchOrderStatus = async () => {
     try {
       const response = await getAllOrderStatus();
-      // console.log("API response:", response);
       setOrderStatus(response.content);
     } catch (error) {
       console.error("Lỗi khi lấy danh sách trạng thái đơn hàng:", error);

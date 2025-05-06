@@ -25,7 +25,6 @@ const TypeProduct = () => {
   const fetchTypeProduct = async () => {
     try {
       const response = await getAllProductTypes();
-      // console.log("API response:", response);
       setTypeProduct(response.content);
     } catch (error) {
       console.error("Lỗi khi lấy danh sách loại sản phẩm:", error);

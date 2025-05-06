@@ -19,6 +19,7 @@ const AddInvoiceModal = ({
     totalAmount: "",
     paidAmount: "",
     invoiceDetails: [{ orderId: "", amount: "" }],
+    paymentType: "",
   });
   const [partners, setPartners] = useState([]);
   const [invoiceTypes, setInvoiceTypes] = useState([]);
@@ -26,6 +27,7 @@ const AddInvoiceModal = ({
   const [selectedOrderDetails, setSelectedOrderDetails] = useState([]);
   const [loading, setLoading] = useState(false);
   const [orderPaidAmount, setOrderPaidAmount] = useState(0);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     if (isOpen && preselectedOrderData) {
@@ -37,6 +39,7 @@ const AddInvoiceModal = ({
         invoiceDetails: [
           { orderId: preselectedOrderData.id.toString() || "", amount: "" },
         ],
+        paymentType: "",
       });
       setFilteredOrders([preselectedOrderData]);
       if (preselectedOrderData.paidMoney !== undefined) {
@@ -49,6 +52,7 @@ const AddInvoiceModal = ({
         totalAmount: "",
         paidAmount: "",
         invoiceDetails: [{ orderId: "", amount: "" }],
+        paymentType: "",
       });
       setFilteredOrders([]);
       setSelectedOrderDetails([]);
@@ -143,10 +147,8 @@ const AddInvoiceModal = ({
                   id: index + 1,
                   productName: product?.name || `SP ${detail.productId}`,
                   quantity: detail.quantity || 0,
-                  unitPrice: product?.price || detail.unitPrice || 0,
-                  total:
-                    (detail.quantity || 0) *
-                    (product?.price || detail.unitPrice || 0),
+                  unitPrice: product?.exportPrice || 0,
+                  total: (detail.quantity || 0) * (product?.exportPrice || 0),
                 };
               } catch (err) {
                 console.error("Lỗi lấy sản phẩm:", detail.productId, err);
@@ -218,6 +220,7 @@ const AddInvoiceModal = ({
         invoiceTypeId: parseInt(formData.invoiceTypeId) || null,
         moneyAmount: paidAmount,
         orderId: parseInt(formData.invoiceDetails[0]?.orderId) || null,
+        paymentType: formData.paymentType || null, // Thêm paymentType
       };
 
       if (!submitData.invoiceTypeId) {
@@ -234,6 +237,12 @@ const AddInvoiceModal = ({
 
       if (!submitData.moneyAmount) {
         setError("Vui lòng nhập số tiền");
+        setLoading(false);
+        return;
+      }
+
+      if (!submitData.paymentType) {
+        setError("Vui lòng chọn hình thức thanh toán");
         setLoading(false);
         return;
       }
@@ -324,7 +333,7 @@ const AddInvoiceModal = ({
                 <FaInfoCircle className="h-5 w-5 mr-2 text-blue-600" />
                 Thông tin chung
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Đối tác <span className="text-red-500">*</span>
@@ -409,9 +418,24 @@ const AddInvoiceModal = ({
                   )}
                 </div>
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Hình thức thanh toán <span className="text-red-500">*</span>
+                </label>
+                <select
+                  name="paymentType"
+                  value={formData.paymentType}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white hover:border-blue-300"
+                  required
+                >
+                  <option value="">Chọn hình thức thanh toán</option>
+                  <option value="Tiền mặt">Tiền mặt</option>
+                  <option value="Chuyển khoản">Chuyển khoản</option>
+                </select>
+              </div>
             </div>
 
-            {/* Partner Information */}
             {formData.partnerId && (
               <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
                 <h3 className="text-lg font-semibold text-gray-800 mb-5 flex items-center">
@@ -463,7 +487,6 @@ const AddInvoiceModal = ({
               </div>
             )}
 
-            {/* Order Details */}
             <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
               <h3 className="text-lg font-semibold text-gray-800 mb-5 flex items-center">
                 <FaGift className="h-4 w-4 text-blue-600 mr-2" />

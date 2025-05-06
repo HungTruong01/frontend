@@ -25,6 +25,7 @@ import {
   FaRegNewspaper,
 } from "react-icons/fa";
 import { TbTruckDelivery, TbInvoice } from "react-icons/tb";
+import { FaUsers } from "react-icons/fa6";
 import {
   MdAccountCircle,
   MdManageAccounts,
@@ -62,6 +63,11 @@ const menuItem = [
     name: "Danh mục",
     path: "/dashboard/categories",
     subpages: [
+      {
+        name: "Danh sách nhân viên",
+        path: "/dashboard/categories/list-employees",
+        icon: <FaUsers {...iconStyles} />,
+      },
       {
         name: "Loại sản phẩm",
         path: "/dashboard/categories/type-products",

@@ -53,6 +53,29 @@ const ProductDetailModal = ({
           <div className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-600 mb-1">
+                Hình ảnh sản phẩm
+              </label>
+              <div className="w-48 h-48 border-2 border-gray-200 rounded-lg overflow-hidden flex items-center justify-center">
+                {product.thumbnail ? (
+                  <img
+                    src={product.thumbnail}
+                    alt={product.name}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      console.error("Lỗi tải ảnh:", product.thumbnail);
+                      e.target.src = "/placeholder-image.jpg"; // Ảnh dự phòng
+                    }}
+                  />
+                ) : (
+                  <div className="text-gray-400 text-sm text-center p-2">
+                    Chưa có ảnh
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-1">
                 Tên sản phẩm
               </label>
               <p className="text-gray-800 font-medium">{product.name}</p>
@@ -70,10 +93,19 @@ const ProductDetailModal = ({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">
-                  Giá tiền
+                  Giá vốn
                 </label>
                 <p className="font-medium text-blue-600">
-                  {formatCurrency(product.price)}
+                  {formatCurrency(product.importPrice)}
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  Giá bán
+                </label>
+                <p className="font-medium text-blue-600">
+                  {formatCurrency(product.exportPrice)}
                 </p>
               </div>
 

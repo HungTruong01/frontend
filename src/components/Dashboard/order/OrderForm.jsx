@@ -68,7 +68,7 @@ const OrderForm = ({ mode = "add" }) => {
           id: detail.productId,
           product: product?.name || `SP #${detail.productId}`,
           quantity: detail.quantity,
-          price: detail.price ?? product?.price ?? 0,
+          exportPrice: detail.exportPrice ?? product?.exportPrice ?? 0,
         };
       });
       setOrderItems(items);
@@ -80,7 +80,7 @@ const OrderForm = ({ mode = "add" }) => {
   };
 
   const calculateTotal = () =>
-    orderItems.reduce((sum, i) => sum + i.quantity * i.price, 0);
+    orderItems.reduce((sum, i) => sum + i.quantity * i.exportPrice, 0);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -101,7 +101,7 @@ const OrderForm = ({ mode = "add" }) => {
           orderItems.map((i) => ({
             productId: i.id,
             quantity: i.quantity,
-            price: i.price,
+            exportPrice: i.exportPrice,
           }))
         );
         await updateOrder(id, {
@@ -136,7 +136,7 @@ const OrderForm = ({ mode = "add" }) => {
   const handleAddPartner = async (newPartner) => {
     try {
       await partnerApi.addPartner(newPartner);
-      await setIsPartnerModalOpen(false);
+      setIsPartnerModalOpen(false);
       toast.success("Đã thêm đối tác");
       const res = await partnerApi.getAllPartners(0, 100, "id", "asc");
       setPartners(res.content);
@@ -156,7 +156,7 @@ const OrderForm = ({ mode = "add" }) => {
         id: product.id,
         product: product.name,
         quantity: 1,
-        price: product.price,
+        exportPrice: product.exportPrice,
       },
     ]);
     setIsProductModalOpen(false);
@@ -318,10 +318,10 @@ const OrderForm = ({ mode = "add" }) => {
                           />
                         </td>
                         <td className="px-6 py-4 text-blue-600 text-sm">
-                          {item.price.toLocaleString()}
+                          {item.exportPrice.toLocaleString()}
                         </td>
                         <td className="px-6 py-4 text-blue-600 text-sm">
-                          {(item.price * item.quantity).toLocaleString()}
+                          {(item.exportPrice * item.quantity).toLocaleString()}
                         </td>
                         <td className="px-6 py-4 text-right">
                           <button

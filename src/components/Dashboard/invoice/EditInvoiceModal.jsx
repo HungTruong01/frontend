@@ -16,6 +16,7 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
     orderId: "",
     totalAmount: "",
     paidAmount: "",
+    paymentType: "",
   });
 
   const [partners, setPartners] = useState([]);
@@ -58,6 +59,7 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
               invoice.moneyAmount
                 ?.toString()
                 .replace(/\B(?=(\d{3})+(?!\d))/g, ".") || "",
+            paymentType: invoice.paymentType || "CASH",
           });
 
           if (invoice.partner) {
@@ -155,10 +157,8 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
                   productId: detail.productId,
                   productName: product?.name || `Sản phẩm ${detail.productId}`,
                   quantity: detail.quantity || 0,
-                  unitPrice: product?.price || detail.unitPrice || 0,
-                  total:
-                    (detail.quantity || 0) *
-                    (product?.price || detail.unitPrice || 0),
+                  unitPrice: product?.exportPrice || 0,
+                  total: (detail.quantity || 0) * (product?.exportPrice || 0),
                 };
               } catch (err) {
                 console.error(`Lỗi lấy sản phẩm ${detail.productId}:`, err);
@@ -213,34 +213,34 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
     const paidAmount = parseFloat(formData.paidAmount?.replace(/\./g, "")) || 0;
     const totalAmount = parseFloat(formData.totalAmount) || 0;
-
     if (paidAmount > totalAmount) {
       setError(
         `Số tiền thanh toán (${paidAmount.toLocaleString()} VNĐ) không được vượt quá tổng tiền đơn hàng (${totalAmount.toLocaleString()} VNĐ)`
       );
       return;
     }
-
     const updatedInvoice = {
       id: formData.id,
       invoiceTypeId: parseInt(formData.invoiceTypeId) || 1,
       orderId: parseInt(formData.orderId) || null,
       moneyAmount: paidAmount,
+      paymentType: formData.paymentType || null,
     };
-
     if (!updatedInvoice.invoiceTypeId) {
       setError("Vui lòng chọn loại hóa đơn");
       return;
     }
-
     if (!updatedInvoice.orderId) {
       setError("Vui lòng chọn đơn hàng");
       return;
     }
-
+    if (!updatedInvoice.paymentType) {
+      setError("Vui lòng chọn hình thức thanh toán");
+      return;
+    }
+    // console.log("submit", updatedInvoice);
     onSubmit(updatedInvoice);
     onClose();
   };
@@ -341,6 +341,22 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
                         {type.name}
                       </option>
                     ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Hình thức thanh toán <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    name="paymentType"
+                    value={formData.paymentType}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white hover:border-blue-300"
+                    required
+                  >
+                    <option value="">Chọn hình thức thanh toán</option>
+                    <option value="CASH">Tiền mặt</option>
+                    <option value="TRANSFER">Chuyển khoản</option>
                   </select>
                 </div>
                 <div>

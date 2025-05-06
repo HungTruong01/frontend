@@ -32,10 +32,9 @@ const ListProduct = () => {
   const fetchProducts = async () => {
     try {
       const response = await getAllProducts(0, 100, "id", "asc");
-      // console.log("product data", response.data.content);
       setProducts(response.data.content);
     } catch (error) {
-      console.error("Error fetching products:", error);
+      console.error("Lỗi khi lấy sản phẩm:", error);
     }
   };
 
@@ -44,7 +43,7 @@ const ListProduct = () => {
       const response = await getAllProductTypes();
       setProductTypes(response.content);
     } catch (error) {
-      console.log("Error fetching product types:", error);
+      console.log("Lỗi khi lấy loại sản phẩm:", error);
     }
   };
 
@@ -53,7 +52,7 @@ const ListProduct = () => {
       const response = await getAllProductUnits();
       setProductUnits(response.content);
     } catch (error) {
-      console.log("Error fetching product units:", error);
+      console.log("Lỗi khi lấy đơn vị tính:", error);
     }
   };
 
@@ -65,12 +64,12 @@ const ListProduct = () => {
 
   const getProductTypeName = (productTypeId) => {
     const type = productTypes.find((type) => type.id === productTypeId);
-    return type ? type.name : "Unknown";
+    return type ? type.name : "Không xác định";
   };
 
   const getProductUnitName = (productUnitId) => {
     const unit = productUnits.find((unit) => unit.id === productUnitId);
-    return unit ? unit.name : "Unknown";
+    return unit ? unit.name : "Không xác định";
   };
 
   const filteredProducts = products.filter((product) => {
@@ -97,19 +96,25 @@ const ListProduct = () => {
       const productData = {
         name: newProduct.name,
         description: newProduct.description,
-        price: Number(newProduct.price),
-        // quantity: Number(newProduct.quantity),
+        importPrice: Number(newProduct.importPrice),
+        exportPrice: Number(newProduct.exportPrice),
+        price: Number(newProduct.exportPrice),
+        quantity: Number(newProduct.quantity || 0),
         productTypeId: Number(newProduct.productTypeId),
         productUnitId: Number(newProduct.productUnitId),
+        thumbnail: newProduct.thumbnail || "",
       };
-
       const response = await createProduct(productData);
       toast.success("Thêm sản phẩm mới thành công");
       setProducts((prev) => [...prev, response]);
       setIsAddModalOpen(false);
     } catch (error) {
-      console.log("Không thể thêm sản phẩm. Vui lòng thử lại.", error);
-      toast.error("Không thể thêm sản phẩm. Vui lòng thử lại.");
+      console.log("Chi tiết lỗi:", error.response?.data || error.message);
+      const errorMessage =
+        error.response?.status === 400
+          ? error.response.data
+          : "Không thể thêm sản phẩm. Vui lòng thử lại.";
+      toast.error(errorMessage);
     }
   };
 
@@ -137,12 +142,14 @@ const ListProduct = () => {
       const productData = {
         name: updatedProduct.name,
         description: updatedProduct.description,
-        price: Number(updatedProduct.price),
-        // quantity: Number(updatedProduct.quantity),
+        importPrice: Number(updatedProduct.importPrice),
+        exportPrice: Number(updatedProduct.exportPrice),
+        price: Number(updatedProduct.exportPrice),
+        quantity: Number(updatedProduct.quantity || 0),
         productTypeId: Number(updatedProduct.productTypeId),
         productUnitId: Number(updatedProduct.productUnitId),
+        thumbnail: updatedProduct.thumbnail || "",
       };
-
       const response = await updateProduct(updatedProduct.id, productData);
       toast.success("Cập nhật sản phẩm thành công");
       setProducts((prev) =>
@@ -250,37 +257,47 @@ const ListProduct = () => {
           <table className="w-full">
             <thead>
               <tr className="bg-gray-200">
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
                   <div className="flex items-center space-x-1">
                     <span>STT</span>
                   </div>
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                  <div className="flex items-center space-x-1">
+                    <span>Hình ảnh</span>
+                  </div>
+                </th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
                   <div className="flex items-center space-x-1">
                     <span>Tên sản phẩm</span>
                   </div>
                 </th>
-                <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">
+                <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">
                   <div className="flex items-center justify-end space-x-1">
-                    <span>Giá tiền</span>
+                    <span>Giá vốn</span>
                   </div>
                 </th>
-                <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700">
+                <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">
+                  <div className="flex items-center justify-end space-x-1">
+                    <span>Giá bán</span>
+                  </div>
+                </th>
+                <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
                   <div className="flex items-center justify-center space-x-1">
                     <span>Số lượng</span>
                   </div>
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
                   <div className="flex items-center space-x-1">
                     <span>Loại sản phẩm</span>
                   </div>
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
                   <div className="flex items-center space-x-1">
                     <span>Đơn vị tính</span>
                   </div>
                 </th>
-                <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700">
+                <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
                   <div className="flex items-center justify-center space-x-1">
                     <span>Hành động</span>
                   </div>
@@ -293,33 +310,57 @@ const ListProduct = () => {
                   key={product.id}
                   className="hover:bg-gray-100 transition-colors"
                 >
-                  <td className="px-6 py-4 whitespace-nowrap text-left">
+                  <td className="p-4 whitespace-nowrap text-left">
                     <div className="text-sm text-gray-900">{product.id}</div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-left">
-                    <div className="text-sm text-gray-900">{product.name}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right">
-                    <div className="text-sm text-gray-900">
-                      {formatCurrency(product.price)}
+                  <td className="p-2 whitespace-nowrap">
+                    <div className="w-12 h-12 rounded-md overflow-hidden border border-gray-200">
+                      {product.thumbnail ? (
+                        <img
+                          src={product.thumbnail}
+                          alt={product.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            console.error("Lỗi tải ảnh:", product.thumbnail);
+                            e.target.src = "/placeholder-image.jpg"; // Ảnh dự phòng
+                          }}
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400 text-xs">
+                          Chưa có ảnh
+                        </div>
+                      )}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-center">
+                  <td className="p-4 whitespace-nowrap text-left">
+                    <div className="text-sm text-gray-900">{product.name}</div>
+                  </td>
+                  <td className="p-4 whitespace-nowrap text-right">
+                    <div className="text-sm text-gray-900">
+                      {formatCurrency(product.importPrice)}
+                    </div>
+                  </td>
+                  <td className="p-4 whitespace-nowrap text-right">
+                    <div className="text-sm text-gray-900">
+                      {formatCurrency(product.exportPrice)}
+                    </div>
+                  </td>
+                  <td className="p-4 whitespace-nowrap text-center">
                     <div className="text-sm text-gray-900">
                       {product.quantity}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="p-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900 text-left">
                       {getProductTypeName(product.productTypeId)}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="p-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900 text-left">
                       {getProductUnitName(product.productUnitId)}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-center">
+                  <td className="p-4 whitespace-nowrap text-center">
                     <div className="flex justify-center space-x-3">
                       <button
                         onClick={() => handleViewDetail(product)}
@@ -335,13 +376,13 @@ const ListProduct = () => {
                       >
                         <FaEdit className="h-5 w-5" />
                       </button>
-                      {/* <button
+                      <button
                         onClick={() => handleDeleteProduct(product.id)}
                         className="text-red-500 hover:text-red-700 transition-colors"
                         title="Xóa"
                       >
                         <FaRegTrashAlt className="h-5 w-5" />
-                      </button> */}
+                      </button>
                     </div>
                   </td>
                 </tr>

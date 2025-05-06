@@ -12,6 +12,7 @@ const InvoiceDetailModal = ({ isOpen, onClose, invoice }) => {
     if (isOpen && invoice && invoice.id) {
       try {
         const data = await getInvoiceWithDetails(invoice.id);
+        console.log(data);
         setInvoiceDetails(data);
       } catch (err) {
         console.error("Lỗi khi lấy chi tiết hóa đơn:", err);

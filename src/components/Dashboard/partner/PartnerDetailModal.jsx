@@ -38,7 +38,7 @@ const PartnerDetailModal = ({ isOpen, onClose, partner }) => {
               Tên đối tác:
             </label>
             <p className="col-span-2 text-sm font-normal">
-              {partner.name || "-"}
+              {partner.name || "Không có thông tin"}
             </p>
           </div>
           <div className="grid grid-cols-3 gap-2 items-start">
@@ -46,7 +46,7 @@ const PartnerDetailModal = ({ isOpen, onClose, partner }) => {
               Số điện thoại:
             </label>
             <p className="col-span-2 text-sm font-normal">
-              {partner.phone || "-"}
+              {partner.phone || "Không có thông tin"}
             </p>
           </div>
           <div className="grid grid-cols-3 gap-2 items-start">
@@ -54,7 +54,7 @@ const PartnerDetailModal = ({ isOpen, onClose, partner }) => {
               Email:
             </label>
             <p className="col-span-2 text-sm font-normal">
-              {partner.email || "-"}
+              {partner.email || "Không có thông tin"}
             </p>
           </div>
           <div className="grid grid-cols-3 gap-2 items-start">
@@ -62,7 +62,23 @@ const PartnerDetailModal = ({ isOpen, onClose, partner }) => {
               Địa chỉ:
             </label>
             <p className="col-span-2 text-sm font-normal">
-              {partner.address || "-"}
+              {partner.address || "Không có thông tin"}
+            </p>
+          </div>
+          <div className="grid grid-cols-3 gap-2 items-start">
+            <label className="col-span-1 font-medium text-sm text-gray-600">
+              Tên đơn vị:
+            </label>
+            <p className="col-span-2 text-sm font-normal">
+              {partner.organization || "Không có thông tin"}
+            </p>
+          </div>
+          <div className="grid grid-cols-3 gap-2 items-start">
+            <label className="col-span-1 font-medium text-sm text-gray-600">
+              Mã số thuế:
+            </label>
+            <p className="col-span-2 text-sm font-normal">
+              {partner.taxCode || "Không có thông tin"}
             </p>
           </div>
           <div className="grid grid-cols-3 gap-2 items-start">

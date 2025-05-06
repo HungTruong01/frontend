@@ -51,8 +51,8 @@ export const getInvoiceWithDetails = async (invoiceId) => {
                 productId: detail.productId,
                 productName: product.name || `Sản phẩm ${detail.productId}`,
                 quantity: detail.quantity,
-                unitPrice: product.price || 0,
-                total: detail.quantity * (product.price || 0),
+                unitPrice: product.exportPrice || 0,
+                total: detail.quantity * (product.exportPrice || 0),
               };
             } catch (err) {
               console.error(`Lỗi lấy sản phẩm ${detail.productId}:`, err);

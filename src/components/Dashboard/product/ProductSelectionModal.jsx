@@ -93,7 +93,7 @@ const ProductSelectionModal = ({
         </div>
 
         <div className="flex justify-start items-center">
-          {orderTypes === "Đơn hàng nhập" && (
+          {orderTypes === "Đơn hàng mua" && (
             <button
               type="button"
               onClick={handleAddProduct}
@@ -127,7 +127,7 @@ const ProductSelectionModal = ({
                       {product.name}
                     </h3>
                     <span className="text-sm font-medium text-blue-600">
-                      {product.price.toLocaleString()} VNĐ
+                      {product.exportPrice.toLocaleString()} VNĐ
                     </span>
                   </div>
                   <p className="text-sm text-gray-600 mb-2">

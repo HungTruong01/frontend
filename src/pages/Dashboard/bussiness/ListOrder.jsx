@@ -136,7 +136,13 @@ const ListOrder = () => {
       "Đã trả": formatCurrency(order.paidMoney),
       "Trạng thái": getOrderStatusName(order.orderStatusId),
     }));
-    exportExcel(exportData, "Danh sách đơn hàng", "Đơn hàng");
+    exportExcel({
+      data: exportData,
+      fileName: "Danh sách đơn hàng",
+      sheetName: "Đơn hàng",
+      autoWidth: true,
+      zebraPattern: true,
+    });
   };
 
   const getOrderTypeName = (orderTypeId) => {
@@ -301,7 +307,7 @@ const ListOrder = () => {
                 <tr className="bg-gray-200">
                   <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 w-1/7">
                     <div className="flex items-center space-x-1">
-                      <span>Mã đơn</span>
+                      <span>STT</span>
                     </div>
                   </th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 w-1/7">

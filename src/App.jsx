@@ -23,6 +23,7 @@ import TypeProduct from "@/pages/Dashboard/categories/TypeProduct";
 import TypeTransactionWareHouse from "@/pages/Dashboard/categories/TypeTransactionWareHouse";
 import ListProduct from "@/pages/Dashboard/warehouse/ListProduct";
 import UnitPage from "@/pages/Dashboard/categories/UnitPage";
+import ListEmployees from "./pages/Dashboard/categories/ListEmployees";
 
 import ListWarehouse from "@/pages/Dashboard/categories/ListWarehouse";
 import InventoryProduct from "./pages/Dashboard/warehouse/InventoryProduct";
@@ -45,7 +46,6 @@ import DeliveryStatus from "./pages/Dashboard/categories/DeliveryStatus";
 
 import OrderForm from "./components/Dashboard/order/OrderForm";
 import ListInvoice from "./pages/Dashboard/bussiness/ListInvoice";
-import FormEditAccount from "./pages/Dashboard/system/FormEditAccount";
 import { isUserLoggedIn } from "./api/authService";
 
 // Component để bảo vệ các route
@@ -83,7 +83,7 @@ const App = () => {
           <Route index element={<OverviewDashboard />} />
           <Route path="system/account" element={<AccountList />} />
           <Route path="system/role" element={<RoleUser />} />
-          <Route path="system/edit-account" element={<FormEditAccount />} />
+          <Route path="categories/list-employees" element={<ListEmployees />} />
           <Route path="categories/type-products" element={<TypeProduct />} />
           <Route path="categories/unit" element={<UnitPage />} />
           <Route path="categories/partner" element={<TypePartner />} />

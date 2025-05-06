@@ -17,7 +17,7 @@ const ListPartner = () => {
   const [currentPartner, setCurrentPartner] = useState(null);
 
   const columns = [
-    { key: "id", label: "Mã đối tác" },
+    { key: "id", label: "STT" },
     { key: "name", label: "Tên đối tác" },
     { key: "address", label: "Địa chỉ" },
     { key: "partnerTypeId", label: "Loại đối tác" },
@@ -27,6 +27,7 @@ const ListPartner = () => {
   const fetchPartners = async () => {
     try {
       const data = await partnerApi.getAllPartners(0, 100, "id", "asc");
+      // console.log(data.content);
       setPartners(data.content || data);
     } catch (error) {
       toast.error("Không thể tải danh sách đối tác");

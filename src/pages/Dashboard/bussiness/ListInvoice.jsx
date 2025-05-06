@@ -13,7 +13,6 @@ import EditInvoiceModal from "@/components/Dashboard/invoice/EditInvoiceModal";
 import {
   getAllInvoicesWithPartnerName,
   deleteInvoice,
-  createInvoice,
   updateInvoice,
   getInvoiceWithDetails,
   getAllInvoices,
@@ -21,6 +20,7 @@ import {
 import { getAllInvoiceTypes } from "@/api/invoiceTypeApi";
 import "jspdf-autotable";
 import { toast } from "react-toastify";
+import { exportExcel } from "@/utils/exportExcel";
 
 const ListInvoice = () => {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -44,6 +44,7 @@ const ListInvoice = () => {
       setIsLoading(true);
       const response = await getAllInvoicesWithPartnerName(0, 100, "id", "asc");
       const allInvoicesData = response.content || [];
+      console.log(allInvoicesData);
       setAllInvoices(allInvoicesData);
       setTotalElements(allInvoicesData.length);
       applyFilters(allInvoicesData, searchType, searchPartner, searchDate);
@@ -107,6 +108,26 @@ const ListInvoice = () => {
 
   const formatCurrency = (amount) => {
     return `${new Intl.NumberFormat("vi-VN").format(amount)}`;
+  };
+
+  const handleExportExcel = () => {
+    const exportData = filteredInvoices.map((invoice, index) => ({
+      STT: index + 1,
+      "Mã hóa đơn": invoice.id,
+      "Ngày lập": formatDate(invoice.createdAt),
+      "Số tiền": formatCurrency(invoice.moneyAmount) + " VNĐ",
+      "Mã đơn hàng": invoice.orderId || "N/A",
+      "Đối tác": invoice.partnerName || "N/A",
+      "Loại hóa đơn": getInvoiceTypeName(invoice.invoiceTypeId),
+    }));
+
+    exportExcel({
+      data: exportData,
+      fileName: "Danh sách hoá đơn",
+      sheetName: "Hóa đơn",
+      autoWidth: true,
+      zebraPattern: true,
+    });
   };
 
   const paginatedData = filteredInvoices.slice(
@@ -192,10 +213,10 @@ const ListInvoice = () => {
     try {
       setIsAddModalOpen(false);
       await fetchInvoices();
-      alert("Thêm hóa đơn thành công!");
+      toast.success("Thêm hóa đơn thành công!");
     } catch (error) {
       console.error("Lỗi khi thêm hóa đơn:", error);
-      alert("Đã xảy ra lỗi khi thêm hóa đơn!");
+      toast.error("Đã xảy ra lỗi khi thêm hóa đơn!");
     }
   };
 
@@ -263,7 +284,10 @@ const ListInvoice = () => {
               Danh sách hóa đơn
             </h1>
             <div className="flex items-center space-x-4">
-              <button className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
+              <button
+                onClick={handleExportExcel}
+                className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+              >
                 <FaFileExport className="h-5 w-5 mr-2" />
                 Xuất file
               </button>
@@ -326,25 +350,25 @@ const ListInvoice = () => {
             <table className="w-full">
               <thead>
                 <tr className="bg-gray-200">
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 w-1/7">
-                    Mã hóa đơn
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 w-1/7">
+                    STT
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 w-1/7">
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 w-1/7">
                     Số tiền
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 w-1/7">
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 w-1/7">
                     Ngày lập
                   </th>
-                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700 w-1/7">
-                    Mã đơn hàng
+                  <th className="px-6 py-3 text-center text-sm font-semibold text-gray-700 w-1/7">
+                    Đơn hàng
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 w-1/7">
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 w-1/7">
                     Tên đối tác
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 w-1/7">
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 w-1/7">
                     Loại hóa đơn
                   </th>
-                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700 w-1/7">
+                  <th className="px-6 py-3 text-center text-sm font-semibold text-gray-700 w-1/7">
                     Hành động
                   </th>
                 </tr>
@@ -357,7 +381,7 @@ const ListInvoice = () => {
                       className="hover:bg-gray-100 transition-colors"
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-center font-medium text-gray-900">
+                        <div className="text-sm text-left font-medium text-gray-900">
                           {invoice.id}
                         </div>
                       </td>
@@ -373,7 +397,7 @@ const ListInvoice = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-center text-gray-900">
-                          {invoice.orderId}
+                          DH{invoice.orderId}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">

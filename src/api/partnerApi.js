@@ -67,6 +67,8 @@ export const partnerApi = {
         address: partnerData.address,
         partnerTypeId: partnerTypeId,
         debt: parseFloat(partnerData.debt) || 0,
+        organization: partnerData.organization,
+        taxCode: partnerData.taxCode,
       };
 
       const response = await axiosInstance.post("/partners", formattedData);
@@ -90,6 +92,8 @@ export const partnerApi = {
         address: partnerData.address,
         partnerTypeId: parseInt(partnerData.type),
         debt: parseFloat(partnerData.debt) || 0,
+        organization: partnerData.organization,
+        taxCode: partnerData.taxCode,
       };
       const response = await axiosInstance.put(
         `/partners/${id}`,

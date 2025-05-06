@@ -24,7 +24,6 @@ const TypeOrder = () => {
   const fetchOrderType = async () => {
     try {
       const response = await getAllOrderTypes();
-      console.log("API response:", response);
       setOrderType(response.content);
     } catch (error) {
       console.error("Lỗi khi lấy danh sách loại đơn hàng:", error);

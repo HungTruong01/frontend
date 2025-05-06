@@ -15,7 +15,7 @@ export const getProductById = async (id) => {
     return response.data;
   } catch (error) {
     console.log(
-      "Error getting product by ID:",
+      "Lỗi khi lấy sản phẩm theo ID:",
       error.response?.data || error.message
     );
     throw error;
@@ -24,24 +24,27 @@ export const getProductById = async (id) => {
 
 export const createProduct = async (productData) => {
   try {
-    const response = await axios.post(BASE_API_URL, productData);
+    const response = await axios.post(BASE_API_URL, {
+      ...productData,
+      thumbnail: productData.thumbnail || "",
+    });
     return response.data;
   } catch (error) {
-    console.log(
-      "Error creating product:",
-      error.response?.data || error.message
-    );
+    console.log("Lỗi khi tạo sản phẩm:", error.response?.data || error.message);
     throw error;
   }
 };
 
 export const updateProduct = async (id, productData) => {
   try {
-    const response = await axios.put(`${BASE_API_URL}/${id}`, productData);
+    const response = await axios.put(`${BASE_API_URL}/${id}`, {
+      ...productData,
+      thumbnail: productData.thumbnail || "",
+    });
     return response.data;
   } catch (error) {
     console.log(
-      "Error updating product:",
+      "Lỗi khi cập nhật sản phẩm:",
       error.response?.data || error.message
     );
     throw error;
@@ -53,10 +56,7 @@ export const deleteProduct = async (id) => {
     const response = await axios.delete(`${BASE_API_URL}/${id}`);
     return response.data;
   } catch (error) {
-    console.log(
-      "Error deleting product:",
-      error.response?.data || error.message
-    );
+    console.log("Lỗi khi xóa sản phẩm:", error.response?.data || error.message);
     throw error;
   }
 };

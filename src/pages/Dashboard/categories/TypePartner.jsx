@@ -24,7 +24,6 @@ const TypePartner = () => {
   const fetchTypePartner = async () => {
     try {
       const response = await getAllPartnerTypes();
-      console.log("API response:", response);
       setPartnerType(response.content);
     } catch (error) {
       console.error("Lỗi khi lấy danh sách loại đối tác:", error);

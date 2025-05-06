@@ -6,12 +6,11 @@ import { getOrderById } from "@/api/orderApi";
 import { getDeliveryStatusById } from "@/api/deliveryStatusApi";
 import { getWarehouseById } from "@/api/warehouseApi";
 import { getWarehouseTransactionTypeById } from "@/api/warehouseTransactionTypeApi";
-import { getProductById } from "@/api/productApi"; // Import API lấy thông tin sản phẩm
+import { getProductById } from "@/api/productApi";
 import { toast } from "react-toastify";
 
 const WarehouseTransactionDetail = () => {
   const { transactionId } = useParams();
-  console.log(transactionId);
   const navigate = useNavigate();
   const [transaction, setTransaction] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -28,7 +27,6 @@ const WarehouseTransactionDetail = () => {
 
       try {
         setLoading(true);
-        // Fetch the basic transaction data
         const transactionData = await getWarehouseTransactionById(
           transactionId
         );
@@ -43,7 +41,6 @@ const WarehouseTransactionDetail = () => {
         setRelatedDataLoading(true);
 
         try {
-          // Fetch related data in parallel
           const [warehouse, order, status, type] = await Promise.all([
             transactionData.warehouseId
               ? getWarehouseById(transactionData.warehouseId)
@@ -60,13 +57,6 @@ const WarehouseTransactionDetail = () => {
                 )
               : Promise.resolve(null),
           ]);
-
-          console.log("Dữ liệu liên quan đã tải:", {
-            warehouse,
-            order,
-            status,
-            type,
-          });
 
           let items =
             transactionData.items || transactionData.transactionItems || [];
@@ -99,16 +89,13 @@ const WarehouseTransactionDetail = () => {
               }
             });
 
-            // Chờ tất cả các promise hoàn thành
             const productItems = await Promise.all(productPromises);
 
-            // Nếu không có dữ liệu items, sử dụng dữ liệu từ orderDetails
             if (!items || items.length === 0) {
               items = productItems;
             }
           }
 
-          // Update with the related data
           setTransaction((prev) => ({
             ...prev,
             warehouseName: warehouse?.name || "Kho không rõ",
@@ -199,8 +186,6 @@ const WarehouseTransactionDetail = () => {
   }
 
   const items = transaction.items || transaction.transactionItems || [];
-  console.log(items);
-
   const totalQuantity = items.reduce(
     (sum, item) => sum + (Number(item.quantity) || 0),
     0
@@ -294,6 +279,34 @@ const WarehouseTransactionDetail = () => {
               <p className="text-gray-800">
                 {transaction.statusName ||
                   `Trạng thái ${transaction.statusId || "N/A"}`}
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-sm text-gray-500 font-medium">Kế toán</p>
+              <p className="text-gray-800">{transaction.accountant || "N/A"}</p>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-sm text-gray-500 font-medium">Thủ kho</p>
+              <p className="text-gray-800">
+                {transaction.storekeeper || "N/A"}
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-sm text-gray-500 font-medium">
+                Người lập phiếu
+              </p>
+              <p className="text-gray-800">{transaction.createdBy || "N/A"}</p>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-sm text-gray-500 font-medium">
+                Người giao/nhận hàng
+              </p>
+              <p className="text-gray-800">
+                {transaction.participant || "N/A"}
               </p>
             </div>
           </div>
