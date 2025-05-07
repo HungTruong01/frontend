@@ -9,6 +9,7 @@ import {
   createProduct,
   updateProduct,
   deleteProduct,
+  getProductsByProductTypeId,
 } from "@/api/productApi";
 import { getAllProductTypes } from "@/api/productTypeApi";
 import { getAllProductUnits } from "@/api/productUnitApi";
@@ -31,15 +32,6 @@ const ListProduct = () => {
 
   const [imageErrors, setImageErrors] = useState({});
 
-  const fetchProducts = async () => {
-    try {
-      const response = await getAllProducts(0, 100, "id", "asc");
-      setProducts(response.data.content);
-    } catch (error) {
-      console.error("Lỗi khi lấy sản phẩm:", error);
-    }
-  };
-
   const fetchProductTypes = async () => {
     try {
       const response = await getAllProductTypes();
@@ -59,10 +51,31 @@ const ListProduct = () => {
   };
 
   useEffect(() => {
-    fetchProducts();
+    const loadData = async () => {
+      try {
+        if (searchType) {
+          const response = await getProductsByProductTypeId(
+            0,
+            100,
+            "id",
+            "asc",
+            searchType
+          );
+          setProducts(response.content || []);
+        } else {
+          const response = await getAllProducts(0, 100, "id", "asc");
+          setProducts(response.data.content);
+        }
+      } catch {
+        toast.error("Không thể lấy dữ liệu sản phẩm. Vui lòng thử lại.");
+        setProducts([]);
+      }
+    };
+
+    loadData();
     fetchProductTypes();
     fetchProductUnits();
-  }, []);
+  }, [searchType]);
 
   const getProductTypeName = (productTypeId) => {
     const type = productTypes.find((type) => type.id === productTypeId);
@@ -76,11 +89,10 @@ const ListProduct = () => {
 
   const filteredProducts = products.filter((product) => {
     const matchStatus = searchStatus === "" || product.status === searchStatus;
-    const matchType = searchType === "" || product.productTypeId === searchType;
     const matchName =
       searchName === "" ||
       product.name.toLowerCase().includes(searchName.toLowerCase());
-    return matchStatus && matchType && matchName;
+    return matchStatus && matchName;
   });
 
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
@@ -221,6 +233,29 @@ const ListProduct = () => {
             Danh sách sản phẩm
           </h1>
           <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 cursor-pointer">
+              <span>Ít</span>
+              <div
+                className="w-4 h-4 bg-red-600"
+                title="Số lượng nhỏ hơn 10"
+              ></div>
+            </div>
+            <div className="flex items-center space-x-2 cursor-pointer">
+              <span>Vừa</span>
+              <div
+                className="w-4 h-4 bg-green-600"
+                title="Số lượng từ 10 đến 500"
+              ></div>
+            </div>
+            <div className="flex items-center space-x-2 cursor-pointer">
+              <span>Nhiều</span>
+              <div
+                className="w-4 h-4 bg-yellow-600"
+                title="Số lượng lớn hơn 500"
+              ></div>
+            </div>
+          </div>
+          <div className="flex items-center space-x-4">
             <div className="relative">
               <input
                 type="text"
@@ -234,7 +269,10 @@ const ListProduct = () => {
             <div className="w-48">
               <select
                 value={searchType}
-                onChange={(e) => setSearchType(e.target.value)}
+                onChange={(e) => {
+                  setSearchType(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="">Loại sản phẩm</option>
@@ -323,9 +361,9 @@ const ListProduct = () => {
                           alt={product.name}
                           className="w-full h-full object-cover"
                           onError={() => {
-                            setImageErrors(prev => ({
+                            setImageErrors((prev) => ({
                               ...prev,
-                              [product.id]: true
+                              [product.id]: true,
                             }));
                           }}
                         />
@@ -350,13 +388,15 @@ const ListProduct = () => {
                     </div>
                   </td>
                   <td className="p-4 whitespace-nowrap text-center">
-                    <div className={`text-sm font-medium ${
-                      product.quantity < 10 
-                        ? 'text-red-600' 
-                        : product.quantity > 500 
-                          ? 'text-yellow-600'
-                          : 'text-green-600'
-                    }`}>
+                    <div
+                      className={`text-sm font-medium ${
+                        product.quantity < 10
+                          ? "text-red-600"
+                          : product.quantity > 500
+                          ? "text-yellow-600"
+                          : "text-green-600"
+                      }`}
+                    >
                       {product.quantity}
                     </div>
                   </td>
