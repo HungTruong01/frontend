@@ -246,7 +246,7 @@ const AddInvoiceModal = ({
         return;
       }
 
-      const remainingAmount = calculateRemainingAmount();
+      const remainingAmount = calculateRemainingAmount;
       if (submitData.moneyAmount > remainingAmount) {
         toast.error("Số tiền thanh toán không được vượt quá số tiền còn lại");
         setLoading(false);

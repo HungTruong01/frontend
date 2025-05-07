@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { FaTimes, FaUpload } from "react-icons/fa";
+import { FaTimes, FaUpload, FaSpinner } from "react-icons/fa";
 import { useQuill } from "react-quilljs";
 import "quill/dist/quill.snow.css";
 
@@ -34,7 +34,7 @@ const AddPostModal = ({ isOpen, onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
     title: "",
     content: "",
-    thumbnailFile: null,
+    thumbnail: "",
   });
 
   const [errors, setErrors] = useState({
@@ -44,13 +44,14 @@ const AddPostModal = ({ isOpen, onClose, onSubmit }) => {
 
   const [filePreview, setFilePreview] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false); // Trạng thái upload ảnh
+  const [uploadError, setUploadError] = useState("");
 
   useEffect(() => {
     if (quill && isOpen) {
       quill.clipboard.dangerouslyPasteHTML(formData.content || "");
       quill.on("text-change", () => {
         setFormData((prev) => ({ ...prev, content: quill.root.innerHTML }));
-        // Clear error when user types
         setErrors((prev) => ({ ...prev, content: "" }));
       });
     }
@@ -58,11 +59,11 @@ const AddPostModal = ({ isOpen, onClose, onSubmit }) => {
 
   useEffect(() => {
     if (!isOpen && quill) {
-      quill.setText(""); // Reset khi modal đóng
+      quill.setText("");
       setFormData({
         title: "",
         content: "",
-        thumbnailFile: null,
+        thumbnail: "",
       });
       setFilePreview(null);
       setErrors({
@@ -70,35 +71,33 @@ const AddPostModal = ({ isOpen, onClose, onSubmit }) => {
         content: "",
       });
       setIsSubmitting(false);
+      setUploadError("");
     }
   }, [isOpen, quill]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    // Clear error when user types
     setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Validate file type
-      if (!file.type.startsWith("image/")) {
-        alert("Vui lòng chọn file hình ảnh!");
+      const validTypes = ["image/jpeg", "image/png", "image/jpg", "image/webp"];
+      if (!validTypes.includes(file.type)) {
+        setUploadError("Chỉ chấp nhận định dạng ảnh JPG, PNG hoặc WEBP");
         return;
       }
 
-      // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
-        alert("Kích thước file không được vượt quá 5MB!");
+        setUploadError("Kích thước file không được vượt quá 5MB");
         return;
       }
 
-      setFormData((prev) => ({ ...prev, thumbnailFile: file }));
-      const reader = new FileReader();
-      reader.onload = (e) => setFilePreview(e.target.result);
-      reader.readAsDataURL(file);
+      setUploadError("");
+      setFormData((prev) => ({ ...prev, thumbnail: file }));
+      setFilePreview(URL.createObjectURL(file));
     }
   };
 
@@ -120,25 +119,38 @@ const AddPostModal = ({ isOpen, onClose, onSubmit }) => {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-
   const handleSubmit = (e) => {
-    e.preventDefault();
+    e.preventDefault(); // Ngăn chặn hành vi mặc định của form
 
-    if (!validateForm()) {
+    if (!validateForm() || isUploading) {
+      if (isUploading) {
+        setUploadError("Vui lòng đợi cho đến khi quá trình tải ảnh hoàn tất");
+      }
       return;
     }
 
     setIsSubmitting(true);
 
-    const submitData = {
+    // Truyền dữ liệu trực tiếp thay vì tạo FormData mới
+    const newPost = {
       title: formData.title,
       content: formData.content,
-      thumbnailFile: formData.thumbnailFile,
+      thumbnailFile: formData.thumbnail, // Đổi tên để match với handleAddNew trong ListPost.jsx
     };
 
-    onSubmit(submitData)
-      .catch((err) => {
-        console.error("Error submitting form:", err);
+    onSubmit(newPost)
+      .then(() => {
+        // Reset form sau khi submit thành công
+        setFormData({
+          title: "",
+          content: "",
+          thumbnail: "",
+        });
+        setFilePreview(null);
+        if (quill) quill.setText("");
+      })
+      .catch((error) => {
+        console.error("Error submitting post:", error);
       })
       .finally(() => {
         setIsSubmitting(false);
@@ -195,17 +207,26 @@ const AddPostModal = ({ isOpen, onClose, onSubmit }) => {
                   type="button"
                   onClick={triggerFileUpload}
                   className="px-4 py-2 bg-gray-100 border-2 border-gray-300 rounded-lg hover:bg-gray-200 flex items-center"
+                  disabled={isUploading}
                 >
-                  <FaUpload className="mr-2" /> Chọn file
+                  {isUploading ? (
+                    <FaSpinner className="mr-2 animate-spin" />
+                  ) : (
+                    <FaUpload className="mr-2" />
+                  )}
+                  {isUploading ? "Đанг tải lên..." : "Chọn file"}
                 </button>
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept="image/*"
+                  accept="image/jpeg,image/png,image/jpg,image/webp"
                   onChange={handleFileUpload}
                   className="hidden"
                 />
               </div>
+              {uploadError && (
+                <p className="mt-1 text-sm text-red-500">{uploadError}</p>
+              )}
               {filePreview && (
                 <div className="mt-2 border-2 border-gray-200 rounded-lg p-2">
                   <img
@@ -246,7 +267,7 @@ const AddPostModal = ({ isOpen, onClose, onSubmit }) => {
               type="button"
               onClick={onClose}
               className="px-5 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-              disabled={isSubmitting}
+              disabled={isSubmitting || isUploading}
             >
               Hủy
             </button>
@@ -254,7 +275,7 @@ const AddPostModal = ({ isOpen, onClose, onSubmit }) => {
               type="submit"
               onClick={handleSubmit}
               className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-              disabled={isSubmitting}
+              disabled={isSubmitting || isUploading}
             >
               {isSubmitting ? "Đang xử lý..." : "Thêm mới"}
             </button>

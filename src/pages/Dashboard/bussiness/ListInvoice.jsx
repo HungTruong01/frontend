@@ -44,7 +44,7 @@ const ListInvoice = () => {
       setIsLoading(true);
       const response = await getAllInvoicesWithPartnerName(0, 100, "id", "asc");
       const allInvoicesData = response.content || [];
-      console.log(allInvoicesData);
+      // console.log(allInvoicesData);
       setAllInvoices(allInvoicesData);
       setTotalElements(allInvoicesData.length);
       applyFilters(allInvoicesData, searchType, searchPartner, searchDate);

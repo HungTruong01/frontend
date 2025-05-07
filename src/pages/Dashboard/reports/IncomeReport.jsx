@@ -1,251 +1,274 @@
-import React, { useState } from "react";
-import { FaDownload, FaFilter } from "react-icons/fa";
+import React, { useState, useEffect } from "react";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
+import { Bar } from "react-chartjs-2";
+import {
+  getMonthlyIncomeReport,
+  getYearlyIncomeReport,
+  getIncomeReportByDateRange,
+} from "@/api/incomeReportApi";
+import { toast } from "react-toastify";
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 const IncomeReport = () => {
-  const [filter, setFilter] = useState("monthly"); // Bộ lọc: hàng tháng, hàng quý, hàng năm
-  const [timeRange, setTimeRange] = useState("2025"); // Phạm vi thời gian
+  const [reportType, setReportType] = useState("monthly");
+  const [year, setYear] = useState(new Date().getFullYear());
+  const [month, setMonth] = useState(new Date().getMonth() + 1);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [reportData, setReportData] = useState(null);
 
-  // Dữ liệu mẫu (có thể thay bằng dữ liệu từ API)
-  const sampleData = {
-    monthly: {
-      labels: ["Tháng 1", "Tháng 2", "Tháng 3"],
-      income: [7000000, 8000000, 7500000],
-      expense: [4500000, 5000000, 4800000],
-      transactions: [
-        {
-          id: 1,
-          date: "01/01/2025",
-          description: "Bán hàng xuất khẩu",
-          type: "Thu",
-          amount: 7000000,
-        },
-        {
-          id: 2,
-          date: "05/01/2025",
-          description: "Nhập nguyên liệu",
-          type: "Chi",
-          amount: 4500000,
-        },
-        {
-          id: 3,
-          date: "02/02/2025",
-          description: "Doanh thu dịch vụ",
-          type: "Thu",
-          amount: 8000000,
-        },
-        {
-          id: 4,
-          date: "06/02/2025",
-          description: "Chi phí vận chuyển",
-          type: "Chi",
-          amount: 5000000,
-        },
-      ],
-    },
-    quarterly: {
-      labels: ["Q1", "Q2", "Q3"],
-      income: [22500000, 24000000, 23000000],
-      expense: [14300000, 15000000, 14500000],
-      transactions: [], // Có thể thêm dữ liệu chi tiết
-    },
-    yearly: {
-      labels: ["2023", "2024", "2025"],
-      income: [80000000, 85000000, 90000000],
-      expense: [50000000, 52000000, 55000000],
-      transactions: [], // Có thể thêm dữ liệu chi tiết
-    },
+  const fetchReportData = async () => {
+    try {
+      setLoading(true);
+      let data;
+
+      if (reportType === "custom" && (!startDate || !endDate)) {
+        throw new Error("Vui lòng chọn ngày bắt đầu và kết thúc");
+      }
+
+      if (reportType === "custom" && new Date(startDate) > new Date(endDate)) {
+        throw new Error("Ngày bắt đầu phải trước ngày kết thúc");
+      }
+
+      switch (reportType) {
+        case "monthly":
+          data = await getMonthlyIncomeReport(year, month);
+          break;
+        case "yearly":
+          data = await getYearlyIncomeReport(year);
+          break;
+        case "custom":
+          data = await getIncomeReportByDateRange(startDate, endDate);
+          break;
+        default:
+          data = await getMonthlyIncomeReport(year, month);
+      }
+
+      setReportData(data);
+      setError(null);
+    } catch (err) {
+      const errorMessage = err.message || "Không thể tải dữ liệu báo cáo";
+      setError(errorMessage);
+      toast.error(errorMessage);
+      console.error("Error fetching report data:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Tổng thu và chi dựa trên bộ lọc
-  const totalIncome = sampleData[filter].income.reduce(
-    (sum, val) => sum + val,
-    0
-  );
-  const totalExpense = sampleData[filter].expense.reduce(
-    (sum, val) => sum + val,
-    0
-  );
-  const netProfit = totalIncome - totalExpense;
+  // Chỉ fetch dữ liệu khi các thông số báo cáo thay đổi và nếu có đủ dữ liệu
+  useEffect(() => {
+    if (reportType === "custom" && (!startDate || !endDate)) {
+      // Không fetch dữ liệu nếu thiếu ngày trong chế độ custom
+      setLoading(false);
+      return;
+    }
 
-  // Hàm xử lý tải xuống báo cáo
-  const handleDownload = () => {
-    alert(
-      "Tải xuống báo cáo dưới dạng PDF hoặc Excel (chưa triển khai thực tế)."
-    );
+    const timer = setTimeout(() => {
+      fetchReportData();
+    }, 300); // Thêm debounce để tránh gọi API liên tục khi người dùng chọn ngày
+
+    return () => clearTimeout(timer);
+  }, [reportType, year, month, startDate, endDate]);
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(amount);
+  };
+
+  const chartData = {
+    labels: reportData?.labels || [],
+    datasets: [
+      {
+        label: "Thu",
+        data: reportData?.income || [],
+        backgroundColor: "rgba(75, 192, 192, 0.6)",
+        borderColor: "rgba(75, 192, 192, 1)",
+        borderWidth: 1,
+      },
+      {
+        label: "Chi",
+        data: reportData?.expense || [],
+        backgroundColor: "rgba(255, 99, 132, 0.6)",
+        borderColor: "rgba(255, 99, 132, 1)",
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  const chartOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: "top",
+      },
+      title: {
+        display: true,
+        text:
+          reportType === "monthly"
+            ? `Báo cáo thu chi - Tháng ${month}/${year}`
+            : reportType === "yearly"
+            ? `Báo cáo thu chi - Năm ${year}`
+            : `Báo cáo thu chi từ ${startDate} đến ${endDate}`,
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          callback: function (value) {
+            return formatCurrency(value);
+          },
+        },
+      },
+    },
   };
 
   return (
-    <div className="bg-gray-100 min-h-screen p-6">
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        {/* Tiêu đề và nút điều khiển */}
+    <div className="w-full bg-white shadow-lg rounded-lg overflow-hidden">
+      <div className="p-6">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-semibold text-gray-800">
-            Báo cáo Thu - Chi
-          </h1>
-          <div className="flex items-center gap-4">
-            {/* Bộ lọc */}
-            <div className="flex items-center gap-2">
-              <FaFilter className="text-gray-600" />
-              <select
-                value={filter}
-                onChange={(e) => setFilter(e.target.value)}
-                className="px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-              >
-                <option value="monthly">Hàng tháng</option>
-                <option value="quarterly">Hàng quý</option>
-                <option value="yearly">Hàng năm</option>
-              </select>
-              <select
-                value={timeRange}
-                onChange={(e) => setTimeRange(e.target.value)}
-                className="px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-              >
-                <option value="2023">2023</option>
-                <option value="2024">2024</option>
-                <option value="2025">2025</option>
-              </select>
-            </div>
-            {/* Nút tải xuống */}
-            <button
-              onClick={handleDownload}
-              className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+          <h1 className="text-2xl font-bold text-gray-800">Báo cáo thu chi</h1>
+          <div className="flex items-center space-x-4">
+            <select
+              value={reportType}
+              onChange={(e) => setReportType(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <FaDownload className="mr-2" />
-              Tải xuống
-            </button>
-          </div>
-        </div>
+              <option value="monthly">Theo tháng</option>
+              <option value="yearly">Theo năm</option>
+              <option value="custom">Tùy chỉnh</option>
+            </select>
 
-        {/* Tổng quan thu chi */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          <div className="bg-white p-4 rounded-lg shadow-md">
-            <h3 className="text-sm font-medium text-gray-600">Tổng thu</h3>
-            <p className="text-2xl font-semibold text-green-600">
-              {totalIncome.toLocaleString()} VND
-            </p>
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow-md">
-            <h3 className="text-sm font-medium text-gray-600">Tổng chi</h3>
-            <p className="text-2xl font-semibold text-red-600">
-              {totalExpense.toLocaleString()} VND
-            </p>
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow-md">
-            <h3 className="text-sm font-medium text-gray-600">
-              Lợi nhuận ròng
-            </h3>
-            <p
-              className={`text-2xl font-semibold ${
-                netProfit >= 0 ? "text-green-600" : "text-red-600"
-              }`}
-            >
-              {netProfit.toLocaleString()} VND
-            </p>
-          </div>
-        </div>
-
-        {/* Bảng tổng hợp thu chi */}
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">
-            Tổng hợp Thu - Chi
-          </h2>
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="bg-gray-50 border-b border-gray-200">
-                  <th className="py-3 px-4 text-sm font-semibold text-gray-700 text-left">
-                    Thời gian
-                  </th>
-                  <th className="py-3 px-4 text-sm font-semibold text-gray-700 text-right">
-                    Thu nhập (VND)
-                  </th>
-                  <th className="py-3 px-4 text-sm font-semibold text-gray-700 text-right">
-                    Chi phí (VND)
-                  </th>
-                  <th className="py-3 px-4 text-sm font-semibold text-gray-700 text-right">
-                    Lợi nhuận (VND)
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {sampleData[filter].labels.map((label, index) => (
-                  <tr
-                    key={index}
-                    className="border-b border-gray-100 hover:bg-gray-50"
-                  >
-                    <td className="py-3 px-4 text-sm text-gray-600">{label}</td>
-                    <td className="py-3 px-4 text-sm text-gray-600 text-right">
-                      {sampleData[filter].income[index].toLocaleString()}
-                    </td>
-                    <td className="py-3 px-4 text-sm text-gray-600 text-right">
-                      {sampleData[filter].expense[index].toLocaleString()}
-                    </td>
-                    <td className="py-3 px-4 text-sm text-gray-600 text-right">
-                      {(
-                        sampleData[filter].income[index] -
-                        sampleData[filter].expense[index]
-                      ).toLocaleString()}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Bảng chi tiết giao dịch */}
-        <div className="overflow-x-auto">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">
-            Chi tiết giao dịch
-          </h2>
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="py-3 px-4 text-sm font-semibold text-gray-700 text-left">
-                  Ngày
-                </th>
-                <th className="py-3 px-4 text-sm font-semibold text-gray-700 text-left">
-                  Mô tả
-                </th>
-                <th className="py-3 px-4 text-sm font-semibold text-gray-700 text-left">
-                  Loại
-                </th>
-                <th className="py-3 px-4 text-sm font-semibold text-gray-700 text-right">
-                  Số tiền (VND)
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {sampleData[filter].transactions.map((transaction) => (
-                <tr
-                  key={transaction.id}
-                  className="border-b border-gray-100 hover:bg-gray-50"
+            {reportType === "monthly" && (
+              <>
+                <select
+                  value={year}
+                  onChange={(e) => setYear(Number(e.target.value))}
+                  className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
-                  <td className="py-3 px-4 text-sm text-gray-600">
-                    {transaction.date}
-                  </td>
-                  <td className="py-3 px-4 text-sm text-gray-600">
-                    {transaction.description}
-                  </td>
-                  <td className="py-3 px-4 text-sm text-gray-600">
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs ${
-                        transaction.type === "Thu"
-                          ? "bg-green-100 text-green-600"
-                          : "bg-red-100 text-red-600"
-                      }`}
-                    >
-                      {transaction.type}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-sm text-gray-600 text-right">
-                    {transaction.amount.toLocaleString()}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  {[...Array(5)].map((_, i) => (
+                    <option key={i} value={new Date().getFullYear() - i}>
+                      {new Date().getFullYear() - i}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={month}
+                  onChange={(e) => setMonth(Number(e.target.value))}
+                  className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  {[...Array(12)].map((_, i) => (
+                    <option key={i} value={i + 1}>
+                      Tháng {i + 1}
+                    </option>
+                  ))}
+                </select>
+              </>
+            )}
+
+            {reportType === "yearly" && (
+              <select
+                value={year}
+                onChange={(e) => setYear(Number(e.target.value))}
+                className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                {[...Array(5)].map((_, i) => (
+                  <option key={i} value={new Date().getFullYear() - i}>
+                    {new Date().getFullYear() - i}
+                  </option>
+                ))}
+              </select>
+            )}
+
+            {reportType === "custom" && (
+              <>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </>
+            )}
+          </div>
         </div>
+
+        {error && (
+          <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+            {error}
+          </div>
+        )}
+
+        {loading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          </div>
+        ) : reportData ? (
+          <div className="space-y-6">
+            <div className="grid grid-cols-3 gap-4">
+              <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                <h3 className="text-sm font-medium text-green-800">Tổng thu</h3>
+                <p className="text-2xl font-bold text-green-600">
+                  {formatCurrency(reportData.totalIncome || 0)}
+                </p>
+              </div>
+              <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+                <h3 className="text-sm font-medium text-red-800">Tổng chi</h3>
+                <p className="text-2xl font-bold text-red-600">
+                  {formatCurrency(reportData.totalExpense || 0)}
+                </p>
+              </div>
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                <h3 className="text-sm font-medium text-blue-800">Lợi nhuận</h3>
+                <p className="text-2xl font-bold text-blue-600">
+                  {formatCurrency(
+                    (reportData.totalIncome || 0) -
+                      (reportData.totalExpense || 0)
+                  )}
+                </p>
+              </div>
+            </div>
+
+            <div style={{ height: "400px" }}>
+              <Bar data={chartData} options={chartOptions} />
+            </div>
+          </div>
+        ) : reportType === "custom" && (!startDate || !endDate) ? (
+          <div className="text-center py-4 text-gray-500">
+            Vui lòng chọn ngày bắt đầu và kết thúc để xem báo cáo
+          </div>
+        ) : (
+          <div className="text-center py-4 text-gray-500">
+            Không có dữ liệu để hiển thị
+          </div>
+        )}
       </div>
     </div>
   );

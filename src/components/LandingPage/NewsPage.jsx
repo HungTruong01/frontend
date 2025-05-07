@@ -19,17 +19,19 @@ const NewsPage = () => {
           "postedAt",
           "desc"
         );
+        console.log(response.data.content);
 
         const mappedPosts = response.data.content.map((post) => ({
           id: post.id,
           title: post.title,
-          excerpt:
-            post.content
-              .replace(/<[^>]+>/g, "")
-              .slice(0, 100)
-              .trim() + "...",
+          excerpt: post.content
+            ? post.content
+                .replace(/<[^>]+>/g, "")
+                .slice(0, 100)
+                .trim() + "..."
+            : "Không có nội dung.",
           date: new Date(post.postedAt).toLocaleDateString("vi-VN"),
-          image: post.thumbnail, // Dùng trực tiếp URL thumbnail
+          image: post.thumbnail,
           link: `/news/${post.id}`,
         }));
 
