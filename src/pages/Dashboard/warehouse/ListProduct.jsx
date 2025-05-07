@@ -29,6 +29,8 @@ const ListProduct = () => {
   const [productTypes, setProductTypes] = useState([]);
   const [productUnits, setProductUnits] = useState([]);
 
+  const [imageErrors, setImageErrors] = useState({});
+
   const fetchProducts = async () => {
     try {
       const response = await getAllProducts(0, 100, "id", "asc");
@@ -315,14 +317,16 @@ const ListProduct = () => {
                   </td>
                   <td className="p-2 whitespace-nowrap">
                     <div className="w-12 h-12 rounded-md overflow-hidden border border-gray-200">
-                      {product.thumbnail ? (
+                      {product.thumbnail && !imageErrors[product.id] ? (
                         <img
                           src={product.thumbnail}
                           alt={product.name}
                           className="w-full h-full object-cover"
-                          onError={(e) => {
-                            console.error("Lỗi tải ảnh:", product.thumbnail);
-                            e.target.src = "/placeholder-image.jpg"; // Ảnh dự phòng
+                          onError={() => {
+                            setImageErrors(prev => ({
+                              ...prev,
+                              [product.id]: true
+                            }));
                           }}
                         />
                       ) : (
@@ -346,7 +350,13 @@ const ListProduct = () => {
                     </div>
                   </td>
                   <td className="p-4 whitespace-nowrap text-center">
-                    <div className="text-sm text-gray-900">
+                    <div className={`text-sm font-medium ${
+                      product.quantity < 10 
+                        ? 'text-red-600' 
+                        : product.quantity > 500 
+                          ? 'text-yellow-600'
+                          : 'text-green-600'
+                    }`}>
                       {product.quantity}
                     </div>
                   </td>
