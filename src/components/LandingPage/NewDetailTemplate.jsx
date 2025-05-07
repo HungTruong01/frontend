@@ -1,19 +1,26 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import NewsCard from "./NewsCard";
-import { useEffect, useState } from "react";
+import Pagination from "./Pagination";
 import { getPostById, getAllPosts } from "@/api/postApi"; // Đường dẫn đến file api
 
 const NewDetailTemplate = () => {
-  const { slug } = useParams(); // slug chính là id trong URL: /news/:id
+  const { slug } = useParams();
   const [post, setPost] = useState(null);
   const [relatedPosts, setRelatedPosts] = useState([]);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 3;
+  const [totalPages, setTotalPages] = useState(1);
+
+  const [shouldScroll, setShouldScroll] = useState(true); // Biến điều khiển cuộn
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await getPostById(slug); // slug chính là id bài viết
+        const res = await getPostById(slug);
         setPost(res);
+        setShouldScroll(true); // Chỉ cuộn lên đầu khi bài viết chi tiết được tải
       } catch (error) {
         console.error("Không thể tải bài viết:", error);
         setPost({
@@ -28,22 +35,51 @@ const NewDetailTemplate = () => {
     fetchData();
   }, [slug]);
 
+  // Fetch bài viết liên quan
   useEffect(() => {
     const fetchRelated = async () => {
       try {
-        const res = await getAllPosts(0, 10, "postedAt", "desc");
-        if (!res.data) {
-          throw new Error("Không thể tải bài viết liên quan");
-        }
-        const related = res.data.content.filter((item) => item.id !== parseInt(slug));
-        setRelatedPosts(related.slice(0, 10));
+        const response = await getAllPosts(
+          currentPage - 1,
+          itemsPerPage,
+          "postedAt",
+          "desc"
+        );
+
+        const filteredPosts = response.data.content.filter(
+          (item) => item.id !== parseInt(slug)
+        );
+
+        const mappedPosts = filteredPosts.map((item) => ({
+          id: item.id,
+          title: item.title,
+          excerpt:
+            item.content
+              .replace(/<[^>]+>/g, "")
+              .slice(0, 100)
+              .trim() + "...",
+          date: new Date(item.postedAt).toLocaleDateString("vi-VN"),
+          image: `/public/${item.thumbnail}`,
+          link: `/news/${item.id}`,
+        }));
+
+        setRelatedPosts(mappedPosts);
+        setTotalPages(response.data.totalPages);
       } catch (error) {
         console.error("Không thể tải bài viết liên quan:", error);
       }
     };
-  
+
     fetchRelated();
-  }, [slug]);  
+  }, [currentPage, slug]);
+
+  useEffect(() => {
+    // Chỉ cuộn lên đầu khi bài viết chi tiết đã được tải
+    if (shouldScroll) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      setShouldScroll(false); // Reset lại để tránh cuộn khi liên quan được tải
+    }
+  }, [post, shouldScroll]);
 
   if (!post) return <div className="text-center py-10">Đang tải...</div>;
 
@@ -51,13 +87,15 @@ const NewDetailTemplate = () => {
     <div className="min-h-screen bg-white-100 py-12">
       <div className="max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg">
         <img
-            src={`/public/${post.thumbnail}`}
-            alt={post.title}
-            className="w-full h-80 object-cover rounded-lg mb-8"
+          src={`/public/${post.thumbnail}`}
+          alt={post.title}
+          className="w-full h-80 object-cover rounded-lg mb-8"
         />
 
         <div className="prose max-w-none">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4 text-justify">{post.title}</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-4 text-justify">
+            {post.title}
+          </h1>
           <p className="text-gray-500 mb-6">
             Cập nhật: {new Date(post.postedAt).toLocaleDateString("vi-VN")}
           </p>
@@ -72,19 +110,19 @@ const NewDetailTemplate = () => {
               Bài viết liên quan
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {relatedPosts.map((posts) => (
-                <NewsCard
-                  key={posts.id}
-                  id={posts.id}
-                  title={posts.title}
-                  date={new Date(posts.postedAt).toLocaleDateString("vi-VN")}
-                  image={`/public/${posts.thumbnail}`}
-                  excerpt={
-                    posts.content.replace(/<[^>]+>/g, "").slice(0, 100) + "..."
-                  }
-                  link={`/news/${posts.id}`}
-                />
+              {relatedPosts.map((post) => (
+                <NewsCard key={post.id} {...post} />
               ))}
+            </div>
+
+            {/* Thêm phân trang sử dụng component Pagination */}
+            <div className="mt-6 flex justify-center">
+              <Pagination
+                currentPage={currentPage}
+                setCurrentPage={setCurrentPage}
+                totalPages={totalPages}
+                shouldScroll={false} // Không cuộn khi phân trang bài viết liên quan
+              />
             </div>
           </div>
         </div>

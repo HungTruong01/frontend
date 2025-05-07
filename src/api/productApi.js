@@ -22,6 +22,21 @@ export const getProductById = async (id) => {
   }
 };
 
+export const getProductsByProductTypeId = async (pageNo, pageSize, sortBy, sortDir, productTypeId) => {
+  try {
+    const response = await axios.get(
+      `${BASE_API_URL}/product-types/${productTypeId}?pageNo=${pageNo}&pageSize=${pageSize}&sortBy=${sortBy}&sortDir=${sortDir}`
+    );
+    return response.data;
+  } catch (error) {
+    console.log(
+      "Lỗi khi lấy sản phẩm theo loại sản phẩm:",
+      error.response?.data || error.message
+    );
+    throw error;
+  }
+}
+
 export const createProduct = async (productData) => {
   try {
     const response = await axios.post(BASE_API_URL, {
