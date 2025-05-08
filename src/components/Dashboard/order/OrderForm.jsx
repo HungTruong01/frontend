@@ -46,7 +46,7 @@ const OrderForm = ({ mode = "add" }) => {
         setPartners(partnerRes.content || []);
         setOrderTypes(typeRes.content || []);
         setProducts(productRes.data?.content || []);
-      } catch (err) {
+      } catch {
         toast.error("Lỗi tải dữ liệu cơ bản");
       }
     };
@@ -72,7 +72,7 @@ const OrderForm = ({ mode = "add" }) => {
           id: detail.productId,
           product: product?.name || `SP #${detail.productId}`,
           quantity: detail.quantity,
-          exportPrice: detail.exportPrice ?? product?.exportPrice ?? 0,
+          exportPrice: detail.unit_price ?? 0,
         };
       });
       setOrderItems(items);

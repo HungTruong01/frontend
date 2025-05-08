@@ -7,8 +7,13 @@ import Navbar from "../../components/LandingPage/Navbar";
 import { default as News, default as NewsCard } from "../../components/LandingPage/NewsSection";
 import Overview from "../../components/LandingPage/Overview";
 import Service from "../../components/LandingPage/Service";
+import { useEffect } from "react";
 
 const Home = () => {
+  useEffect(() => {
+    document.title = "Công ty TNHH TMDV & XNK Minh Dương HP";
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
   return (
     <div className="flex flex-col min-h-screen">
       <Header />

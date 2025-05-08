@@ -21,7 +21,9 @@ const Navbar = () => {
     <nav className={`bg-white py-3 md:py-4 lg:py-6 sticky top-0 z-50 ${scrolled ? "shadow-md" : ""}`}>
       <div className="container mx-auto px-4 lg:px-6 flex justify-between items-center">
         <div className="flex-shrink-0 px-4">
-          <img src={logo} alt="Logo" className="h-10 md:h-12 lg:h-16 object-contain" />
+          <Link to="/">
+            <img src={logo} alt="Logo" className="h-10 md:h-12 lg:h-16 object-contain" />
+          </Link>
         </div>
 
         <div className="flex lg:hidden items-center">

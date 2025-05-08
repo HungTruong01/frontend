@@ -69,11 +69,6 @@ const NewsPage = () => {
             totalPages={totalPages}
           />
         </div>
-
-        {/* Recent Posts */}
-        <div className="mt-6 w-full">
-          <RecentPosts />
-        </div>
       </div>
     </div>
   );

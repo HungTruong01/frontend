@@ -5,7 +5,13 @@ import Banner from "../../components/LandingPage/Banner";
 import FeatureSection from "../../components/LandingPage/FeatureSection";
 import Contact from "../../components/LandingPage/Contact";
 import Footer from "../../components/LandingPage/Footer";
+import { useEffect } from "react";
 const About = () => {
+  useEffect(() => {
+    document.title = "Về chúng tôi - Minh Dương HP";
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
