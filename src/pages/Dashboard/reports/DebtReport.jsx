@@ -1,239 +1,289 @@
-import React, { useState } from "react";
-import { FaDownload, FaFilter } from "react-icons/fa";
+import React, { useState, useEffect } from "react";
+import { Chart as ChartJS, Title, Tooltip, Legend, ArcElement } from "chart.js";
+import { Pie } from "react-chartjs-2";
+import {
+  getMonthlyDebtReport,
+  getYearlyDebtReport,
+  getDebtReportByDateRange,
+} from "@/api/debtApi";
+import { toast } from "react-toastify";
+
+ChartJS.register(Title, Tooltip, Legend, ArcElement);
 
 const DebtReport = () => {
-  const [filter, setFilter] = useState("all"); // Bộ lọc: tất cả, nợ phải thu, nợ phải trả
-  const [timeRange, setTimeRange] = useState("2025"); // Phạm vi thời gian
+  const [reportType, setReportType] = useState("monthly");
+  const [year, setYear] = useState(new Date().getFullYear());
+  const [month, setMonth] = useState(new Date().getMonth() + 1);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [reportData, setReportData] = useState(null);
 
-  // Dữ liệu mẫu (có thể thay bằng dữ liệu từ API)
-  const sampleData = {
-    receivables: [
+  const fetchReportData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      if (reportType === "custom" && (!startDate || !endDate)) {
+        throw new Error("Vui lòng chọn ngày bắt đầu và kết thúc");
+      }
+
+      if (reportType === "custom" && new Date(startDate) > new Date(endDate)) {
+        throw new Error("Ngày bắt đầu phải trước ngày kết thúc");
+      }
+
+      let data;
+      if (reportType === "monthly") {
+        data = await getMonthlyDebtReport(year, month);
+      } else if (reportType === "yearly") {
+        data = await getYearlyDebtReport(year);
+      } else {
+        data = await getDebtReportByDateRange(startDate, endDate);
+      }
+
+      if (data.partners.length === 0 && data.totalInvoicePaid === 0) {
+        throw new Error(
+          "Không có dữ liệu công nợ hoặc hóa đơn thanh toán trong khoảng thời gian này"
+        );
+      }
+
+      setReportData(data);
+    } catch (error) {
+      const errorMessage =
+        error.message || "Không thể tải dữ liệu báo cáo công nợ";
+      setError(errorMessage);
+      toast.error(errorMessage);
+      setReportData(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchReportData();
+  }, [reportType, year, month, startDate, endDate]);
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(amount);
+  };
+
+  const pieChartData = {
+    labels: ["Công nợ", "Đã thanh toán (Đối tác)", "Đã thanh toán (Hóa đơn)"],
+    datasets: [
       {
-        id: 1,
-        partner: "Công ty A",
-        amount: 5000000,
-        dueDate: "15/04/2025",
-        status: "Chưa thanh toán",
-      },
-      {
-        id: 2,
-        partner: "Công ty B",
-        amount: 3000000,
-        dueDate: "20/03/2025",
-        status: "Quá hạn",
-      },
-    ],
-    payables: [
-      {
-        id: 3,
-        partner: "Nhà cung cấp X",
-        amount: 4000000,
-        dueDate: "10/04/2025",
-        status: "Chưa thanh toán",
-      },
-      {
-        id: 4,
-        partner: "Nhà cung cấp Y",
-        amount: 2000000,
-        dueDate: "25/04/2025",
-        status: "Chưa thanh toán",
+        data: [
+          reportData?.totalDebt || 0,
+          reportData?.totalPaid || 0,
+          reportData?.totalInvoicePaid || 0,
+        ],
+        backgroundColor: [
+          "rgba(239, 68, 68, 0.6)",
+          "rgba(34, 197, 94, 0.6)",
+          "rgba(59, 130, 246, 0.6)",
+        ],
+        borderColor: [
+          "rgb(239, 68, 68)",
+          "rgb(34, 197, 94)",
+          "rgb(59, 130, 246)",
+        ],
+        borderWidth: 1,
       },
     ],
   };
 
-  // Tính tổng công nợ
-  const totalReceivables = sampleData.receivables.reduce(
-    (sum, item) => sum + item.amount,
-    0
-  );
-  const totalPayables = sampleData.payables.reduce(
-    (sum, item) => sum + item.amount,
-    0
-  );
-  const netDebt = totalReceivables - totalPayables;
-
-  // Dữ liệu bảng theo bộ lọc
-  const filteredData =
-    filter === "all"
-      ? [...sampleData.receivables, ...sampleData.payables]
-      : filter === "receivables"
-      ? sampleData.receivables
-      : sampleData.payables;
-
-  // Hàm xử lý tải xuống báo cáo
-  const handleDownload = () => {
-    alert(
-      "Tải xuống báo cáo dưới dạng PDF hoặc Excel (chưa triển khai thực tế)."
-    );
+  const pieChartOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: "top",
+      },
+      title: {
+        display: true,
+        text:
+          reportType === "monthly"
+            ? `Tỷ lệ công nợ và thanh toán - Tháng ${month}/${year}`
+            : reportType === "yearly"
+            ? `Tỷ lệ công nợ và thanh toán - Năm ${year}`
+            : `Tỷ lệ công nợ và thanh toán từ ${startDate} đến ${endDate}`,
+      },
+      tooltip: {
+        callbacks: {
+          label: function (context) {
+            const label = context.label || "";
+            const value = context.raw || 0;
+            return `${label}: ${formatCurrency(value)}`;
+          },
+        },
+      },
+    },
   };
+
+  // Lọc khách hàng còn nợ (debt - paid > 0)
+  const remainingDebtPartners =
+    reportData?.partners?.filter(
+      (partner) => (partner.debt || 0) - (partner.paid || 0) > 0
+    ) || [];
 
   return (
-    <div className="bg-gray-100 min-h-screen p-6">
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        {/* Tiêu đề và nút điều khiển */}
+    <div className="w-full bg-white shadow-lg rounded-lg overflow-hidden">
+      <div className="p-6">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-semibold text-gray-800">
-            Báo cáo Công nợ
+          <h1 className="text-2xl font-bold text-gray-800">
+            Báo cáo công nợ khách hàng
           </h1>
-          <div className="flex items-center gap-4">
-            {/* Bộ lọc */}
-            <div className="flex items-center gap-2">
-              <FaFilter className="text-gray-600" />
-              <select
-                value={filter}
-                onChange={(e) => setFilter(e.target.value)}
-                className="px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-              >
-                <option value="all">Tất cả</option>
-                <option value="receivables">Nợ phải thu</option>
-                <option value="payables">Nợ phải trả</option>
-              </select>
-              <select
-                value={timeRange}
-                onChange={(e) => setTimeRange(e.target.value)}
-                className="px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-              >
-                <option value="2023">2023</option>
-                <option value="2024">2024</option>
-                <option value="2025">2025</option>
-              </select>
-            </div>
-            {/* Nút tải xuống */}
-            <button
-              onClick={handleDownload}
-              className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+          <div className="flex items-center space-x-4">
+            <select
+              value={reportType}
+              onChange={(e) => setReportType(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <FaDownload className="mr-2" />
-              Tải xuống
-            </button>
-          </div>
-        </div>
+              <option value="monthly">Theo tháng</option>
+              <option value="yearly">Theo năm</option>
+              <option value="custom">Tùy chỉnh</option>
+            </select>
 
-        {/* Tổng quan công nợ */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mbzana-6">
-          <div className="bg-white p-4 rounded-lg shadow-md">
-            <h3 className="text-sm font-medium text-gray-600">Nợ phải thu</h3>
-            <p className="text-2xl font-semibold text-green-600">
-              {totalReceivables.toLocaleString()} VND
-            </p>
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow-md">
-            <h3 className="text-sm font-medium text-gray-600">Nợ phải trả</h3>
-            <p className="text-2xl font-semibold text-red-600">
-              {totalPayables.toLocaleString()} VND
-            </p>
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow-md">
-            <h3 className="text-sm font-medium text-gray-600">Công nợ ròng</h3>
-            <p
-              className={`text-2xl font-semibold ${
-                netDebt >= 0 ? "text-green-600" : "text-red-600"
-              }`}
-            >
-              {netDebt.toLocaleString()} VND
-            </p>
-          </div>
-        </div>
-
-        {/* Bảng tổng hợp công nợ */}
-        <div className="mb-8 mt-4">
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="bg-gray-50 border-b border-gray-200">
-                  <th className="py-3 px-4 text-sm font-semibold text-gray-700 text-left">
-                    Loại công nợ
-                  </th>
-                  <th className="py-3 px-4 text-sm font-semibold text-gray-700 text-right">
-                    Số tiền (VND)
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="py-3 px-4 text-sm text-gray-600">
-                    Nợ phải thu
-                  </td>
-                  <td className="py-3 px-4 text-sm text-gray-600 text-right">
-                    {totalReceivables.toLocaleString()}
-                  </td>
-                </tr>
-                <tr className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="py-3 px-4 text-sm text-gray-600">
-                    Nợ phải trả
-                  </td>
-                  <td className="py-3 px-4 text-sm text-gray-600 text-right">
-                    {totalPayables.toLocaleString()}
-                  </td>
-                </tr>
-              </tbody>
-              <tfoot>
-                <tr className="bg-gray-100 font-semibold">
-                  <td className="py-3 px-4 text-sm text-gray-800">
-                    Công nợ ròng
-                  </td>
-                  <td className="py-3 px-4 text-sm text-gray-800 text-right">
-                    {netDebt.toLocaleString()}
-                  </td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-        </div>
-
-        {/* Bảng chi tiết công nợ */}
-        <div className="overflow-x-auto">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">
-            Chi tiết Công nợ
-          </h2>
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="py-3 px-4 text-sm font-semibold text-gray-700 text-left">
-                  Đối tác
-                </th>
-                <th className="py-3 px-4 text-sm font-semibold text-gray-700 text-right">
-                  Số tiền (VND)
-                </th>
-                <th className="py-3 px-4 text-sm font-semibold text-gray-700 text-left">
-                  Ngày đáo hạn
-                </th>
-                <th className="py-3 px-4 text-sm font-semibold text-gray-700 text-left">
-                  Trạng thái
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredData.map((debt) => (
-                <tr
-                  key={debt.id}
-                  className="border-b border-gray-100 hover:bg-gray-50"
+            {reportType === "monthly" && (
+              <>
+                <select
+                  value={year}
+                  onChange={(e) => setYear(Number(e.target.value))}
+                  className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
-                  <td className="py-3 px-4 text-sm text-gray-600">
-                    {debt.partner}
-                  </td>
-                  <td className="py-3 px-4 text-sm text-gray-600 text-right">
-                    {debt.amount.toLocaleString()}
-                  </td>
-                  <td className="py-3 px-4 text-sm text-gray-600">
-                    {debt.dueDate}
-                  </td>
-                  <td className="py-3 px-4 text-sm text-gray-600">
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs ${
-                        debt.status === "Chưa thanh toán"
-                          ? "bg-yellow-100 text-yellow-600"
-                          : "bg-red-100 text-red-600"
-                      }`}
-                    >
-                      {debt.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  {[...Array(5)].map((_, i) => (
+                    <option key={i} value={new Date().getFullYear() - i}>
+                      {new Date().getFullYear() - i}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={month}
+                  onChange={(e) => setMonth(Number(e.target.value))}
+                  className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  {[...Array(12)].map((_, i) => (
+                    <option key={i} value={i + 1}>
+                      Tháng {i + 1}
+                    </option>
+                  ))}
+                </select>
+              </>
+            )}
+
+            {reportType === "yearly" && (
+              <select
+                value={year}
+                onChange={(e) => setYear(Number(e.target.value))}
+                className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                {[...Array(5)].map((_, i) => (
+                  <option key={i} value={new Date().getFullYear() - i}>
+                    {new Date().getFullYear() - i}
+                  </option>
+                ))}
+              </select>
+            )}
+
+            {reportType === "custom" && (
+              <>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </>
+            )}
+          </div>
         </div>
+
+        {error && (
+          <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+            {error}
+          </div>
+        )}
+
+        {loading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          </div>
+        ) : reportData ? (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+                <h3 className="text-sm font-medium text-red-800">
+                  Tổng công nợ
+                </h3>
+                <p className="text-2xl font-bold text-red-600">
+                  {formatCurrency(reportData.totalDebt || 0)}
+                </p>
+              </div>
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                <h3 className="text-sm font-medium text-blue-800">
+                  Đã thanh toán (Hóa đơn)
+                </h3>
+                <p className="text-2xl font-bold text-blue-600">
+                  {formatCurrency(reportData.totalInvoicePaid || 0)}
+                </p>
+              </div>
+            </div>
+
+            <div className="h-[400px] flex items-center justify-center">
+              <Pie data={pieChartData} options={pieChartOptions} />
+            </div>
+
+            {remainingDebtPartners.length > 0 && (
+              <div className="bg-white rounded-lg shadow overflow-hidden">
+                <div className="px-6 py-4 border-b border-gray-200">
+                  <h3 className="text-lg font-medium text-gray-900">
+                    Chi tiết công nợ khách hàng còn nợ
+                  </h3>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Khách hàng
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Nợ còn lại
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {remainingDebtPartners.map((partner, index) => (
+                        <tr key={index}>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            {partner.name}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600">
+                            {formatCurrency(
+                              (partner.debt || 0) - (partner.paid || 0)
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="text-center py-4 text-gray-500">
+            Không có dữ liệu để hiển thị
+          </div>
+        )}
       </div>
     </div>
   );

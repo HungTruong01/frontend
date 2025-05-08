@@ -4,7 +4,10 @@ import { toast } from "react-toastify";
 import { getAllOrders, getOrderById } from "@/api/orderApi";
 import { getAllDeliveryStatus } from "@/api/deliveryStatusApi";
 import { getAllWarehouse } from "@/api/warehouseApi";
-import { getAllWarehouseTransactionType } from "@/api/warehouseTransactionTypeApi";
+import {
+  getAllWarehouseTransactionType,
+  getWarehouseTransactionTypeById,
+} from "@/api/warehouseTransactionTypeApi";
 import { getAllEmployees } from "@/api/employeeApi";
 import {
   createWarehouseTransaction,
@@ -12,6 +15,7 @@ import {
   getAllWarehouseTransaction,
 } from "@/api/warehouseTransactionApi";
 import { getProductById } from "@/api/productApi";
+import { partnerApi } from "@/api/partnerApi";
 
 const ToggleWarehouseTransaction = ({
   isOpen,
@@ -40,6 +44,7 @@ const ToggleWarehouseTransaction = ({
   const [warehouses, setWarehouses] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [orderProducts, setOrderProducts] = useState([]);
+  const [partner, setPartner] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [isInbound, setIsInbound] = useState(false);
@@ -145,17 +150,32 @@ const ToggleWarehouseTransaction = ({
         (t) => t.id === parseInt(transactionData.transactionTypeId)
       );
       if (selectedType) {
-        setIsInbound(
-          selectedType.code === "IMPORT" || selectedType.name?.includes("Nhập")
-        );
+        const newIsInbound =
+          selectedType.code === "IMPORT" || selectedType.name?.includes("Nhập");
+        setIsInbound(newIsInbound);
+
+        // Nếu là xuất kho và có orderId, cập nhật participant thành partner
+        if (!newIsInbound && transactionData.orderId) {
+          setTransactionData((prev) => ({
+            ...prev,
+            participant: partner || "",
+          }));
+        }
       }
     }
-  }, [transactionData.transactionTypeId, transactionTypes]);
+  }, [
+    transactionData.transactionTypeId,
+    transactionTypes,
+    transactionData.orderId,
+    partner,
+  ]);
 
   useEffect(() => {
     const fetchOrderDetails = async () => {
       if (!transactionData.orderId) {
         setOrderProducts([]);
+        setPartner("");
+        setTransactionData((prev) => ({ ...prev, participant: "" }));
         return;
       }
 
@@ -185,17 +205,36 @@ const ToggleWarehouseTransaction = ({
           })
         );
         setOrderProducts(products);
+        console.log(orderDetails);
+        // Lấy thông tin đối tác từ đơn hàng
+        let orderPartner = "Không xác định";
+        if (orderDetails.partnerId) {
+          const partnerData = await partnerApi.getPartnerById(
+            orderDetails.partnerId
+          );
+          orderPartner = partnerData?.name || "Không xác định";
+        }
+        setPartner(orderPartner);
+        // Nếu là xuất kho, tự động điền participant
+        if (!isInbound) {
+          setTransactionData((prev) => ({
+            ...prev,
+            participant: orderPartner,
+          }));
+        }
       } catch (err) {
-        toast.error("Không thể tải chi tiết đơn hàng");
+        toast.error("Không thể tải chi tiết đơn hàng hoặc đối tác");
         console.error("Lỗi khi lấy chi tiết đơn hàng:", err);
         setOrderProducts([]);
+        setPartner("");
+        setTransactionData((prev) => ({ ...prev, participant: "" }));
       } finally {
         setLoadingProducts(false);
       }
     };
 
     fetchOrderDetails();
-  }, [transactionData.orderId]);
+  }, [transactionData.orderId, isInbound]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -240,6 +279,7 @@ const ToggleWarehouseTransaction = ({
 
     try {
       setLoading(true);
+
       if (isEdit) {
         await updateWarehouseTransaction(transactionData.id, payload);
       } else {
@@ -249,8 +289,8 @@ const ToggleWarehouseTransaction = ({
       toast.success(isEdit ? "Cập nhật thành công" : "Thêm thành công");
       onClose();
     } catch (err) {
-      toast.error(isEdit ? "Cập nhật thất bại" : "Thêm thất bại");
       console.error("Lỗi khi gửi dữ liệu:", err);
+      toast.error(isEdit ? "Cập nhật thất bại" : "Thêm thất bại");
     } finally {
       setLoading(false);
     }
@@ -449,19 +489,13 @@ const ToggleWarehouseTransaction = ({
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Người nhận hàng
                     </label>
-                    <select
+                    <input
+                      type="text"
                       name="participant"
                       value={transactionData.participant}
-                      onChange={handleChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                    >
-                      <option value="">Chọn người nhận hàng</option>
-                      {employees.map((employee) => (
-                        <option key={employee.id} value={employee.fullname}>
-                          {employee.fullname || `Nhân viên ${employee.id}`}
-                        </option>
-                      ))}
-                    </select>
+                      readOnly
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed text-sm"
+                    />
                   </div>
                 )}
               </div>

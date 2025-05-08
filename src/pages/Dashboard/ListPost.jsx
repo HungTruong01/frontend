@@ -26,7 +26,9 @@ const ListPost = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [currentPost, setCurrentPost] = useState(null);
+  const [currentDetailPostId, setCurrentDetailPostId] = useState(null);
+  const [currentEditPost, setCurrentEditPost] = useState(null);
+
   const [isLoading, setIsLoading] = useState(false);
 
   const columns = [
@@ -55,7 +57,7 @@ const ListPost = () => {
 
   const filterPosts = () => {
     return posts.filter((post) =>
-      post.title.toLowerCase().includes(searchTitle.toLowerCase())
+      (post.title || "").toLowerCase().includes(searchTitle.toLowerCase())
     );
   };
 
@@ -70,6 +72,11 @@ const ListPost = () => {
 
   const handleAddNew = async (newPost) => {
     try {
+      if (!newPost.title || !newPost.content) {
+        toast.error("Tiêu đề và nội dung không được để trống");
+        return Promise.reject(new Error("Invalid post data"));
+      }
+
       const formData = new FormData();
 
       const postDto = {
@@ -84,6 +91,8 @@ const ListPost = () => {
 
       if (newPost.thumbnailFile) {
         formData.append("thumbnail", newPost.thumbnailFile);
+      } else if (newPost.thumbnail && typeof newPost.thumbnail === "object") {
+        formData.append("thumbnail", newPost.thumbnail);
       }
 
       await createPost(formData);
@@ -104,11 +113,13 @@ const ListPost = () => {
     try {
       setIsLoading(true);
       const detailPost = await getPostById(post.id);
-      setCurrentPost(detailPost);
+      if (!detailPost) {
+        throw new Error("Không nhận được dữ liệu từ API");
+      }
+      setCurrentEditPost(detailPost);
       setIsEditModalOpen(true);
     } catch (error) {
       toast.error("Không thể tải thông tin bài đăng");
-      console.error("Error fetching post details:", error);
     } finally {
       setIsLoading(false);
     }
@@ -120,34 +131,39 @@ const ListPost = () => {
       const postData = {
         title: updatedPost.title,
         content: updatedPost.content,
-        posted_at: updatedPost.posted_at || updatedPost.postedAt,
-        updated_at: new Date().toISOString(),
+        postedAt: updatedPost.postedAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        thumbnail: updatedPost.thumbnail || "", // Gửi URL nếu có
       };
-
+      console.log("Data to be sent:", {
+        postData,
+        hasThumbnailFile: !!updatedPost.thumbnailFile,
+      });
       formData.append(
         "post",
         new Blob([JSON.stringify(postData)], { type: "application/json" })
       );
-
       if (updatedPost.thumbnailFile) {
-        formData.append("thumbnail", updatedPost.thumbnailFile);
+        formData.append("thumbnail", updatedPost.thumbnailFile); // Gửi file nếu có
       }
-
       await updatePost(updatedPost.id, formData);
       toast.success("Cập nhật bài đăng thành công");
       await listPosts();
       setIsEditModalOpen(false);
-      setCurrentPost(null);
+      setCurrentEditPost(null);
       return Promise.resolve();
     } catch (error) {
+      console.error("Error updating post:", {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message,
+      });
       toast.error(
         error.response?.data?.message || "Không thể cập nhật bài đăng"
       );
-      console.error("Error updating post:", error.response?.data || error);
       return Promise.reject(error);
     }
   };
-
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
     try {
@@ -166,7 +182,7 @@ const ListPost = () => {
     try {
       setIsLoading(true);
       const detailPost = await getPostById(post.id);
-      setCurrentPost(detailPost);
+      setCurrentDetailPostId(post.id);
       setIsDetailModalOpen(true);
     } catch (error) {
       toast.error("Không thể tải chi tiết bài đăng");
@@ -206,25 +222,26 @@ const ListPost = () => {
         onClose={() => setIsAddModalOpen(false)}
         onSubmit={handleAddNew}
       />
-      {currentPost && (
+      {currentEditPost && isEditModalOpen && (
         <EditPostModal
           isOpen={isEditModalOpen}
           onClose={() => {
             setIsEditModalOpen(false);
-            setCurrentPost(null);
+            setCurrentEditPost(null);
           }}
           onSubmit={handleEditSubmit}
-          post={currentPost}
+          post={currentEditPost}
         />
       )}
-      {currentPost && (
+
+      {currentDetailPostId && isDetailModalOpen && (
         <PostDetailModal
           isOpen={isDetailModalOpen}
           onClose={() => {
             setIsDetailModalOpen(false);
-            setCurrentPost(null);
+            setCurrentDetailPostId(null);
           }}
-          postId={currentPost?.id}
+          postId={currentDetailPostId}
         />
       )}
 
