@@ -1,4 +1,7 @@
 @import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 @theme {
   --font-display: "Roboto", "sans-serif";
@@ -6,6 +9,7 @@
   --breakpoint-md: 768px;
   --breakpoint-lg: 976px;
 }
+
 @layer utilities {
   .animate-fadeIn {
     animation: fadeIn 0.3s ease-out;
@@ -51,5 +55,20 @@
 
   @variant xl {
     padding-inline: 120px;
+  }
+}
+
+@layer base {
+  h1 {
+    @apply text-4xl font-bold mb-4;
+  }
+  h2 {
+    @apply text-3xl font-bold mb-2;
+  }
+  h3 {
+    @apply text-2xl font-bold;
+  }
+  h4 {
+    @apply text-xl font-semibold;
   }
 }

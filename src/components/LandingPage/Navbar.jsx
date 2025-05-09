@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import React, { useEffect, useState } from "react";
 import { FaBars, FaTimes } from "react-icons/fa";
 import { Link } from "react-router-dom";
-import logo from "../../assets/logo.png";
+import { getConfig } from "@/api/configApi";
 
 const Navbar = () => {
   const [productDropdownOpen, setProductDropdownOpen] = useState(false);
@@ -11,11 +11,26 @@ const Navbar = () => {
   const [mobileProductOpen, setMobileProductOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
+  const [logo, setLogo] = useState(null);
+
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  useEffect(() => {
+    const fetchLogo = async () => {
+      try {
+        const logoData = await getConfig("logoUrl");
+        setLogo(logoData.value);
+      } catch (error) {
+        console.error("Error fetching logo:", error);
+      }
+    };
+    fetchLogo();
+  }
+  , []);
 
   return (
     <nav className={`bg-white py-3 md:py-4 lg:py-6 sticky top-0 z-50 ${scrolled ? "shadow-md" : ""}`}>

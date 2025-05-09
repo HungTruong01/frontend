@@ -5,8 +5,27 @@ import Banner from "../../components/LandingPage/Banner";
 import FeatureSection from "../../components/LandingPage/FeatureSection";
 import Contact from "../../components/LandingPage/Contact";
 import Footer from "../../components/LandingPage/Footer";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { getConfig } from "@/api/configApi";
+
 const About = () => {
+  const [aboutDescription, setAboutDescription] = useState(null);
+  const [aboutBackground, setAboutBackground] = useState(null);
+
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const description = await getConfig("aboutDescription");
+        const background = await getConfig("aboutBackground");
+        setAboutDescription(description?.value);
+        setAboutBackground(background?.value);
+      } catch (error) {
+        console.error("Error fetching config:", error);
+      }
+    };
+    fetchConfig();
+  }, []);
+
   useEffect(() => {
     document.title = "Về chúng tôi - Minh Dương HP";
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -17,15 +36,9 @@ const About = () => {
       <Header />
       <Navbar />
       <Banner
-        title={"Chúng tôi là ai"}
-        titleClassName={"text-3xl font-bold mb-4"}
-        description1={
-          "Công ty TNHH TMDV & XNK Minh Dương HP là 1 trong những đơn vị hàng đầu trong lĩnh vực Thương mại Xuất Nhập khẩu tại Việt Nam, cam kết mang đến giải pháp kinh doanh hiệu quả và bền vững cho các doanh nghiệp vừa và nhỏ"
-        }
-        description2={
-          "Với sứ mệnh kết nối thị trường Việt Nam với thương mại quốc tế, Minh Dương HP không ngừng đổi mới, ứng dụng công nghệ tiên tiến để tối ưu hóa chuỗi cung ứng và giao thương toàn cầu. Chúng tôi đặt con người làm trung tâm, lấy Uy tín - Chất lượng - Tốc độ - Hiệu quả làm giá trị cốt lõi, góp phần nâng tầm thương hiệu Việt trên bản đồ thương mại thế giới."
-        }
-        buttonHome={false}
+        description={aboutDescription}
+        background={aboutBackground}
+        button={true}
       />
       <FeatureSection />
       <Contact />

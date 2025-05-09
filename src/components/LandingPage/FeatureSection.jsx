@@ -2,6 +2,9 @@ import React from "react";
 import { IoDiamondOutline } from "react-icons/io5";
 import { FaDollarSign, FaPhoneAlt, FaUserShield } from "react-icons/fa";
 import image from "../../assets/img.jpg";
+import { getConfig } from "@/api/configApi";
+import { useState, useEffect } from "react";
+
 const features = [
   {
     icon: <IoDiamondOutline />,
@@ -30,17 +33,37 @@ const features = [
 ];
 
 const FeatureSection = () => {
+  const [aboutMotto, setAboutMoto] = useState(null);
+  const [aboutContent, setAboutContent] = useState(null);
+  const [aboutContentImageUrl, setaboutContentImageUrl] = useState(null);
+
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const motto = await getConfig("aboutMotto");
+        const content = await getConfig("aboutContent");
+        const background = await getConfig("aboutContentImageUrl");
+        setAboutMoto(motto?.value);
+        setAboutContent(content?.value);
+        setaboutContentImageUrl(background?.value);
+      } catch (error) {
+        console.error("Error fetching config:", error);
+      }
+    };
+    fetchConfig();
+  }, []);
+
   return (
     <div className="w-full bg-white py-16">
       <div className="container mx-auto w-[1248px] px-6">
         <div className="text-center mb-12">
-          <h2 className="font-bold text-2xl md:text-3xl mb-3 tracking-wide">
-            Phương châm kinh doanh của Minh Dương HP
-          </h2>
-          <p className="mt-4 font-semibold max-w-2xl mx-auto tracking-wide">
-            "Tài sản giá trị nhất của công ty bạn chính là cách mà khách hàng
-            biết đến nó."
-          </p>
+          {aboutMotto && (
+            <div
+              dangerouslySetInnerHTML={{
+                __html: aboutMotto,
+              }}
+            ></div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -59,46 +82,20 @@ const FeatureSection = () => {
             </div>
           ))}
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 justify-center items-center gap-6 px-4 py-8 mt-12">
-          <div className="text-justify ">
-            <h2 className="font-bold text-2xl mb-6">
-              “Nếu mọi người thích bạn, họ sẽ lắng nghe bạn, nhưng nếu họ tin
-              tưởng bạn, họ sẽ làm kinh doanh với bạn.”
-            </h2>
-            <div className="mb-6">
-              <h2 className="text-lg font-bold mb-4">I. Trách nhiệm :</h2>
-              <ol className="list-decimal pl-6 space-y-3">
-                <li>
-                  Với bản thân: Luôn cầu tiến, lắng nghe, chia sẻ và có ý chí
-                  vươn lên.
-                </li>
-                <li>
-                  Với khách hàng: Luôn phục vụ với tinh thần trách nhiệm cao và
-                  tận tâm nhất.
-                </li>
-                <li>
-                  Với tổ chức: Đặt trách nhiệm với tổ chức lên cao nhất trong
-                  suy nghĩ và hành động.
-                </li>
-              </ol>
-            </div>
-
-            <div className="mb-6">
-              <h2 className="text-lg font-bold mb-4">II. Tận tâm :</h2>
-              <p className="pl-2">
-                Luôn tận tâm với khách hàng - Đồng nghiệp - Tổ chức cả trong suy
-                nghĩ và hành động.
-              </p>
-            </div>
-
-            <div>
-              <h2 className="text-lg font-bold mb-4">III. Hướng đến :</h2>
-              <p>Một cuộc sống tươi đẹp, hạnh phúc và bền vững hơn</p>
-            </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 justify-center items-center gap-10 px-4 py-8 mt-12">
+          <div className="text-justify">
+            {aboutContent && (
+              <div
+                className="space-y-2 [&>p]:mb-2 [&>h1]:mb-4 [&>h2]:mb-4 [&>h3]:mb-2 leading-relaxed"
+                dangerouslySetInnerHTML={{
+                  __html: aboutContent,
+                }}
+              ></div>
+            )}
           </div>
-          <div className="h-2/3 bg-gray-100 rounded-lg overflow-hidden">
+          <div className="h-full bg-gray-100 rounded-lg overflow-hidden">
             <img
-              src={image}
+              src={ aboutContentImageUrl || image}
               alt="image"
               className="w-full h-full object-cover"
             />

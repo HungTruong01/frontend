@@ -7,9 +7,27 @@ import Navbar from "../../components/LandingPage/Navbar";
 import { default as News, default as NewsCard } from "../../components/LandingPage/NewsSection";
 import Overview from "../../components/LandingPage/Overview";
 import Service from "../../components/LandingPage/Service";
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
+import { getConfig } from "@/api/configApi";
 
 const Home = () => {
+  const [homeDescription, setHomeDescription] = useState(null);
+  const [homeBackground, setHomeBackground] = useState(null);
+
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const description = await getConfig("homeDescription");
+        const background = await getConfig("homeBackground");
+        setHomeDescription(description?.value);
+        setHomeBackground(background?.value);
+      } catch (error) {
+        console.error("Error fetching config:", error);
+      }
+    };
+    fetchConfig();
+  }, []);
+
   useEffect(() => {
     document.title = "Công ty TNHH TMDV & XNK Minh Dương HP";
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -19,15 +37,9 @@ const Home = () => {
       <Header />
       <Navbar />
       <Banner
-        title={"Chào mừng đến với TNHH Minh Dương HP"}
-        titleClassName={"text-5xl font-bold mb-6"}
-        description1={
-          "Đoàn kết là sức mạnh... khi có sự chung sức và hợp tác, ta có thể đạt được những điều tuyệt vời!"
-        }
-        description2={
-          "Nếu mọi người thích bạn, họ sẽ lắng nghe bạn, nhưng nếu họ tin tưởng bạn, họ sẽ làm kinh doanh với bạn."
-        }
-        buttonHome={true}
+        description={homeDescription}
+        background={homeBackground}
+        button={true}
       />
       <Overview />
       <Service />
