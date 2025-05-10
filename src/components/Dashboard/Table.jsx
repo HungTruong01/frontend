@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { GoPlus } from "react-icons/go";
-import { FaSearch, FaRegEdit, FaRegTrashAlt } from "react-icons/fa";
+import { FaSearch, FaEdit, FaRegTrashAlt } from "react-icons/fa";
 import AddModal from "./AddModal";
 import EditModal from "./EditModal";
 import DeleteModal from "./DeleteModal";
@@ -16,7 +16,7 @@ const Table = ({
   onDelete,
 }) => {
   const [filteredData, setFilteredData] = useState(data);
-  const [itemsPerPage, setItemsPerPage] = useState(7);
+  const [itemsPerPage] = useState(7);
   const [currentPage, setCurrentPage] = useState(1);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -208,7 +208,7 @@ const Table = ({
                           title="Sửa"
                           disabled={title === "Sản phẩm tồn kho"}
                         >
-                          <FaRegEdit className="h-5 w-5" />
+                          <FaEdit className="h-5 w-5" />
                         </button>
 
                         <button

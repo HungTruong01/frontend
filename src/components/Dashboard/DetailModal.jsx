@@ -1,55 +1,45 @@
 import React from "react";
+import { FaTimes } from "react-icons/fa";
 
-const DetailModal = ({
-  currentItem,
-  formattedColumns,
-  handleCloseDetailModal,
-}) => {
+const DetailModal = ({ isOpen, currentItem, handleCloseDetailModal }) => {
+  if (!isOpen || !currentItem) return null;
+
   return (
-    <div className="fixed inset-0 bg-black/20 backdrop-blur-lg flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">Chi tiết đơn hàng</h2>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl p-6 w-full max-w-2xl flex flex-col shadow-2xl">
+        <div className="flex justify-between items-center mb-6 border-b pb-3">
+          <h2 className="text-xl font-semibold text-gray-800">
+            Chi tiết cấu hình
+          </h2>
           <button
             onClick={handleCloseDetailModal}
-            className="text-gray-500 hover:text-gray-700"
+            className="text-gray-500 hover:text-gray-700 transition-colors duration-200"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
+            <FaTimes className="h-5 w-5" />
           </button>
         </div>
 
-        <div className="overflow-y-auto max-h-96">
-          <table className="w-full">
-            <tbody>
-              {formattedColumns.map((column) => (
-                <tr key={column.key} className="border-b">
-                  <td className="py-2 px-4 font-semibold w-1/3">
-                    {column.label}:
-                  </td>
-                  <td className="py-2 px-4">{currentItem[column.key]}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="space-y-4 text-gray-700">
+          <div className="grid grid-cols-3 gap-2 items-start">
+            <label className="col-span-1 font-medium text-base text-gray-600">
+              Tên:
+            </label>
+            <p className="col-span-2 text-base font-normal">{currentItem.field}</p>
+          </div>
+          <div className="grid grid-cols-3 gap-2 items-start">
+            <label className="col-span-1 font-medium text-base text-gray-600">
+              Nội dung:
+            </label>
+            <p className="col-span-2 text-base font-normal whitespace-pre-wrap max-h-[50vh] overflow-y-auto pr-2 text-justify">
+              {currentItem.value || "Không có thông tin"}
+            </p>
+          </div>
         </div>
 
-        <div className="mt-6 flex justify-end gap-2">
+        <div className="flex justify-end mt-6 pt-3">
           <button
             onClick={handleCloseDetailModal}
-            className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           >
             Đóng
           </button>

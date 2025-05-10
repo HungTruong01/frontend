@@ -72,3 +72,17 @@
     @apply text-xl font-semibold;
   }
 }
+
+.ql-container.ql-snow {
+  border: none !important;
+}
+
+.ql-toolbar.ql-snow {
+  border: none !important;
+  border-bottom: 1px solid #e5e7eb !important;
+}
+
+.ql-editor {
+  min-height: 250px;
+  padding: 1rem;
+}

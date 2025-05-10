@@ -5,7 +5,7 @@ import {
   deleteAccount,
   updateAccount,
 } from "@/api/accountApj";
-import { FaSearch, FaRegEdit, FaRegTrashAlt } from "react-icons/fa";
+import { FaSearch, FaEdit, FaRegTrashAlt } from "react-icons/fa";
 import { GoPlus } from "react-icons/go";
 import AddModal from "@/components/Dashboard/AddModal";
 import EditModal from "@/components/Dashboard/EditModal";
@@ -58,7 +58,6 @@ const AccountList = () => {
 
   const handleAddAccount = async (formData) => {
     try {
-      const roleId = parseInt(formData.roleId, 10);
       const accountData = {
         username: formData.username,
         password: formData.password,
@@ -108,6 +107,7 @@ const AccountList = () => {
 
   useEffect(() => {
     fetchAccounts(currentPage);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage]);
 
   const addAccountFields = [
@@ -234,7 +234,7 @@ const AccountList = () => {
               </tr>
             </thead>
             <tbody>
-              {accounts.map((row, index) => (
+              {accounts.map((row) => (
                 <tr
                   key={row.id}
                   className="border-b border-gray-300 hover:bg-gray-100 transition-colors"
@@ -260,7 +260,7 @@ const AccountList = () => {
                         className="text-blue-500 hover:text-blue-700 transition-colors"
                         title="Sửa"
                       >
-                        <FaRegEdit className="h-5 w-5" />
+                        <FaEdit className="h-5 w-5" />
                       </button>
                       <button
                         onClick={() => handleDeleteAccount(row.id)}

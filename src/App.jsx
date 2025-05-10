@@ -47,6 +47,7 @@ import DeliveryStatus from "./pages/Dashboard/categories/DeliveryStatus";
 import OrderForm from "./components/Dashboard/order/OrderForm";
 import ListInvoice from "./pages/Dashboard/bussiness/ListInvoice";
 import { isUserLoggedIn } from "./api/authService";
+import Config from "./pages/Dashboard/system/Config";
 
 // Component để bảo vệ các route
 function AuthenticatedRoute({ children }) {
@@ -83,6 +84,7 @@ const App = () => {
           <Route index element={<OverviewDashboard />} />
           <Route path="system/account" element={<AccountList />} />
           <Route path="system/role" element={<RoleUser />} />
+          <Route path="system/config" element={<Config />} />
           <Route path="categories/list-employees" element={<ListEmployees />} />
           <Route path="categories/type-products" element={<TypeProduct />} />
           <Route path="categories/unit" element={<UnitPage />} />

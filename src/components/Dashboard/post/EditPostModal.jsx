@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { FaTimes, FaUpload, FaSpinner } from "react-icons/fa";
 import { useQuill } from "react-quilljs";
 import "quill/dist/quill.snow.css";
+// eslint-disable-next-line no-unused-vars
 import { uploadImageToCloudinary } from "@/utils/uploadFile";
 import sanitizeHtml from "sanitize-html";
 
@@ -28,7 +29,6 @@ const EditPostModal = ({ isOpen, onClose, onSubmit, post }) => {
       "underline",
       "strike",
       "list",
-      "bullet",
       "indent",
       "link",
       "image",
@@ -245,6 +245,7 @@ const EditPostModal = ({ isOpen, onClose, onSubmit, post }) => {
 
     onSubmit(updatedPost)
       .then(() => {
+        // eslint-disable-next-line no-undef
         toast.success("Cập nhật bài đăng thành công");
       })
       .catch((error) => {

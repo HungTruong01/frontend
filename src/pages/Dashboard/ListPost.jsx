@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import {
   FaSearch,
   FaEye,
-  FaRegEdit,
+  FaEdit,
   FaRegTrashAlt,
   FaPlus,
 } from "react-icons/fa";
@@ -337,7 +337,7 @@ const ListPost = () => {
                           title="Sửa"
                           disabled={isLoading}
                         >
-                          <FaRegEdit className="h-5 w-5" />
+                          <FaEdit className="h-5 w-5" />
                         </button>
                         <button
                           onClick={() => handleDelete(post)}

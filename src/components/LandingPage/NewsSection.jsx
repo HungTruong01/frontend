@@ -48,25 +48,25 @@ const News = () => {
   }, []);
 
   return (
-    <div className="w-full h-[660px] bg-white flex items-center">
-      <div className="container mx-auto max-w-[1248px] px-6">
-        <div className="flex justify-between tracking-wider mb-6">
-          { newsContent && (
+    <div className="w-full min-h-[660px] bg-white py-12 flex items-center">
+      <div className="container mx-auto max-w-[1248px] px-4 sm:px-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center tracking-wider mb-6 gap-4">
+          {newsContent && (
             <div
-                dangerouslySetInnerHTML={{
-                  __html: newsContent,
-                }}
+              dangerouslySetInnerHTML={{
+                __html: newsContent,
+              }}
             ></div>
           )}
           <button
             onClick={() => navigate("/news")}
-            className="px-6 py-2 rounded-2xl cursor-pointer border border-gray-500 text-black font-semibold hover:text-blue-600 transition duration-300"
+            className="px-4 sm:px-6 py-4 rounded-2xl cursor-pointer border border-gray-500 text-black font-semibold hover:text-blue-600 transition duration-300 whitespace-nowrap"
           >
             Xem Tất Cả
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {posts.map((item) => (
             <NewsCard key={item.id} {...item} />
           ))}
