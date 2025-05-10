@@ -17,13 +17,9 @@ const OrderForm = ({ mode = "add" }) => {
   const navigate = useNavigate();
   const { id } = useParams();
   const [orderItems, setOrderItems] = useState([]);
-
-  console.log(orderItems);
-
   const [partners, setPartners] = useState([]);
   const [orderTypes, setOrderTypes] = useState([]);
   const [products, setProducts] = useState([]);
-
   const [selectedPartner, setSelectedPartner] = useState("");
   const [selectedOrderType, setSelectedOrderType] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
@@ -72,6 +68,7 @@ const OrderForm = ({ mode = "add" }) => {
           id: detail.productId,
           product: product?.name || `SP #${detail.productId}`,
           quantity: detail.quantity,
+          unit_price: detail.unit_price,
           exportPrice: detail.exportPrice ?? product?.exportPrice ?? 0,
         };
       });
@@ -82,9 +79,8 @@ const OrderForm = ({ mode = "add" }) => {
       setIsLoading(false);
     }
   };
-
   const calculateTotal = () =>
-    orderItems.reduce((sum, i) => sum + i.quantity * i.exportPrice, 0);
+    orderItems.reduce((sum, i) => sum + i.quantity * i.unit_price, 0);
   const calculateTotalProfit = () =>
     orderItems.reduce((sum, i) => sum + i.profit, 0);
 
@@ -97,8 +93,6 @@ const OrderForm = ({ mode = "add" }) => {
     const totalMoney = calculateTotal();
     const totalProfit = calculateTotalProfit();
 
-    console.log(totalProfit);
-
     try {
       if (isEdit) {
         if (selectedPartner !== originalPartner) {
@@ -110,7 +104,7 @@ const OrderForm = ({ mode = "add" }) => {
           orderItems.map((i) => ({
             productId: i.id,
             quantity: i.quantity,
-            exportPrice: i.exportPrice,
+            unit_price: i.exportPrice,
           }))
         );
         await updateOrder(id, {
@@ -134,6 +128,7 @@ const OrderForm = ({ mode = "add" }) => {
             orderId: res.id,
             productId: i.id,
             quantity: i.quantity,
+            unit_price: i.exportPrice,
           }))
         );
         toast.success("Đã tạo đơn hàng thành công");
@@ -161,18 +156,19 @@ const OrderForm = ({ mode = "add" }) => {
       toast.info("Sản phẩm đã tồn tại");
       return;
     }
-    setOrderItems([
-      ...orderItems,
-      {
-        id: product.id,
-        product: product.name,
-        quantity: 1,
-        price: product.price,
-        profit: product.exportPrice - product.importPrice,
-        exportPrice: product.exportPrice,
-        importPrice: product.importPrice,
-      },
-    ]);
+    const exportPrice = product.exportPrice ?? 0;
+    const newItem = {
+      id: product.id,
+      product: product.name,
+      quantity: 1,
+      price: product.price,
+      profit: (exportPrice - (product.importPrice ?? 0)) * 1,
+      exportPrice: exportPrice,
+      unit_price: exportPrice,
+      importPrice: product.importPrice ?? 0,
+    };
+    console.log("New order item:", newItem);
+    setOrderItems([...orderItems, newItem]);
     setIsProductModalOpen(false);
   };
 
@@ -339,12 +335,18 @@ const OrderForm = ({ mode = "add" }) => {
                             />
                           </td>
                           <td className="px-6 py-4 text-blue-600 text-sm">
-                            {item?.exportPrice?.toLocaleString()}
+                            {isEdit
+                              ? item?.unit_price?.toLocaleString()
+                              : item?.exportPrice?.toLocaleString()}
                           </td>
                           <td className="px-6 py-4 text-blue-600 text-sm">
-                            {(
-                              item.exportPrice * item.quantity
-                            ).toLocaleString()}
+                            {isEdit
+                              ? (
+                                  item.unit_price * item.quantity
+                                ).toLocaleString()
+                              : (
+                                  item.exportPrice * item.quantity
+                                ).toLocaleString()}
                           </td>
                           <td className="px-6 py-4 text-right">
                             <button

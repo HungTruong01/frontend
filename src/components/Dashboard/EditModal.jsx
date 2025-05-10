@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { toast } from "react-toastify";
 
 const EditModal = ({
   isOpen,
@@ -23,6 +24,21 @@ const EditModal = ({
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    // Kiểm tra các trường bắt buộc
+    for (const field of fields) {
+      const key = field.id || field.key;
+      // Bỏ qua trường id
+      if (key === "id") continue;
+
+      // Kiểm tra trường bắt buộc
+      if (field.required && (!formData[key] || !formData[key].trim())) {
+        toast.error(`Trường ${field.label} không được để trống`);
+        return;
+      }
+    }
+
+    // Gửi dữ liệu nếu hợp lệ
     onSubmit(formData);
     onClose();
   };
@@ -41,6 +57,7 @@ const EditModal = ({
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
                 {field.label}
+                {field.required && <span className="text-red-500">*</span>}
               </label>
               {field.type === "select" ? (
                 <select
@@ -49,8 +66,9 @@ const EditModal = ({
                   value={formData[field.id || field.key] || ""}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required={field.required}
                 >
-                  {field.options.map((option) => (
+                  {field.options?.map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.label}
                     </option>
@@ -73,8 +91,9 @@ const EditModal = ({
                   value={formData[field.id || field.key] || ""}
                   onChange={handleChange}
                   disabled={field.disabled}
-                  placeholder={field.placeholder || ""}
+                  placeholder={field.placeholder || `Nhập ${field.label}`}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500"
+                  required={field.required}
                 />
               )}
             </div>

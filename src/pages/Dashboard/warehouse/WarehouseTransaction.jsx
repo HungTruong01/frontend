@@ -43,8 +43,8 @@ const WarehouseTransaction = () => {
 
   const fetchWarehouseTransaction = async () => {
     try {
-      const response = await getAllWarehouseTransaction(0, 100, "id", "asc");
-      const transactions = response.content || [];
+      const response = await getAllWarehouseTransaction(0, 100, "id", "desc");
+      const transactions = response.content;
 
       const enrichedTransactions = await Promise.all(
         transactions.map(async (tran) => {

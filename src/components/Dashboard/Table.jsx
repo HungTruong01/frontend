@@ -96,7 +96,10 @@ const Table = ({
           }}
           fields={columns.map((col) => ({
             id: col.key,
+            key: col.key,
             label: col.label,
+            required: col.required || false, // Sử dụng required từ columns
+            type: col.type || "text",
           }))}
           initialData={currentEditItem}
           title={`Chỉnh sửa ${subtitle}`}
@@ -104,6 +107,7 @@ const Table = ({
             if (onEdit) {
               onEdit(editedData);
             }
+            setIsEditModalOpen(false);
           }}
         />
       )}
@@ -205,13 +209,13 @@ const Table = ({
                               ? "opacity-50 cursor-not-allowed"
                               : ""
                           }`}
-                          title="Sửa"
+                          title="Chỉnh sửa"
                           disabled={title === "Sản phẩm tồn kho"}
                         >
                           <FaRegEdit className="h-5 w-5" />
                         </button>
 
-                        <button
+                        {/* <button
                           onClick={() => handleDeleteClick(row)}
                           className={`text-red-500 hover:text-red-700 transition-colors ${
                             title === "Sản phẩm tồn kho"
@@ -227,7 +231,7 @@ const Table = ({
                           }
                         >
                           <FaRegTrashAlt className="h-5 w-5" />
-                        </button>
+                        </button> */}
                       </div>
                     </td>
                   </tr>

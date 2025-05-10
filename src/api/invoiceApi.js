@@ -2,7 +2,6 @@ import axios from "axios";
 import { getOrderById } from "./orderApi";
 import { partnerApi } from "./partnerApi";
 import { getProductById } from "./productApi";
-const BASE_REST_API_URL = "http://localhost:3000/api/invoices";
 
 const axiosInstance = axios.create({
   baseURL: "http://localhost:3000/api",
@@ -14,9 +13,17 @@ const axiosInstance = axios.create({
   withCredentials: true,
 });
 
-export const getAllInvoices = async () => {
+export const getAllInvoices = async (
+  pageNo = 0,
+  pageSize = 1000,
+  sortBy = "id",
+  sortDir = "asc"
+) => {
   try {
-    const response = await axiosInstance.get("/invoices");
+    const response = await axiosInstance.get(
+      `/invoices?pageNo=${pageNo}&pageSize=${pageSize}&sortBy=${sortBy}&sortDir=${sortDir}`
+    );
+    console.log("Fetched invoices:", response.data.content?.length || 0);
     return response.data;
   } catch (error) {
     console.error("Error fetching invoices:", error);

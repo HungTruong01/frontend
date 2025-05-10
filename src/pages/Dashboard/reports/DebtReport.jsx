@@ -36,13 +36,21 @@ const DebtReport = () => {
       let data;
       if (reportType === "monthly") {
         data = await getMonthlyDebtReport(year, month);
+        console.log("Monthly report data:", data);
       } else if (reportType === "yearly") {
         data = await getYearlyDebtReport(year);
+        console.log("Yearly report data:", data);
       } else {
         data = await getDebtReportByDateRange(startDate, endDate);
+        console.log("Custom date range report data:", data);
       }
 
-      if (data.partners.length === 0 && data.totalInvoicePaid === 0) {
+      // Kiểm tra nếu không có dữ liệu
+      if (
+        (!data.partners || data.partners.length === 0) &&
+        data.totalDebt === 0 &&
+        data.totalInvoicePaid === 0
+      ) {
         throw new Error(
           "Không có dữ liệu công nợ hoặc hóa đơn thanh toán trong khoảng thời gian này"
         );
@@ -65,29 +73,22 @@ const DebtReport = () => {
   }, [reportType, year, month, startDate, endDate]);
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(amount);
+    return `${new Intl.NumberFormat("vi-VN").format(amount)}`;
   };
 
   const pieChartData = {
-    labels: ["Công nợ", "Đã thanh toán (Đối tác)", "Đã thanh toán (Hóa đơn)"],
+    labels: ["Công nợ", "Đã thanh toán (Hóa đơn)"],
     datasets: [
       {
-        data: [
-          reportData?.totalDebt || 0,
-          reportData?.totalPaid || 0,
-          reportData?.totalInvoicePaid || 0,
-        ],
+        data: [reportData?.totalDebt || 0, reportData?.totalInvoicePaid || 0],
         backgroundColor: [
           "rgba(239, 68, 68, 0.6)",
-          "rgba(34, 197, 94, 0.6)",
+          // "rgba(34, 197, 94, 0.6)",
           "rgba(59, 130, 246, 0.6)",
         ],
         borderColor: [
           "rgb(239, 68, 68)",
-          "rgb(34, 197, 94)",
+          // "rgb(34, 197, 94)",
           "rgb(59, 130, 246)",
         ],
         borderWidth: 1,
@@ -95,6 +96,7 @@ const DebtReport = () => {
     ],
   };
 
+  // Thiết lập tùy chọn cho biểu đồ tròn
   const pieChartOptions = {
     responsive: true,
     plugins: {
@@ -133,7 +135,7 @@ const DebtReport = () => {
       <div className="p-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-gray-800">
-            Báo cáo công nợ khách hàng
+            Báo cáo công nợ đối tác
           </h1>
           <div className="flex items-center space-x-4">
             <select
@@ -245,7 +247,7 @@ const DebtReport = () => {
               <div className="bg-white rounded-lg shadow overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-200">
                   <h3 className="text-lg font-medium text-gray-900">
-                    Chi tiết công nợ khách hàng còn nợ
+                    Chi tiết công nợ đối tác còn nợ
                   </h3>
                 </div>
                 <div className="overflow-x-auto">
@@ -253,7 +255,10 @@ const DebtReport = () => {
                     <thead className="bg-gray-50">
                       <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Khách hàng
+                          Đối tác
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Loại đối tác
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Nợ còn lại
@@ -265,6 +270,9 @@ const DebtReport = () => {
                         <tr key={index}>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                             {partner.name}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            {partner.partnerTypeName}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600">
                             {formatCurrency(

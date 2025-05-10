@@ -18,8 +18,8 @@ const TypeProduct = () => {
     },
   ];
   const typeProductColumns = [
-    { key: "id", label: "ID" },
-    { key: "name", label: "Tên loại sản phẩm" },
+    { key: "id", label: "ID", required: false },
+    { key: "name", label: "Tên loại sản phẩm", required: true },
   ];
 
   const fetchTypeProduct = async () => {

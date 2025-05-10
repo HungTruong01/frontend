@@ -69,12 +69,10 @@ const ToggleWarehouseTransaction = ({
         ]);
 
         // Lấy danh sách orderId từ các giao dịch kho hiện có
-        const usedOrderIds = (transactionRes.content || []).map(
-          (tran) => tran.orderId
-        );
+        const usedOrderIds = transactionRes.content.map((tran) => tran.orderId);
 
         // Lọc đơn hàng cho chế độ thêm mới: Loại bỏ đơn hàng đã có giao dịch kho hoặc đã hoàn thành
-        let filteredOrders = (orderRes.content || []).filter((order) => {
+        let filteredOrders = orderRes.content.filter((order) => {
           const status = statusRes.content.find((s) => s.id === order.statusId);
           const isCompleted = status?.name
             ?.toLowerCase()
@@ -285,6 +283,7 @@ const ToggleWarehouseTransaction = ({
       } else {
         await createWarehouseTransaction(payload);
       }
+      console.log(payload);
       await onSubmit(payload);
       toast.success(isEdit ? "Cập nhật thành công" : "Thêm thành công");
       onClose();

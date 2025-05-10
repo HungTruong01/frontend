@@ -18,8 +18,8 @@ const TypeTransactionWareHouse = () => {
     },
   ];
   const columns = [
-    { key: "id", label: "ID" },
-    { key: "name", label: "Loại giao dịch kho" },
+    { key: "id", label: "ID", required: false },
+    { key: "name", label: "Loại giao dịch kho", required: true },
   ];
   const fetchData = async () => {
     try {

@@ -232,7 +232,7 @@ const ListProduct = () => {
           <h1 className="text-2xl font-bold text-gray-800">
             Danh sách sản phẩm
           </h1>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-4 mr-2">
             <div className="flex items-center space-x-2 cursor-pointer">
               <span>Ít</span>
               <div

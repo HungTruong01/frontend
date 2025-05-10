@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FaTimes } from "react-icons/fa";
+import { toast } from "react-toastify";
 
 const AddModal = ({ isOpen, onClose, onSubmit, fields, title }) => {
   const [formData, setFormData] = useState({});
@@ -24,6 +25,18 @@ const AddModal = ({ isOpen, onClose, onSubmit, fields, title }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    // Kiểm tra tất cả các trường bắt buộc
+    for (const field of fields) {
+      if (
+        field.required &&
+        (!formData[field.key] || !formData[field.key].toString().trim())
+      ) {
+        toast.error(`Trường ${field.label} không được để trống`);
+        return;
+      }
+    }
+
     onSubmit(formData);
     onClose();
   };
@@ -31,7 +44,7 @@ const AddModal = ({ isOpen, onClose, onSubmit, fields, title }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/20 backdrop-blur-lg z-50 flex justify-center items-center">
+    <div className="fixed inset-0 bg-black/50 z-50 flex justify-center items-center">
       <div
         className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4"
         onClick={(e) => e.stopPropagation()}
@@ -65,7 +78,7 @@ const AddModal = ({ isOpen, onClose, onSubmit, fields, title }) => {
                   required={field.required}
                 >
                   <option value="">{`Chọn ${field.label}`}</option>
-                  {field.options.map((option) => (
+                  {field.options?.map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.label}
                     </option>

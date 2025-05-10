@@ -168,7 +168,7 @@ const SideNav = ({ menuItems, onToggle }) => {
             title={isCollapsed ? "Logout" : ""}
           >
             <MdLogout className="h-6 w-6" />
-            {!isCollapsed && <a className="text-base font-medium">Logout</a>}
+            {!isCollapsed && <a className="text-base font-medium">Đăng xuất</a>}
           </button>
         </div>
       </aside>
