@@ -42,7 +42,7 @@ const OrderForm = ({ mode = "add" }) => {
         setPartners(partnerRes.content || []);
         setOrderTypes(typeRes.content || []);
         setProducts(productRes.data?.content || []);
-      } catch (err) {
+      } catch {
         toast.error("Lỗi tải dữ liệu cơ bản");
       }
     };

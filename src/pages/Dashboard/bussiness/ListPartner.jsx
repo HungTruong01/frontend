@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FaSearch, FaEye, FaRegEdit, FaPlus } from "react-icons/fa";
+import { FaSearch, FaEye, FaEdit, FaPlus } from "react-icons/fa";
 import { partnerApi } from "@/api/partnerApi";
 import PartnerDetailModal from "@/components/Dashboard/partner/PartnerDetailModal";
 import TogglePartnerModal from "@/components/Dashboard/partner/TogglePartnerModal";
@@ -257,7 +257,7 @@ const ListPartner = () => {
                         className="text-blue-500 hover:text-blue-700 transition-colors"
                         title="Sửa"
                       >
-                        <FaRegEdit className="h-5 w-5" />
+                        <FaEdit className="h-5 w-5" />
                       </button>
                       {/* <button
                         onClick={() => handleDelete(partner)}

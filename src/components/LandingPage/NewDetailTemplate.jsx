@@ -21,6 +21,7 @@ const NewDetailTemplate = () => {
         const res = await getPostById(slug);
         setPost(res);
         setShouldScroll(true); // Chỉ cuộn lên đầu khi bài viết chi tiết được tải
+        document.title = res.title;
       } catch (error) {
         console.error("Không thể tải bài viết:", error);
         setPost({
@@ -39,37 +40,35 @@ const NewDetailTemplate = () => {
   useEffect(() => {
     const fetchRelated = async () => {
       try {
+        // Tăng số lượng bài viết cần lấy để đảm bảo đủ sau khi lọc
         const response = await getAllPosts(
           currentPage - 1,
-          itemsPerPage,
+          itemsPerPage + 1, // Tăng lên 1 để bù cho bài viết có thể bị lọc
           "postedAt",
           "desc"
         );
-
-        const filteredPosts = response.data.content.filter(
-          (item) => item.id !== parseInt(slug)
-        );
-
-        const mappedPosts = filteredPosts.map((item) => ({
+  
+        // Lọc và map data
+        const filteredPosts = response.data.content
+          .filter(item => item.id !== parseInt(slug))
+          .slice(0, itemsPerPage); // Chỉ lấy đúng số lượng cần hiển thị
+  
+        const mappedPosts = filteredPosts.map(item => ({
           id: item.id,
           title: item.title,
-          excerpt:
-            item.content
-              .replace(/<[^>]+>/g, "")
-              .slice(0, 100)
-              .trim() + "...",
+          excerpt: item.content.replace(/<[^>]+>/g, "").slice(0, 100).trim() + "...",
           date: new Date(item.postedAt).toLocaleDateString("vi-VN"),
           image: `/public/${item.thumbnail}`,
           link: `/news/${item.id}`,
         }));
-
+  
         setRelatedPosts(mappedPosts);
         setTotalPages(response.data.totalPages);
       } catch (error) {
         console.error("Không thể tải bài viết liên quan:", error);
       }
     };
-
+  
     fetchRelated();
   }, [currentPage, slug]);
 
@@ -84,8 +83,8 @@ const NewDetailTemplate = () => {
   if (!post) return <div className="text-center py-10">Đang tải...</div>;
 
   return (
-    <div className="min-h-screen bg-white-100 py-12">
-      <div className="max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg">
+    <div className="min-h-screen bg-white-100 mb-20">
+      <div className="max-w-6xl mx-auto p-6 bg-white shadow-lg rounded-lg">
         <img
           src={`/public/${post.thumbnail}`}
           alt={post.title}

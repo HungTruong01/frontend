@@ -1,40 +1,65 @@
 import React from "react";
-import { FaFacebookF, FaTiktok, FaWhatsapp, FaYoutube } from "react-icons/fa";
+import { FaFacebookF, FaTiktok, FaYoutube } from "react-icons/fa";
+import { useState, useEffect } from "react";
+import { getConfig } from "@/api/configApi";
 
 const Footer = () => {
+  const [director, setDirector] = useState(null);
+  const [footerCopyright, setFooterCopyright] = useState(null);
+
+  const fetchFooterContent = async () => {
+    try {
+      const director = await getConfig("director");
+      const footerCopyright = await getConfig("footerCopyright");
+
+      setDirector(director?.value);
+      setFooterCopyright(footerCopyright?.value);
+    } catch (error) {
+      console.error("Error fetching footer content:", error);
+    }
+  }
+
+  useEffect(() => {
+    fetchFooterContent();
+  }, []);
+
   return (
     <footer className="w-full bg-[#027DC3] text-white py-12">
-      <div className="container mx-auto w-[1248px] px-6 ">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+      <div className="container mx-auto w-[1000px] px-6 ">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 justify-between">
           <div>
             <h3 className="text-lg font-bold mb-6 uppercase tracking-wide ">
               THÔNG TIN CÔNG TY
             </h3>
             <ul className="space-y-3">
               <li>
-                <a href="#" className="hover:text-orange-400 inline-block">
+                { director && (
+                  <div
+                      dangerouslySetInnerHTML={{
+                        __html: director,
+                      }}
+                  ></div>
+                )}
+              </li>
+              <li>
+                <p className="inline-block">
                   Giới thiệu về Minh Dương HP
-                </a>
+                </p>
               </li>
               <li>
-                <a href="#" className="hover:text-orange-400 inline-block">
+                <p className="inline-block">
                   Văn phòng đại diện
-                </a>
+                </p>
               </li>
               <li>
-                <a href="#" className="hover:text-orange-400 inline-block">
+                <p className="inline-block">
                   Tuyển dụng
-                </a>
+                </p>
               </li>
               <li>
-                <a href="#" className="hover:text-orange-400 inline-block">
-                  Hoạt động & Văn hoá
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-orange-400 inline-block">
+                <p className="inline-block">
                   Liên hệ & Góp Ý
-                </a>
+                </p>
               </li>
             </ul>
           </div>
@@ -45,51 +70,38 @@ const Footer = () => {
             </h3>
             <ul className="space-y-3">
               <li>
-                <a href="#" className="hover:text-orange-400 inline-block">
+                <p className="inline-block">
                   Quản lý đơn hàng Online
-                </a>
+                </p>
               </li>
               <li>
-                <a href="#" className="hover:text-orange-400 inline-block">
+                <p className="inline-block">
                   Hướng dẫn mua hàng
-                </a>
+                </p>
               </li>
               <li>
-                <a href="#" className="hover:text-orange-400 inline-block">
+                <p className="inline-block">
                   Quy trình nhập hàng
-                </a>
+                </p>
               </li>
               <li>
-                <a href="#" className="hover:text-orange-400 inline-block">
+                <p className="inline-block">
                   Cam kết dịch vụ
-                </a>
+                </p>
               </li>
               <li>
-                <a href="#" className="hover:text-orange-400 inline-block">
+                <p className="inline-block">
                   Chính sách bảo hành
-                </a>
+                </p>
               </li>
             </ul>
           </div>
 
           <div>
             <h3 className="text-lg font-bold mb-6 uppercase tracking-wide">
-              TỔNG ĐÀI HỖ TRỢ
-            </h3>
-            <p className="mb-4 text-lg">0936886234</p>
-
-            <p className="font-medium">Zalo/SMS:</p>
-            <p className="mb-4 text-lg">0938 11 6869 - 0915 611 366</p>
-
-            <p className="font-medium">Đổi hàng, bảo hành, khiếu nại :</p>
-            <p className="text-lg">0915 611 366 - 1900 2525 89</p>
-          </div>
-
-          <div>
-            <h3 className="text-lg font-bold mb-6 uppercase tracking-wide">
               LIÊN HỆ VỚI CHÚNG TÔI
             </h3>
-            <div className="flex space-x-4 mb-8">
+            <div className="flex space-x-4 mb-4">
               <a
                 href="#"
                 className="bg-blue-800 hover:bg-blue-700 w-10 h-10 rounded-full flex items-center justify-center transition-colors"
@@ -108,12 +120,15 @@ const Footer = () => {
               >
                 <FaTiktok size={18} />
               </a>
-              <a
-                href="#"
-                className="bg-green-500 hover:bg-green-400 w-10 h-10 rounded-full flex items-center justify-center transition-colors"
-              >
-                <FaWhatsapp size={18} />
-              </a>
+            </div>
+            <div className="text-justify leading-relaxed">
+              { footerCopyright && (
+                    <div
+                        dangerouslySetInnerHTML={{
+                          __html: footerCopyright,
+                        }}
+                    ></div>
+                  )}
             </div>
           </div>
         </div>

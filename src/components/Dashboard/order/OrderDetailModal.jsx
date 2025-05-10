@@ -60,7 +60,7 @@ const OrderDetailModal = ({ isOpen, onClose, orderData, onOrderUpdated }) => {
         return {
           ...detail,
           productName: product?.name || "Không xác định",
-          unitPrice: detail.unit_price || 0,
+          unitPrice: detail?.unit_price || 0,
         };
       });
       setOrderItems(enhancedItems);

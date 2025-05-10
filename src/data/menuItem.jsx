@@ -8,7 +8,6 @@ import {
   FiPackage,
   FiRepeat,
   FiDollarSign,
-  FiCreditCard,
   FiArchive,
 } from "react-icons/fi";
 import {
@@ -31,6 +30,7 @@ import {
   MdManageAccounts,
   MdListAlt,
   MdHome,
+  MdSettings 
 } from "react-icons/md";
 const iconStyles = {
   className: "w-5 h-5 text-inherit",
@@ -55,6 +55,11 @@ const menuItem = [
         name: "Vai trò",
         path: "/dashboard/system/role",
         icon: <MdManageAccounts {...iconStyles} />,
+      },
+      {
+        name: "Cấu hình hệ thống",
+        path: "/dashboard/system/config",
+        icon: <MdSettings {...iconStyles} />,
       },
     ],
   },

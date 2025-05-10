@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Pagination from "./Pagination";
 import ProductCard from "./ProductCard";
+import ProductDetailTemplate from "./ProductDetailTemplate";
 import { getAllProducts } from "@/api/productApi";
 import { getAllProductTypes } from "@/api/productTypeApi";
 
@@ -10,6 +11,12 @@ const ProductsPage = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const itemsPerPage = 8;
+
+    const [selectedProduct, setSelectedProduct] = useState(null); // Trạng thái cho sản phẩm được chọn
+
+    const handleProductClick = (product) => {
+        setSelectedProduct(product); // Cập nhật sản phẩm được chọn
+    }
 
     useEffect(() => {
         const fetchProducts = async () => {
@@ -65,7 +72,9 @@ const ProductsPage = () => {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                     {products.map((product) => (
-                        <ProductCard key={product.id} {...product} />
+                        <div key={product.id} onClick={() => handleProductClick(product)}>
+                            <ProductCard {...product} />
+                        </div>
                     ))}
                 </div>
 
@@ -78,6 +87,13 @@ const ProductsPage = () => {
                     />
                 </div>
             </div>
+
+            {selectedProduct && (
+                <ProductDetailTemplate
+                    product={selectedProduct}
+                    onClose={() => setSelectedProduct(null)} // Đóng chi tiết sản phẩm
+                />
+            )}  
         </div>
     );
 };
