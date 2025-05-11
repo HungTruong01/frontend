@@ -1,7 +1,7 @@
 import React from "react";
 import { FaTimes } from "react-icons/fa";
 
-const DetailModal = ({ isOpen, currentItem, handleCloseDetailModal }) => {
+const DetailServiceConfigModal = ({ isOpen, currentItem, handleCloseDetailModal }) => {
   if (!isOpen || !currentItem) return null;
 
   return (
@@ -9,7 +9,7 @@ const DetailModal = ({ isOpen, currentItem, handleCloseDetailModal }) => {
       <div className="bg-white rounded-xl p-6 w-full max-w-2xl flex flex-col shadow-2xl">
         <div className="flex justify-between items-center mb-6 border-b pb-3">
           <h2 className="text-xl font-semibold text-gray-800">
-            Chi tiết cấu hình
+            Chi tiết dịch vụ
           </h2>
           <button
             onClick={handleCloseDetailModal}
@@ -22,17 +22,48 @@ const DetailModal = ({ isOpen, currentItem, handleCloseDetailModal }) => {
         <div className="space-y-4 text-gray-700">
           <div className="grid grid-cols-3 gap-2 items-start">
             <label className="col-span-1 font-medium text-base text-gray-600">
-              Tên:
+              Mã:
             </label>
-            <p className="col-span-2 text-base font-normal">{currentItem.field}</p>
+            <p className="col-span-2 text-base font-normal">
+              {currentItem.id || "N/A"}
+            </p>
           </div>
+
           <div className="grid grid-cols-3 gap-2 items-start">
             <label className="col-span-1 font-medium text-base text-gray-600">
-              Nội dung:
+              Tiêu đề:
+            </label>
+            <p className="col-span-2 text-base font-normal">
+              {currentItem.title || "N/A"}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2 items-start">
+            <label className="col-span-1 font-medium text-base text-gray-600">
+              Mô tả:
             </label>
             <p className="col-span-2 text-base font-normal whitespace-pre-wrap max-h-[50vh] overflow-y-auto pr-2 text-justify">
-              {currentItem.value || "Không có thông tin"}
+              {currentItem.description || "Không có thông tin"}
             </p>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2 items-start">
+            <label className="col-span-1 font-medium text-base text-gray-600">
+              Hình ảnh:
+            </label>
+            <div className="col-span-2">
+              {currentItem.thumbnail ? (
+                <img 
+                  src={currentItem.thumbnail} 
+                  alt="Service thumbnail" 
+                  className="w-64 h-64 object-cover rounded-lg"
+                />
+              ) : (
+                <p className="text-base font-normal text-gray-500">
+                  Không có hình ảnh
+                </p>
+              )}
+            </div>
           </div>
         </div>
 
@@ -49,4 +80,4 @@ const DetailModal = ({ isOpen, currentItem, handleCloseDetailModal }) => {
   );
 };
 
-export default DetailModal;
+export default DetailServiceConfigModal;
