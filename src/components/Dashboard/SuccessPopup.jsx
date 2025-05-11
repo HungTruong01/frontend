@@ -1,10 +1,11 @@
 import React from "react";
 import { FaTimes, FaCheckCircle } from "react-icons/fa";
+// eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
 
 const SuccessPopup = ({ onClose, successMessage }) => {
   const message =
-    successMessage || "Đăng nhập thành công! Chào mừng bạn trở lại.";
+    successMessage || "Đăng nhập thành công! Chào mừng bạn quay trở lại.";
 
   return (
     <motion.div
@@ -38,20 +39,7 @@ const SuccessPopup = ({ onClose, successMessage }) => {
         <div className="border-t border-gray-200 pt-4">
           <div className="mb-4 text-gray-700">{message}</div>
 
-          <div className="bg-green-50 border-l-4 border-green-500 p-4 mb-4">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <FaCheckCircle className="h-5 w-5 text-green-500" />
-              </div>
-              <div className="ml-3">
-                <p className="text-sm text-green-700">
-                  Bạn đã đăng nhập thành công. Hãy tiếp tục sử dụng hệ thống!
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex justify-end space-x-3 mt-4">
+          <div className="flex justify-center space-x-3 mt-4">
             <button
               onClick={onClose}
               className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"

@@ -18,8 +18,8 @@ const DeliveryStatus = () => {
     },
   ];
   const columns = [
-    { key: "id", label: "ID", required: false },
-    { key: "name", label: "Trạng thái vận chuyển", required: true },
+    { key: "id", label: "Mã" },
+    { key: "name", label: "Trạng thái vận chuyển" },
   ];
 
   const fetchData = async () => {

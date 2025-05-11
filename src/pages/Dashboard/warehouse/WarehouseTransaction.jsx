@@ -33,7 +33,7 @@ const WarehouseTransaction = () => {
   const navigate = useNavigate();
 
   const displayColumns = [
-    { key: "id", label: "STT" },
+    { key: "id", label: "Mã" },
     { key: "orderCode", label: "Mã đơn hàng" },
     { key: "statusName", label: "Trạng thái" },
     { key: "transactionTypeName", label: "Loại giao dịch" },

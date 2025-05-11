@@ -19,8 +19,8 @@ const ReasonInventoryAdjust = () => {
     },
   ];
   const columns = [
-    { key: "id", label: "ID", required: false },
-    { key: "name", label: "Lý do điều chỉnh kho", required: true },
+    { key: "id", label: "Mã" },
+    { key: "name", label: "Lý do điều chỉnh kho" },
   ];
   const fetchData = async () => {
     try {

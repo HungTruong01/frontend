@@ -34,7 +34,7 @@ const WarehouseTransfer = () => {
   const navigate = useNavigate();
 
   const displayColumns = [
-    { key: "id", label: "STT" },
+    { key: "id", label: "Mã" },
     { key: "quantity", label: "Số lượng" },
     { key: "createdAt", label: "Ngày tạo" },
     { key: "statusName", label: "Trạng thái" },

@@ -97,7 +97,7 @@ const LoginComponent = () => {
         {showSuccess && (
           <SuccessPopup
             onClose={handleSuccessClose}
-            successMessage="Đăng nhập thành công! Chào mừng bạn trở lại."
+            successMessage="Đăng nhập thành công! Chào mừng bạn quay trở lại."
           />
         )}
         {showError && (

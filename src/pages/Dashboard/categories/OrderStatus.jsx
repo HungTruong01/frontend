@@ -18,8 +18,8 @@ const OrderStatus = () => {
     },
   ];
   const orderStatusColumns = [
-    { key: "id", label: "ID", required: false },
-    { key: "name", label: "Trạng thái đơn hàng", required: true },
+    { key: "id", label: "Mã" },
+    { key: "name", label: "Trạng thái đơn hàng" },
   ];
   const fetchOrderStatus = async () => {
     try {
