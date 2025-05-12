@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
   FaSearch,
-  FaRegTrashAlt,
   FaEye,
   FaEdit,
   FaFileExport,
@@ -25,7 +24,7 @@ const WarehouseTransaction = () => {
   const [warehouseTransaction, setWarehouseTransaction] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [searchValue, setSearchValue] = useState("");
-  const [itemsPerPage, setItemsPerPage] = useState(7);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);

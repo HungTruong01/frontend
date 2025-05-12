@@ -1,3 +1,4 @@
+/* eslint-disable no-useless-catch */
 import axios from "axios";
 
 const BASE_REST_API_URL = "http://localhost:3000/api/warehouse-transactions";
@@ -26,7 +27,6 @@ export const createWarehouseTransaction = async (warehouseTransaction) => {
     const response = await axios.post(BASE_REST_API_URL, warehouseTransaction);
     return response.data;
   } catch (error) {
-    console.error("Error creating warehouse transaction :", error);
     throw error;
   }
 };

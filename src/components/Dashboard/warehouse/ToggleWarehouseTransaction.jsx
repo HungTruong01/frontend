@@ -6,7 +6,6 @@ import { getAllDeliveryStatus } from "@/api/deliveryStatusApi";
 import { getAllWarehouse } from "@/api/warehouseApi";
 import {
   getAllWarehouseTransactionType,
-  getWarehouseTransactionTypeById,
 } from "@/api/warehouseTransactionTypeApi";
 import { getAllEmployees } from "@/api/employeeApi";
 import {
@@ -98,9 +97,8 @@ const ToggleWarehouseTransaction = ({
         setTransactionTypes(typeRes.content || []);
         setWarehouses(warehouseRes.content || []);
         setEmployees(employeeRes.data.content || []);
-      } catch (error) {
+      } catch {
         toast.error("Không thể tải dữ liệu tùy chọn");
-        console.error("Lỗi khi lấy dữ liệu tùy chọn:", error);
       }
     };
 
@@ -140,6 +138,7 @@ const ToggleWarehouseTransaction = ({
         setIsInbound(false);
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, initialData, isEdit]);
 
   useEffect(() => {
@@ -203,7 +202,6 @@ const ToggleWarehouseTransaction = ({
           })
         );
         setOrderProducts(products);
-        console.log(orderDetails);
         // Lấy thông tin đối tác từ đơn hàng
         let orderPartner = "Không xác định";
         if (orderDetails.partnerId) {
@@ -220,9 +218,8 @@ const ToggleWarehouseTransaction = ({
             participant: orderPartner,
           }));
         }
-      } catch (err) {
+      } catch {
         toast.error("Không thể tải chi tiết đơn hàng hoặc đối tác");
-        console.error("Lỗi khi lấy chi tiết đơn hàng:", err);
         setOrderProducts([]);
         setPartner("");
         setTransactionData((prev) => ({ ...prev, participant: "" }));
@@ -283,13 +280,13 @@ const ToggleWarehouseTransaction = ({
       } else {
         await createWarehouseTransaction(payload);
       }
-      console.log(payload);
       await onSubmit(payload);
       toast.success(isEdit ? "Cập nhật thành công" : "Thêm thành công");
       onClose();
     } catch (err) {
-      console.error("Lỗi khi gửi dữ liệu:", err);
-      toast.error(isEdit ? "Cập nhật thất bại" : "Thêm thất bại");
+      const errorMessage =
+        err.response?.data || (isEdit ? "Cập nhật thất bại" : "Thêm thất bại");
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
