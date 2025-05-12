@@ -441,19 +441,29 @@ const ListOrder = () => {
                 Trước
               </button>
               <div className="flex items-center space-x-2">
-                {[...Array(totalPages)].map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setCurrentPage(i + 1)}
-                    className={`w-8 h-8 rounded-md text-sm ${
-                      currentPage === i + 1
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                    } transition-colors`}
-                  >
-                    {i + 1}
-                  </button>
-                ))}
+                {Array.from({ length: 3 }, (_, idx) => {
+                  let startPage = Math.max(1, currentPage - 1);
+                  if (currentPage === totalPages)
+                    startPage = Math.max(1, totalPages - 2);
+                  if (totalPages <= 3) startPage = 1;
+
+                  const page = startPage + idx;
+                  if (page > totalPages) return null;
+
+                  return (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`w-8 h-8 rounded-md text-sm ${
+                        currentPage === page
+                          ? "bg-blue-600 text-white"
+                          : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                      } transition-colors`}
+                    >
+                      {page}
+                    </button>
+                  );
+                })}
               </div>
               <button
                 onClick={() =>

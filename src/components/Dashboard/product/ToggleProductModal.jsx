@@ -3,6 +3,7 @@ import { FaTimes, FaUpload, FaSpinner } from "react-icons/fa";
 import { getAllProductTypes } from "@/api/productTypeApi";
 import { getAllProductUnits } from "@/api/productUnitApi";
 import { uploadImageToCloudinary } from "@/utils/uploadFile";
+import { toast } from "react-toastify";
 
 const ToggleProductModal = ({
   isOpen,
@@ -31,6 +32,7 @@ const ToggleProductModal = ({
   const [isUploading, setIsUploading] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
   const [uploadError, setUploadError] = useState("");
+  const [errors, setErrors] = useState({});
 
   const fetchData = async () => {
     try {
@@ -44,6 +46,37 @@ const ToggleProductModal = ({
       console.error("Lỗi khi lấy dữ liệu:", error);
       setUploadError("Không thể tải loại sản phẩm hoặc đơn vị tính");
     }
+  };
+
+  const normalizeString = (str) => {
+    return str.trim().replace(/\s+/g, " ");
+  };
+
+  const validateForm = (data) => {
+    const newErrors = {};
+
+    if (!data.name.trim()) {
+      newErrors.name = "Tên sản phẩm không được để trống";
+    }
+
+    if (!data.description.trim()) {
+      newErrors.description = "Mô tả sản phẩm không được để trống";
+    }
+
+    if (!data.importPrice) {
+      newErrors.importPrice = "Giá vốn không được để trống";
+    } else if (isNaN(data.importPrice) || Number(data.importPrice) < 0) {
+      newErrors.importPrice = "Giá vốn phải là số không âm";
+    }
+
+    if (!data.exportPrice) {
+      newErrors.exportPrice = "Giá bán không được để trống";
+    } else if (isNaN(data.exportPrice) || Number(data.exportPrice) < 0) {
+      newErrors.exportPrice = "Giá bán phải là số không âm";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   useEffect(() => {
@@ -79,12 +112,25 @@ const ToggleProductModal = ({
         setPreviewImage(null);
       }
       setUploadError("");
+      setErrors({});
     }
   }, [isOpen, product, isEdit]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    let newValue = value;
+
+    // Chỉ cho phép số không âm với importPrice và exportPrice
+    if (name === "importPrice" || name === "exportPrice") {
+      newValue = value.replace(/[^0-9]/g, "");
+    }
+
+    setFormData((prev) => ({ ...prev, [name]: newValue }));
+
+    // Xóa lỗi khi người dùng bắt đầu nhập
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
   };
 
   const handleImageUpload = async (e) => {
@@ -132,24 +178,35 @@ const ToggleProductModal = ({
   const handleSubmit = (e) => {
     e.preventDefault();
     if (isUploading) {
-      setUploadError("Vui lòng đợi cho đến khi quá trình tải ảnh hoàn tất");
+      toast.error("Vui lòng đợi cho đến khi quá trình tải ảnh hoàn tất");
+      return;
+    }
+
+    // Chuẩn hóa dữ liệu trước khi validate
+    const normalizedData = {
+      ...formData,
+      name: normalizeString(formData.name),
+      description: normalizeString(formData.description),
+    };
+
+    if (!validateForm(normalizedData)) {
+      toast.error("Vui lòng kiểm tra lại thông tin");
       return;
     }
 
     const data = {
-      id: formData.id,
-      name: formData.name,
-      description: formData.description,
-      importPrice: Number(formData.importPrice),
-      exportPrice: Number(formData.exportPrice),
-      price: Number(formData.exportPrice),
-      quantity: formData.quantity ? Number(formData.quantity) : 0,
-      productTypeId: Number(formData.productTypeId),
-      productUnitId: Number(formData.productUnitId),
-      thumbnail: formData.thumbnail || "",
+      id: normalizedData.id,
+      name: normalizedData.name,
+      description: normalizedData.description,
+      importPrice: Number(normalizedData.importPrice),
+      exportPrice: Number(normalizedData.exportPrice),
+      price: Number(normalizedData.exportPrice),
+      quantity: normalizedData.quantity ? Number(normalizedData.quantity) : 0,
+      productTypeId: Number(normalizedData.productTypeId),
+      productUnitId: Number(normalizedData.productUnitId),
+      thumbnail: normalizedData.thumbnail || "",
       warehouseProducts: [],
     };
-    // console.log("Dữ liệu gửi đi:", data);
     onSubmit(data);
   };
 
@@ -238,10 +295,15 @@ const ToggleProductModal = ({
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                className="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
+                className={`w-full px-3.5 py-2.5 border ${
+                  errors.name ? "border-red-500" : "border-gray-200"
+                } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm`}
                 placeholder="Nhập tên sản phẩm"
                 required
               />
+              {errors.name && (
+                <p className="text-xs text-red-500 mt-1">{errors.name}</p>
+              )}
             </div>
 
             <div>
@@ -252,13 +314,19 @@ const ToggleProductModal = ({
                 name="description"
                 value={formData.description}
                 onChange={handleChange}
-                className="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[80px] resize-none shadow-sm"
+                className={`w-full px-3.5 py-2.5 border ${
+                  errors.description ? "border-red-500" : "border-gray-200"
+                } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[80px] resize-none shadow-sm`}
                 placeholder="Nhập mô tả sản phẩm"
                 required
               />
+              {errors.description && (
+                <p className="text-xs text-red-500 mt-1">
+                  {errors.description}
+                </p>
+              )}
             </div>
 
-            {/* Price Section */}
             <div className="grid gap-4 grid-cols-2">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -270,7 +338,9 @@ const ToggleProductModal = ({
                     name="importPrice"
                     value={formData.importPrice}
                     onChange={handleChange}
-                    className="w-full pl-3.5 pr-12 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
+                    className={`w-full pl-3.5 pr-12 py-2.5 border ${
+                      errors.importPrice ? "border-red-500" : "border-gray-200"
+                    } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm`}
                     placeholder="Nhập giá vốn"
                     required
                   />
@@ -278,6 +348,11 @@ const ToggleProductModal = ({
                     VND
                   </span>
                 </div>
+                {errors.importPrice && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {errors.importPrice}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -290,7 +365,9 @@ const ToggleProductModal = ({
                     name="exportPrice"
                     value={formData.exportPrice}
                     onChange={handleChange}
-                    className="w-full pl-3.5 pr-12 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
+                    className={`w-full pl-3.5 pr-12 py-2.5 border ${
+                      errors.exportPrice ? "border-red-500" : "border-gray-200"
+                    } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm`}
                     placeholder="Nhập giá bán"
                     required
                   />
@@ -298,10 +375,14 @@ const ToggleProductModal = ({
                     VND
                   </span>
                 </div>
+                {errors.exportPrice && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {errors.exportPrice}
+                  </p>
+                )}
               </div>
             </div>
 
-            {/* Product Type & Unit Section */}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">

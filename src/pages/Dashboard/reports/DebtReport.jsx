@@ -274,7 +274,7 @@ const DebtReport = () => {
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                             {partner.partnerTypeName}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-red-600">
                             {formatCurrency(
                               (partner.debt || 0) - (partner.paid || 0)
                             )}
