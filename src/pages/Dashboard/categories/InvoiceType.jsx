@@ -18,8 +18,8 @@ const InvoiceType = () => {
     },
   ];
   const invoiceTypeColumns = [
-    { key: "id", label: "ID", required: false },
-    { key: "name", label: "Loại hoá đơn", required: true },
+    { key: "id", label: "Mã" },
+    { key: "name", label: "Loại hoá đơn" },
   ];
   const fetchInvoiceType = async () => {
     try {

@@ -299,7 +299,7 @@ const ListProduct = () => {
               <tr className="bg-gray-200">
                 <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
                   <div className="flex items-center space-x-1">
-                    <span>STT</span>
+                    <span>Mã</span>
                   </div>
                 </th>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">

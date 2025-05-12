@@ -18,8 +18,8 @@ const TypeOrder = () => {
     },
   ];
   const orderTypeColumns = [
-    { key: "id", label: "ID", required: false },
-    { key: "name", label: "Tên loại đơn hàng", required: true },
+    { key: "id", label: "Mã" },
+    { key: "name", label: "Tên loại đơn hàng" },
   ];
   const fetchOrderType = async () => {
     try {

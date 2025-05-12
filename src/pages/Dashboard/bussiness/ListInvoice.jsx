@@ -351,7 +351,7 @@ const ListInvoice = () => {
               <thead>
                 <tr className="bg-gray-200">
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 w-1/7">
-                    STT
+                    Mã
                   </th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 w-1/7">
                     Số tiền

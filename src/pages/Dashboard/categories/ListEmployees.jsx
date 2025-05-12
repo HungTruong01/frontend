@@ -34,10 +34,10 @@ const ListEmployees = () => {
     },
   ];
   const columns = [
-    { key: "id", label: "ID", required: false },
-    { key: "fullname", label: "Họ tên nhân viên", required: true },
-    { key: "phoneNumber", label: "Số điện thoại", required: true },
-    { key: "address", label: "Địa chỉ", required: true },
+    { key: "id", label: "Mã" },
+    { key: "fullname", label: "Họ tên nhân viên" },
+    { key: "phoneNumber", label: "Số điện thoại" },
+    { key: "address", label: "Địa chỉ" },
   ];
   const fetchData = async () => {
     try {

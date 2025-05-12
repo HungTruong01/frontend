@@ -27,7 +27,7 @@ const AccountList = () => {
     { id: 4, name: "ADMIN_K", label: "Nhân viên kho vận" },
     { id: 5, name: "ADMIN_TCKT", label: "Nhân viên tài chính kế toán" },
   ]);
-  const columns = ["ID", "Tên đăng nhập", "Ngày tạo", "Vai trò"];
+  const columns = ["Mã", "Tên đăng nhập", "Ngày tạo", "Vai trò"];
 
   const formatDate = (dateString) => {
     if (!dateString) return "Invalid Date";

@@ -211,7 +211,6 @@ const handleSubmit = async (e) => {
 
     onClose();
   } catch (error) {
-    console.error("Lỗi khi cập nhật:", error);
     toast.error(error.message || "Có lỗi xảy ra khi cập nhật");
   }
 };

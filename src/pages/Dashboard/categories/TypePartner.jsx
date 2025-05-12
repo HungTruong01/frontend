@@ -18,8 +18,8 @@ const TypePartner = () => {
     },
   ];
   const partnerTypeColumns = [
-    { key: "id", label: "ID", required: false },
-    { key: "name", label: "Loại đối tác", required: true },
+    { key: "id", label: "Mã" },
+    { key: "name", label: "Loại đối tác" },
   ];
   const fetchTypePartner = async () => {
     try {

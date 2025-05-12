@@ -6,7 +6,7 @@ const RoleUser = () => {
   const [roles, setRoles] = useState([]);
 
   const rolesColumns = [
-    { key: "id", label: "ID" },
+    { key: "id", label: "Mã" },
     { key: "name", label: "Tên vai trò" },
   ];
 

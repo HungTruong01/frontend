@@ -18,8 +18,8 @@ const UnitPage = () => {
     },
   ];
   const productUnitColumns = [
-    { key: "id", label: "ID", required: false },
-    { key: "name", label: "Tên đơn vị tính", required: true },
+    { key: "id", label: "Mã" },
+    { key: "name", label: "Tên đơn vị tính" },
   ];
   const fetchProductUnit = async () => {
     try {

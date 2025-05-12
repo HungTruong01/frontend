@@ -17,7 +17,7 @@ const ListPartner = () => {
   const [currentPartner, setCurrentPartner] = useState(null);
 
   const columns = [
-    { key: "id", label: "STT" },
+    { key: "id", label: "Mã" },
     { key: "name", label: "Tên đối tác" },
     { key: "address", label: "Địa chỉ" },
     { key: "partnerTypeId", label: "Loại đối tác" },

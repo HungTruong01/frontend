@@ -31,7 +31,7 @@ const AdjustInventory = () => {
   const navigate = useNavigate();
 
   const displayColumns = [
-    { key: "id", label: "STT" },
+    { key: "id", label: "Mã" },
     { key: "quantity", label: "Số lượng" },
     { key: "createdAt", label: "Ngày tạo" },
     { key: "adjustmentTypeName", label: "Lý do điều chỉnh" },

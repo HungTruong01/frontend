@@ -25,9 +25,9 @@ const ListWarehouse = () => {
     },
   ];
   const columns = [
-    { key: "id", label: "ID", required: false },
-    { key: "name", label: "Kho bãi", required: true },
-    { key: "address", label: "Địa chỉ", required: true },
+    { key: "id", label: "Mã" },
+    { key: "name", label: "Kho bãi" },
+    { key: "address", label: "Địa chỉ" },
   ];
 
   const fetchData = async () => {
