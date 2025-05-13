@@ -20,19 +20,51 @@ const TogglePartnerModal = ({
     taxCode: "",
   });
 
+  const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+
+  const normalizeString = (str) => {
+    return str.trim().replace(/\s+/g, " ");
+  };
+
+  const validateForm = (data) => {
+    const newErrors = {};
+
+    if (!data.name.trim()) {
+      newErrors.name = "Tên đối tác không được để trống";
+    }
+
+    if (!data.address.trim()) {
+      newErrors.address = "Địa chỉ không được để trống";
+    }
+
+    if (!data.phone.trim()) {
+      newErrors.phone = "Số điện thoại không được để trống";
+    } else if (!/^\d+$/.test(data.phone)) {
+      newErrors.phone = "Số điện thoại chỉ được chứa số";
+    } else if (data.phone.length !== 10) {
+      newErrors.phone = "Số điện thoại phải có đúng 10 chữ số";
+    }
+
+    if (data.taxCode && !/^\d+$/.test(data.taxCode)) {
+      newErrors.taxCode = "Mã số thuế chỉ được chứa số";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   useEffect(() => {
     if (mode === "edit" && partner) {
       setFormData({
-        name: partner?.name,
-        phone: partner?.phone,
-        email: partner?.email,
-        address: partner?.address,
+        name: partner?.name || "",
+        phone: partner?.phone || "",
+        email: partner?.email || "",
+        address: partner?.address || "",
         type: partner?.partnerTypeId === 1 ? "Khách hàng" : "Nhà cung cấp",
-        debt: partner?.debt,
-        organization: partner?.organization,
-        taxCode: partner?.taxCode,
+        debt: partner?.debt || "",
+        organization: partner?.organization || "",
+        taxCode: partner?.taxCode || "",
       });
     } else {
       setFormData({
@@ -46,23 +78,48 @@ const TogglePartnerModal = ({
         taxCode: "",
       });
     }
+    setErrors({});
   }, [mode, partner]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    let newValue = value;
+
+    if (name === "phone" || name === "taxCode") {
+      newValue = value.replace(/\D/g, "");
+    }
+
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: newValue,
     }));
+
+    // Xóa lỗi khi người dùng bắt đầu nhập
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const normalizedData = {
+      ...formData,
+      name: normalizeString(formData.name),
+      address: normalizeString(formData.address),
+      organization: normalizeString(formData.organization),
+    };
+
+    if (!validateForm(normalizedData)) {
+      toast.error("Vui lòng kiểm tra lại thông tin");
+      return;
+    }
+
     try {
       setLoading(true);
       if (mode === "add") {
         const submittedData = {
-          ...formData,
+          ...normalizedData,
           debt: formData.debt === "" ? 0 : parseFloat(formData.debt),
         };
         await onSubmit(submittedData);
@@ -79,13 +136,13 @@ const TogglePartnerModal = ({
       } else {
         const updatedData = {
           id: partner.id,
-          name: formData.name,
+          name: normalizedData.name,
           phone: formData.phone,
           email: formData.email,
-          address: formData.address,
+          address: normalizedData.address,
           type: formData.type === "Khách hàng" ? 1 : 2,
           debt: parseFloat(formData.debt) || 0,
-          organization: formData.organization,
+          organization: normalizedData.organization,
           taxCode: formData.taxCode,
         };
         await onSubmit(updatedData);
@@ -125,9 +182,14 @@ const TogglePartnerModal = ({
               name="name"
               value={formData.name}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={`w-full px-3 py-2 border ${
+                errors.name ? "border-red-500" : "border-gray-300"
+              } rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
               required
             />
+            {errors.name && (
+              <p className="text-red-500 text-xs mt-1">{errors.name}</p>
+            )}
           </div>
           <div className="col-span-1">
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -138,9 +200,15 @@ const TogglePartnerModal = ({
               name="phone"
               value={formData.phone}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              maxLength={10}
+              className={`w-full px-3 py-2 border ${
+                errors.phone ? "border-red-500" : "border-gray-300"
+              } rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
               required
             />
+            {errors.phone && (
+              <p className="text-red-500 text-xs mt-1">{errors.phone}</p>
+            )}
           </div>
 
           <div className="col-span-1">
@@ -166,8 +234,13 @@ const TogglePartnerModal = ({
               name="taxCode"
               value={formData.taxCode}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={`w-full px-3 py-2 border ${
+                errors.taxCode ? "border-red-500" : "border-gray-300"
+              } rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
             />
+            {errors.taxCode && (
+              <p className="text-red-500 text-xs mt-1">{errors.taxCode}</p>
+            )}
           </div>
 
           <div className="col-span-2">
@@ -192,9 +265,14 @@ const TogglePartnerModal = ({
               value={formData.address}
               onChange={handleChange}
               rows="2"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={`w-full px-3 py-2 border ${
+                errors.address ? "border-red-500" : "border-gray-300"
+              } rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
               required
             />
+            {errors.address && (
+              <p className="text-red-500 text-xs mt-1">{errors.address}</p>
+            )}
           </div>
 
           <div className="col-span-1">
