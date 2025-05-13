@@ -11,6 +11,8 @@ import OrderDetailModal from "@/components/Dashboard/order/OrderDetailModal";
 import { getAllOrders, getOrderById } from "@/api/orderApi";
 import { getAllOrderTypes } from "@/api/orderTypeApi";
 import { getAllOrderStatus } from "@/api/orderStatusApi";
+import { getAllWarehouseTransaction } from "@/api/warehouseTransactionApi";
+import { getAllDeliveryStatus } from "@/api/deliveryStatusApi";
 import { partnerApi } from "@/api/partnerApi";
 import { exportExcel } from "@/utils/exportExcel";
 
@@ -27,9 +29,9 @@ const ListOrder = () => {
   const [orderType, setOrderType] = useState([]);
   const [orderStatus, setOrderStatus] = useState([]);
   const [partners, setPartners] = useState([]);
+  const [warehouseTransactions, setWarehouseTransactions] = useState([]);
+  const [deliveryStatuses, setDeliveryStatuses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-
-  const completedStatusId = 1;
 
   const fetchOrders = async () => {
     try {
@@ -68,8 +70,26 @@ const ListOrder = () => {
     } catch (error) {
       console.log("Error fetching partners: ", error);
       setPartners([]);
-    } finally {
-      setIsLoading(false);
+    }
+  };
+
+  const fetchWarehouseTransactions = async () => {
+    try {
+      const response = await getAllWarehouseTransaction(0, 1000, "id", "asc");
+      setWarehouseTransactions(response.content);
+    } catch (error) {
+      console.log("Error fetching warehouse transactions: ", error);
+      setWarehouseTransactions([]);
+    }
+  };
+
+  const fetchDeliveryStatuses = async () => {
+    try {
+      const response = await getAllDeliveryStatus();
+      setDeliveryStatuses(response.content || []);
+    } catch (error) {
+      console.log("Error fetching delivery statuses: ", error);
+      setDeliveryStatuses([]);
     }
   };
 
@@ -81,6 +101,8 @@ const ListOrder = () => {
         fetchOrderTypes(),
         fetchOrderStatus(),
         fetchPartners(),
+        fetchWarehouseTransactions(),
+        fetchDeliveryStatuses(),
       ]);
       setIsLoading(false);
     };
@@ -200,8 +222,27 @@ const ListOrder = () => {
     fetchOrders();
   };
 
-  const isOrderCompleted = (order) => {
-    return order.orderStatusId === completedStatusId;
+  const isOrderEditable = (order) => {
+    const relatedTransaction = warehouseTransactions.find(
+      (tran) => tran.orderId === order.id
+    );
+
+    if (!relatedTransaction) {
+      return true;
+    }
+
+    const transactionStatus = relatedTransaction.statusId;
+    const status = deliveryStatuses.find(
+      (status) => status.id === transactionStatus
+    );
+    if (!status || !status.name) {
+      return true;
+    }
+
+    const statusName = status.name.toLowerCase();
+    const isNonEditable =
+      statusName.includes("hoàn thành") || statusName.includes("xử lý");
+    return !isNonEditable;
   };
 
   if (isLoading) {
@@ -399,7 +440,7 @@ const ListOrder = () => {
                         >
                           <FaEye className="h-5 w-5" />
                         </button>
-                        {!isOrderCompleted(order) ? (
+                        {isOrderEditable(order) ? (
                           <button
                             onClick={() => handleEditOrder(order)}
                             className="text-blue-500 hover:text-blue-700 transition-colors"
@@ -411,7 +452,7 @@ const ListOrder = () => {
                           <button
                             disabled
                             className="text-gray-400 cursor-not-allowed"
-                            title="Đơn hàng đã hoàn thành không thể chỉnh sửa"
+                            title="Đơn hàng không thể chỉnh sửa do trạng thái giao dịch kho"
                           >
                             <FaEdit className="h-5 w-5" />
                           </button>

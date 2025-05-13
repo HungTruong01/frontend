@@ -236,7 +236,6 @@ const OverviewDashboard = () => {
   useEffect(() => {
     let filtered = [...warehouseTransactions];
 
-    // Lọc theo từ khóa tìm kiếm
     if (searchTerm) {
       filtered = filtered.filter(
         (transaction) =>

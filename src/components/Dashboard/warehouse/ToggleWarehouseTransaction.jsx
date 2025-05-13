@@ -4,9 +4,7 @@ import { toast } from "react-toastify";
 import { getAllOrders, getOrderById } from "@/api/orderApi";
 import { getAllDeliveryStatus } from "@/api/deliveryStatusApi";
 import { getAllWarehouse } from "@/api/warehouseApi";
-import {
-  getAllWarehouseTransactionType,
-} from "@/api/warehouseTransactionTypeApi";
+import { getAllWarehouseTransactionType } from "@/api/warehouseTransactionTypeApi";
 import { getAllEmployees } from "@/api/employeeApi";
 import {
   createWarehouseTransaction,
@@ -47,6 +45,7 @@ const ToggleWarehouseTransaction = ({
   const [loading, setLoading] = useState(false);
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [isInbound, setIsInbound] = useState(false);
+  const [displayTransactionType, setDisplayTransactionType] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -67,10 +66,7 @@ const ToggleWarehouseTransaction = ({
           getAllWarehouseTransaction(0, 1000, "id", "asc"),
         ]);
 
-        // Lấy danh sách orderId từ các giao dịch kho hiện có
         const usedOrderIds = transactionRes.content.map((tran) => tran.orderId);
-
-        // Lọc đơn hàng cho chế độ thêm mới: Loại bỏ đơn hàng đã có giao dịch kho hoặc đã hoàn thành
         let filteredOrders = orderRes.content.filter((order) => {
           const status = statusRes.content.find((s) => s.id === order.statusId);
           const isCompleted = status?.name
@@ -92,8 +88,16 @@ const ToggleWarehouseTransaction = ({
           }
         }
 
+        // Lọc trạng thái: Loại bỏ "Không thành công" nếu ở chế độ thêm mới
+        const filteredStatuses = isEdit
+          ? statusRes.content || []
+          : (statusRes.content || []).filter(
+              (status) =>
+                !status.name?.toLowerCase().includes("không thành công")
+            );
+
         setOrders(filteredOrders);
-        setStatuses(statusRes.content || []);
+        setStatuses(filteredStatuses); // Sử dụng filteredStatuses thay vì statusRes.content
         setTransactionTypes(typeRes.content || []);
         setWarehouses(warehouseRes.content || []);
         setEmployees(employeeRes.data.content || []);
@@ -117,12 +121,11 @@ const ToggleWarehouseTransaction = ({
           participant: initialData.participant || "",
         });
 
-        if (initialData.transactionTypeId) {
-          const type = transactionTypes.find(
-            (t) => t.id === parseInt(initialData.transactionTypeId)
-          );
-          setIsInbound(type?.code === "IMPORT" || type?.name?.includes("Nhập"));
-        }
+        const type = transactionTypes.find(
+          (t) => t.id === parseInt(initialData.transactionTypeId)
+        );
+        setIsInbound(type?.code === "IMPORT" || type?.name?.includes("Nhập"));
+        setDisplayTransactionType(type?.name || "");
       } else {
         setTransactionData({
           id: "",
@@ -136,43 +139,23 @@ const ToggleWarehouseTransaction = ({
           participant: "",
         });
         setIsInbound(false);
+        setDisplayTransactionType("");
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, initialData, isEdit]);
-
-  useEffect(() => {
-    if (transactionData.transactionTypeId) {
-      const selectedType = transactionTypes.find(
-        (t) => t.id === parseInt(transactionData.transactionTypeId)
-      );
-      if (selectedType) {
-        const newIsInbound =
-          selectedType.code === "IMPORT" || selectedType.name?.includes("Nhập");
-        setIsInbound(newIsInbound);
-
-        // Nếu là xuất kho và có orderId, cập nhật participant thành partner
-        if (!newIsInbound && transactionData.orderId) {
-          setTransactionData((prev) => ({
-            ...prev,
-            participant: partner || "",
-          }));
-        }
-      }
-    }
-  }, [
-    transactionData.transactionTypeId,
-    transactionTypes,
-    transactionData.orderId,
-    partner,
-  ]);
+  }, [isOpen, isEdit, initialData]);
 
   useEffect(() => {
     const fetchOrderDetails = async () => {
       if (!transactionData.orderId) {
         setOrderProducts([]);
         setPartner("");
-        setTransactionData((prev) => ({ ...prev, participant: "" }));
+        setTransactionData((prev) => ({
+          ...prev,
+          transactionTypeId: "",
+          participant: "",
+        }));
+        setIsInbound(false);
+        setDisplayTransactionType("");
         return;
       }
 
@@ -202,7 +185,7 @@ const ToggleWarehouseTransaction = ({
           })
         );
         setOrderProducts(products);
-        // Lấy thông tin đối tác từ đơn hàng
+
         let orderPartner = "Không xác định";
         if (orderDetails.partnerId) {
           const partnerData = await partnerApi.getPartnerById(
@@ -211,25 +194,65 @@ const ToggleWarehouseTransaction = ({
           orderPartner = partnerData?.name || "Không xác định";
         }
         setPartner(orderPartner);
-        // Nếu là xuất kho, tự động điền participant
-        if (!isInbound) {
-          setTransactionData((prev) => ({
-            ...prev,
-            participant: orderPartner,
-          }));
+
+        const selectedOrder = orders.find(
+          (order) => order.id === parseInt(transactionData.orderId)
+        );
+        let newTransactionTypeId = "";
+        let newIsInbound = false;
+        let newDisplayTransactionType = "";
+
+        if (selectedOrder && transactionTypes.length > 0) {
+          if (selectedOrder.orderTypeId === 1) {
+            const importType = transactionTypes.find(
+              (type) => type.code === "IMPORT" || type.name?.includes("Nhập")
+            );
+            if (importType) {
+              newTransactionTypeId = importType.id;
+              newIsInbound = true;
+              newDisplayTransactionType = importType.name || "Nhập kho";
+            } else {
+              newDisplayTransactionType = "Nhập kho (không tìm thấy loại)";
+            }
+          } else if (selectedOrder.orderTypeId === 2) {
+            const exportType = transactionTypes.find(
+              (type) => type.code === "EXPORT" || type.name?.includes("Xuất")
+            );
+            if (exportType) {
+              newTransactionTypeId = exportType.id;
+              newIsInbound = false;
+              newDisplayTransactionType = exportType.name || "Xuất kho";
+            } else {
+              newDisplayTransactionType = "Xuất kho (không tìm thấy loại)";
+            }
+          }
         }
+
+        setTransactionData((prev) => ({
+          ...prev,
+          transactionTypeId: newTransactionTypeId,
+          participant: newIsInbound ? prev.participant : orderPartner,
+        }));
+        setIsInbound(newIsInbound);
+        setDisplayTransactionType(newDisplayTransactionType);
       } catch {
         toast.error("Không thể tải chi tiết đơn hàng hoặc đối tác");
         setOrderProducts([]);
         setPartner("");
-        setTransactionData((prev) => ({ ...prev, participant: "" }));
+        setTransactionData((prev) => ({
+          ...prev,
+          transactionTypeId: "",
+          participant: "",
+        }));
+        setIsInbound(false);
+        setDisplayTransactionType("");
       } finally {
         setLoadingProducts(false);
       }
     };
 
     fetchOrderDetails();
-  }, [transactionData.orderId, isInbound]);
+  }, [transactionData.orderId, orders, transactionTypes]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -274,7 +297,6 @@ const ToggleWarehouseTransaction = ({
 
     try {
       setLoading(true);
-
       if (isEdit) {
         await updateWarehouseTransaction(transactionData.id, payload);
       } else {
@@ -329,7 +351,7 @@ const ToggleWarehouseTransaction = ({
                 onChange={handleChange}
                 required
                 disabled={isEdit}
-                className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm ${
+                className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm ${
                   isEdit ? "bg-gray-100 cursor-not-allowed" : ""
                 }`}
               >
@@ -351,7 +373,7 @@ const ToggleWarehouseTransaction = ({
                 value={transactionData.warehouseId}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
               >
                 <option value="">Chọn kho</option>
                 {warehouses.map((warehouse) => (
@@ -366,20 +388,14 @@ const ToggleWarehouseTransaction = ({
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Loại giao dịch <span className="text-red-500">*</span>
               </label>
-              <select
-                name="transactionTypeId"
-                value={transactionData.transactionTypeId}
-                onChange={handleChange}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-              >
-                <option value="">Chọn loại giao dịch</option>
-                {transactionTypes.map((type) => (
-                  <option key={type.id} value={type.id}>
-                    {type.name || `Loại ${type.id}`}
-                  </option>
-                ))}
-              </select>
+              <input
+                type="text"
+                value={displayTransactionType}
+                readOnly
+                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed text-sm 
+                focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Chọn đơn hàng để hiển thị loại giao dịch"
+              />
             </div>
 
             <div>
@@ -391,7 +407,7 @@ const ToggleWarehouseTransaction = ({
                 value={transactionData.statusId}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
               >
                 <option value="">Chọn trạng thái</option>
                 {statuses.map((status) => (
@@ -417,7 +433,7 @@ const ToggleWarehouseTransaction = ({
                   name="accountant"
                   value={transactionData.accountant}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
                 >
                   <option value="">Chọn kế toán</option>
                   {employees.map((employee) => (
@@ -436,7 +452,7 @@ const ToggleWarehouseTransaction = ({
                   name="storekeeper"
                   value={transactionData.storekeeper}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
                 >
                   <option value="">Chọn thủ kho</option>
                   {employees.map((employee) => (
@@ -455,7 +471,7 @@ const ToggleWarehouseTransaction = ({
                   name="createdBy"
                   value={transactionData.createdBy}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
                 >
                   <option value="">Chọn người lập phiếu</option>
                   {employees.map((employee) => (
@@ -477,7 +493,7 @@ const ToggleWarehouseTransaction = ({
                       value={transactionData.participant}
                       onChange={handleChange}
                       placeholder="Nhập tên người giao hàng"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
                     />
                   </div>
                 ) : (
@@ -490,7 +506,7 @@ const ToggleWarehouseTransaction = ({
                       name="participant"
                       value={transactionData.participant}
                       readOnly
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed text-sm"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
                 )}

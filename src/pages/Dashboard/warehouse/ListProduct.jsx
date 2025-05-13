@@ -50,29 +50,29 @@ const ListProduct = () => {
     }
   };
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        if (searchType) {
-          const response = await getProductsByProductTypeId(
-            0,
-            100,
-            "id",
-            "asc",
-            searchType
-          );
-          setProducts(response.content || []);
-        } else {
-          const response = await getAllProducts(0, 100, "id", "asc");
-          setProducts(response.data.content);
-        }
-      } catch {
-        toast.error("Không thể lấy dữ liệu sản phẩm. Vui lòng thử lại.");
-        setProducts([]);
+  const fetchProducts = async () => {
+    try {
+      if (searchType) {
+        const response = await getProductsByProductTypeId(
+          0,
+          100,
+          "id",
+          "asc",
+          searchType
+        );
+        setProducts(response.content || []);
+      } else {
+        const response = await getAllProducts(0, 100, "id", "asc");
+        setProducts(response.data.content);
       }
-    };
+    } catch (error) {
+      toast.error("Không thể lấy dữ liệu sản phẩm. Vui lòng thử lại.");
+      setProducts([]);
+    }
+  };
 
-    loadData();
+  useEffect(() => {
+    fetchProducts();
     fetchProductTypes();
     fetchProductUnits();
   }, [searchType]);
@@ -110,7 +110,7 @@ const ListProduct = () => {
       const productData = {
         name: newProduct.name,
         description: newProduct.description,
-        importPrice: Number(newProduct.importPrice),
+        // importPrice: Number(newProduct.importPrice),
         exportPrice: Number(newProduct.exportPrice),
         price: Number(newProduct.exportPrice),
         quantity: Number(newProduct.quantity || 0),
@@ -120,7 +120,9 @@ const ListProduct = () => {
       };
       const response = await createProduct(productData);
       toast.success("Thêm sản phẩm mới thành công");
-      setProducts((prev) => [...prev, response]);
+
+      // Cập nhật lại danh sách sản phẩm bằng cách tải lại từ API
+      await fetchProducts();
       setIsAddModalOpen(false);
     } catch (error) {
       console.log("Chi tiết lỗi:", error.response?.data || error.message);
@@ -156,7 +158,7 @@ const ListProduct = () => {
       const productData = {
         name: updatedProduct.name,
         description: updatedProduct.description,
-        importPrice: Number(updatedProduct.importPrice),
+        // importPrice: Number(updatedProduct.importPrice),
         exportPrice: Number(updatedProduct.exportPrice),
         price: Number(updatedProduct.exportPrice),
         quantity: Number(updatedProduct.quantity || 0),
@@ -164,13 +166,19 @@ const ListProduct = () => {
         productUnitId: Number(updatedProduct.productUnitId),
         thumbnail: updatedProduct.thumbnail || "",
       };
-      const response = await updateProduct(updatedProduct.id, productData);
+
+      await updateProduct(updatedProduct.id, productData);
       toast.success("Cập nhật sản phẩm thành công");
-      setProducts((prev) =>
-        prev.map((product) =>
-          product.id === updatedProduct.id ? response : product
-        )
-      );
+
+      // Xóa lỗi ảnh cũ nếu có
+      setImageErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[updatedProduct.id];
+        return newErrors;
+      });
+
+      // Tải lại danh sách sản phẩm từ API để đảm bảo dữ liệu đồng bộ
+      await fetchProducts();
       setIsEditModalOpen(false);
     } catch (error) {
       console.error(
@@ -186,9 +194,9 @@ const ListProduct = () => {
       try {
         await deleteProduct(productId);
         toast.success("Xóa sản phẩm thành công");
-        setProducts((prev) =>
-          prev.filter((product) => product.id !== productId)
-        );
+
+        // Tải lại danh sách sản phẩm từ API
+        await fetchProducts();
       } catch (error) {
         console.error(
           "Không thể xóa sản phẩm:",
@@ -201,6 +209,13 @@ const ListProduct = () => {
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat("vi-VN").format(amount);
+  };
+
+  const handleImageError = (productId) => {
+    setImageErrors((prev) => ({
+      ...prev,
+      [productId]: true,
+    }));
   };
 
   return (
@@ -314,11 +329,6 @@ const ListProduct = () => {
                 </th>
                 <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">
                   <div className="flex items-center justify-end space-x-1">
-                    <span>Giá vốn</span>
-                  </div>
-                </th>
-                <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">
-                  <div className="flex items-center justify-end space-x-1">
                     <span>Giá bán</span>
                   </div>
                 </th>
@@ -357,15 +367,10 @@ const ListProduct = () => {
                     <div className="w-12 h-12 rounded-md overflow-hidden border border-gray-200">
                       {product.thumbnail && !imageErrors[product.id] ? (
                         <img
-                          src={product.thumbnail}
+                          src={`${product.thumbnail}?${new Date().getTime()}`} // Thêm timestamp để tránh cache
                           alt={product.name}
                           className="w-full h-full object-cover"
-                          onError={() => {
-                            setImageErrors((prev) => ({
-                              ...prev,
-                              [product.id]: true,
-                            }));
-                          }}
+                          onError={() => handleImageError(product.id)}
                         />
                       ) : (
                         <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400 text-xs">
@@ -376,11 +381,6 @@ const ListProduct = () => {
                   </td>
                   <td className="p-4 whitespace-nowrap text-left">
                     <div className="text-sm text-gray-900">{product.name}</div>
-                  </td>
-                  <td className="p-4 whitespace-nowrap text-right">
-                    <div className="text-sm text-gray-900">
-                      {formatCurrency(product.importPrice)}
-                    </div>
                   </td>
                   <td className="p-4 whitespace-nowrap text-right">
                     <div className="text-sm text-gray-900">
