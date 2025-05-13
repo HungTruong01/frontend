@@ -9,16 +9,6 @@ axios.interceptors.request.use((request) => {
   return request;
 });
 
-axios.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  (error) => {
-    console.log("Error Response:", error.response || error);
-    return Promise.reject(error);
-  }
-);
-
 export const getPostById = async (id) => {
   try {
     const response = await axios.get(`${BASE_REST_API_URL}/${id}`);
