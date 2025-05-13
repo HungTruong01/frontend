@@ -314,11 +314,6 @@ const ListProduct = () => {
                 </th>
                 <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">
                   <div className="flex items-center justify-end space-x-1">
-                    <span>Giá vốn</span>
-                  </div>
-                </th>
-                <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">
-                  <div className="flex items-center justify-end space-x-1">
                     <span>Giá bán</span>
                   </div>
                 </th>
@@ -376,11 +371,6 @@ const ListProduct = () => {
                   </td>
                   <td className="p-4 whitespace-nowrap text-left">
                     <div className="text-sm text-gray-900">{product.name}</div>
-                  </td>
-                  <td className="p-4 whitespace-nowrap text-right">
-                    <div className="text-sm text-gray-900">
-                      {formatCurrency(product.importPrice)}
-                    </div>
                   </td>
                   <td className="p-4 whitespace-nowrap text-right">
                     <div className="text-sm text-gray-900">
