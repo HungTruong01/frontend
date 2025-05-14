@@ -87,8 +87,8 @@ const OrderForm = ({ mode = "add" }) => {
 
   const calculateTotal = () =>
     orderItems.reduce((sum, i) => {
-      const quantity = i.quantity || 1; // Nếu quantity rỗng, dùng 1
-      const price = i.unit_price || 0; // Nếu unit_price rỗng, dùng 0
+      const quantity = i.quantity || 1;
+      const price = i.unit_price || 0;
       return sum + quantity * price;
     }, 0);
 
@@ -104,9 +104,9 @@ const OrderForm = ({ mode = "add" }) => {
     // Kiểm tra và xử lý orderItems để đảm bảo không có quantity hoặc exportPrice rỗng
     const validatedItems = orderItems.map((item) => ({
       ...item,
-      quantity: item.quantity || 1, // Đặt mặc định 1 nếu rỗng
-      exportPrice: item.exportPrice || 0, // Đặt mặc định 0 nếu rỗng
-      unit_price: item.unit_price || 0, // Đặt mặc định 0 nếu rỗng
+      quantity: item.quantity || 1,
+      exportPrice: item.exportPrice || 0,
+      unit_price: item.unit_price || 0,
       profit: (item.unit_price || 0 - item.importPrice) * (item.quantity || 1),
     }));
     const totalMoney = calculateTotal();
@@ -123,7 +123,7 @@ const OrderForm = ({ mode = "add" }) => {
           validatedItems.map((i) => ({
             productId: i.id,
             quantity: i.quantity,
-            unit_price: i.exportPrice,
+            unit_price: i.unit_price,
           }))
         );
         await updateOrder(id, {
@@ -147,7 +147,7 @@ const OrderForm = ({ mode = "add" }) => {
             orderId: res.id,
             productId: i.id,
             quantity: i.quantity,
-            unit_price: i.exportPrice,
+            unit_price: i.unit_price,
           }))
         );
         toast.success("Đã tạo đơn hàng thành công");
@@ -423,12 +423,12 @@ const OrderForm = ({ mode = "add" }) => {
                                 className="w-32 px-2 py-1 border border-gray-300 rounded-md"
                               />
                             ) : (
-                              item.exportPrice?.toLocaleString()
+                              item.unit_price?.toLocaleString()
                             )}
                           </td>
                           <td className="px-6 py-4 text-blue-600 text-sm">
                             {(
-                              (item.exportPrice || 0) * (item.quantity || 1)
+                              (item.unit_price || 0) * (item.quantity || 1)
                             ).toLocaleString()}
                           </td>
                           <td className="px-6 py-4 text-right">

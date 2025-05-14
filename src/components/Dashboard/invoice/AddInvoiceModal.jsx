@@ -33,7 +33,6 @@ const AddInvoiceModal = ({
   const [orderPaidAmount, setOrderPaidAmount] = useState(0);
   const [error, setError] = useState(null);
 
-  // Debounce fetchOrdersByPartner
   const debouncedFetchOrders = useCallback(
     debounce(async (partnerId) => {
       if (!partnerId) {
@@ -139,6 +138,7 @@ const AddInvoiceModal = ({
 
         setOrderPaidAmount(orderData.paidMoney || 0);
         const details = orderData.orderDetails;
+        console.log(details);
         const detailedItems = await Promise.all(
           details.map(async (detail, index) => {
             try {
@@ -147,8 +147,8 @@ const AddInvoiceModal = ({
                 id: index + 1,
                 productName: product?.name || `SP ${detail.productId}`,
                 quantity: detail.quantity || 0,
-                unitPrice: product?.exportPrice || 0,
-                total: (detail.quantity || 0) * (product?.exportPrice || 0),
+                unitPrice: detail?.unit_price || 0,
+                total: (detail.quantity || 0) * (detail?.unit_price || 0),
               };
             } catch (err) {
               console.error("Lỗi lấy sản phẩm:", detail.productId, err);
@@ -156,8 +156,8 @@ const AddInvoiceModal = ({
                 id: index + 1,
                 productName: `SP ${detail.productId}`,
                 quantity: detail.quantity || 0,
-                unitPrice: detail.exportPrice || 0,
-                total: (detail.quantity || 0) * (detail.exportPrice || 0),
+                unitPrice: detail.unit_price || 0,
+                total: (detail.quantity || 0) * (detail.unit_price || 0),
               };
             }
           })

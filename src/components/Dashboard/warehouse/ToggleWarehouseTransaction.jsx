@@ -97,7 +97,7 @@ const ToggleWarehouseTransaction = ({
             );
 
         setOrders(filteredOrders);
-        setStatuses(filteredStatuses); // Sử dụng filteredStatuses thay vì statusRes.content
+        setStatuses(filteredStatuses);
         setTransactionTypes(typeRes.content || []);
         setWarehouses(warehouseRes.content || []);
         setEmployees(employeeRes.data.content || []);
