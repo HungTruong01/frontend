@@ -310,6 +310,12 @@ const ToggleInventoryAdjustment = ({
                   </p>
                 </div>
                 <div>
+                  <p className="text-sm text-gray-500">Số lượng</p>
+                  <p className="text-sm font-medium text-gray-900">
+                    {formatCurrency(selectedProduct.quantity)}
+                  </p>
+                </div>
+                <div>
                   <p className="text-sm text-gray-500">Giá tiền</p>
                   <p className="text-sm font-medium text-gray-900">
                     {formatCurrency(selectedProduct.exportPrice)}

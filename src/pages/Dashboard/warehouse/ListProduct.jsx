@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { FiSearch } from "react-icons/fi";
 import { FaRegTrashAlt, FaEye, FaEdit, FaPlus } from "react-icons/fa";
 import ToggleProductModal from "@/components/Dashboard/product/ToggleProductModal";
@@ -50,7 +50,7 @@ const ListProduct = () => {
     }
   };
 
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     try {
       if (searchType) {
         const response = await getProductsByProductTypeId(
@@ -65,17 +65,19 @@ const ListProduct = () => {
         const response = await getAllProducts(0, 100, "id", "asc");
         setProducts(response.data.content);
       }
+      // Reset image errors sau khi lấy sản phẩm mới
+      setImageErrors({});
     } catch (error) {
       toast.error("Không thể lấy dữ liệu sản phẩm. Vui lòng thử lại.");
       setProducts([]);
     }
-  };
+  }, [searchType]);
 
   useEffect(() => {
     fetchProducts();
     fetchProductTypes();
     fetchProductUnits();
-  }, [searchType]);
+  }, [searchType, fetchProducts]);
 
   const getProductTypeName = (productTypeId) => {
     const type = productTypes.find((type) => type.id === productTypeId);
@@ -216,6 +218,12 @@ const ListProduct = () => {
       ...prev,
       [productId]: true,
     }));
+  };
+
+  // Tạo timestamp ngẫu nhiên để tránh cache
+  const getImageUrl = (url) => {
+    if (!url) return "";
+    return `${url}?t=${Date.now()}`;
   };
 
   return (
@@ -367,7 +375,7 @@ const ListProduct = () => {
                     <div className="w-12 h-12 rounded-md overflow-hidden border border-gray-200">
                       {product.thumbnail && !imageErrors[product.id] ? (
                         <img
-                          src={`${product.thumbnail}?${new Date().getTime()}`} // Thêm timestamp để tránh cache
+                          src={getImageUrl(product.thumbnail)}
                           alt={product.name}
                           className="w-full h-full object-cover"
                           onError={() => handleImageError(product.id)}

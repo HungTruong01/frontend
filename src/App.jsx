@@ -33,6 +33,7 @@ import WarehouseTransfer from "./pages/Dashboard/warehouse/WarehouseTransfer";
 import WarehouseTransferDetail from "./pages/Dashboard/warehouse/WarehouseTransferDetail";
 import AdjustInventory from "./pages/Dashboard/warehouse/AdjustInventory";
 import AdjustInventoryDetail from "./pages/Dashboard/warehouse/AdjustInventoryDetail";
+import ImportBatch from "./pages/Dashboard/warehouse/ImportBatch";
 
 import ListOrder from "./pages/Dashboard/bussiness/ListOrder";
 import ListPartner from "./pages/Dashboard/bussiness/ListPartner";
@@ -123,6 +124,7 @@ const App = () => {
             path="warehouse/product-management"
             element={<ListProduct />}
           />
+          <Route path="warehouse/import-products" element={<ImportBatch />} />
           <Route
             path="warehouse/warehouse-transaction"
             element={<WarehouseTransaction />}

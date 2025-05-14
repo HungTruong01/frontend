@@ -32,6 +32,7 @@ import {
   MdHome,
   MdSettings,
 } from "react-icons/md";
+import { TbPackageImport } from "react-icons/tb";
 const iconStyles = {
   className: "w-5 h-5 text-inherit",
 };
@@ -174,6 +175,11 @@ const menuItem = [
         name: "Sản phẩm",
         path: "/dashboard/warehouse/product-management",
         icon: <FaBoxes {...iconStyles} />,
+      },
+      {
+        name: "Quản lý nhập hàng",
+        path: "/dashboard/warehouse/import-products",
+        icon: <TbPackageImport {...iconStyles} />,
       },
       {
         name: "Giao dịch kho",
