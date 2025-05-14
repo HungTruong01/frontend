@@ -1,10 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  FaSearch,
-  FaEye,
-  FaEdit,
-  FaFileExport,
-} from "react-icons/fa";
+import { FaSearch, FaEye, FaEdit, FaFileExport } from "react-icons/fa";
 import { GoPlus } from "react-icons/go";
 import { useNavigate } from "react-router-dom";
 import {
@@ -125,6 +120,10 @@ const WarehouseTransaction = () => {
   };
 
   const handleEdit = (item) => {
+    if (item.statusName === "Đã hoàn thành") {
+      toast.info("Không thể chỉnh sửa giao dịch đã hoàn thành");
+      return;
+    }
     setCurrentEditItem(item);
     setIsEditModalOpen(true);
   };
@@ -280,8 +279,17 @@ const WarehouseTransaction = () => {
                         </button>
                         <button
                           onClick={() => handleEdit(row)}
-                          className="text-blue-500 hover:text-blue-700 transition-colors"
-                          title="Sửa"
+                          className={`${
+                            row.statusName === "Đã hoàn thành"
+                              ? "text-gray-400 cursor-not-allowed"
+                              : "text-blue-500 hover:text-blue-700"
+                          } transition-colors`}
+                          title={
+                            row.statusName === "Đã hoàn thành"
+                              ? "Không thể chỉnh sửa"
+                              : "Sửa"
+                          }
+                          disabled={row.statusName === "Đã hoàn thành"}
                         >
                           <FaEdit className="h-5 w-5" />
                         </button>

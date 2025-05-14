@@ -63,7 +63,7 @@ const ProductDetailModal = ({
                     className="w-full h-full object-cover"
                     onError={(e) => {
                       console.error("Lỗi tải ảnh:", product.thumbnail);
-                      e.target.src = "/placeholder-image.jpg"; // Ảnh dự phòng
+                      e.target.src = "/placeholder-image.jpg";
                     }}
                   />
                 ) : (
@@ -91,14 +91,14 @@ const ProductDetailModal = ({
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div>
+              {/* <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">
                   Giá vốn
                 </label>
                 <p className="font-medium text-blue-600">
-                  {formatCurrency(product.importPrice)}
+                  {formatCurrency(product.exportPrice)}
                 </p>
-              </div>
+              </div> */}
 
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">
@@ -143,7 +143,7 @@ const ProductDetailModal = ({
           <div className="flex justify-end space-x-3">
             <button
               onClick={onClose}
-              className="px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors duration-200"
+              className="px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:outline-none  focus:ring-gray-500 focus:ring-offset-2 transition-colors duration-200 cursor-pointer"
             >
               Đóng
             </button>

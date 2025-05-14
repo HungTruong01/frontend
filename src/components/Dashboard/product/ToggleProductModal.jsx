@@ -18,7 +18,6 @@ const ToggleProductModal = ({
     id: "",
     name: "",
     description: "",
-    importPrice: "",
     exportPrice: "",
     price: "",
     quantity: "",
@@ -63,16 +62,10 @@ const ToggleProductModal = ({
       newErrors.description = "Mô tả sản phẩm không được để trống";
     }
 
-    if (!data.importPrice) {
-      newErrors.importPrice = "Giá vốn không được để trống";
-    } else if (isNaN(data.importPrice) || Number(data.importPrice) < 0) {
-      newErrors.importPrice = "Giá vốn phải là số không âm";
-    }
-
     if (!data.exportPrice) {
       newErrors.exportPrice = "Giá bán không được để trống";
-    } else if (isNaN(data.exportPrice) || Number(data.exportPrice) < 0) {
-      newErrors.exportPrice = "Giá bán phải là số không âm";
+    } else if (isNaN(data.exportPrice) || Number(data.exportPrice) <= 0) {
+      newErrors.exportPrice = "Giá bán phải là số dương lớn hơn 0";
     }
 
     setErrors(newErrors);
@@ -87,7 +80,6 @@ const ToggleProductModal = ({
           id: product.id || "",
           name: product.name || "",
           description: product.description || "",
-          importPrice: product.importPrice || "",
           exportPrice: product.exportPrice || "",
           price: product.price || product.exportPrice || "",
           quantity: product.quantity || "",
@@ -101,7 +93,6 @@ const ToggleProductModal = ({
           id: "",
           name: "",
           description: "",
-          importPrice: "",
           exportPrice: "",
           price: "",
           quantity: "",
@@ -120,9 +111,13 @@ const ToggleProductModal = ({
     const { name, value } = e.target;
     let newValue = value;
 
-    // Chỉ cho phép số không âm với importPrice và exportPrice
-    if (name === "importPrice" || name === "exportPrice") {
+    if (name === "exportPrice") {
+      // Chỉ cho phép số dương, loại bỏ ký tự không phải số
       newValue = value.replace(/[^0-9]/g, "");
+      // Nếu giá trị là "0" hoặc rỗng, không cập nhật
+      if (newValue === "0") {
+        newValue = "";
+      }
     }
 
     setFormData((prev) => ({ ...prev, [name]: newValue }));
@@ -198,7 +193,6 @@ const ToggleProductModal = ({
       id: normalizedData.id,
       name: normalizedData.name,
       description: normalizedData.description,
-      importPrice: Number(normalizedData.importPrice),
       exportPrice: Number(normalizedData.exportPrice),
       price: Number(normalizedData.exportPrice),
       quantity: normalizedData.quantity ? Number(normalizedData.quantity) : 0,
@@ -330,33 +324,6 @@ const ToggleProductModal = ({
             <div className="grid gap-4 grid-cols-2">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Giá vốn <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <input
-                    type="number"
-                    name="importPrice"
-                    value={formData.importPrice}
-                    onChange={handleChange}
-                    className={`w-full pl-3.5 pr-12 py-2.5 border ${
-                      errors.importPrice ? "border-red-500" : "border-gray-200"
-                    } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm`}
-                    placeholder="Nhập giá vốn"
-                    required
-                  />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">
-                    VND
-                  </span>
-                </div>
-                {errors.importPrice && (
-                  <p className="text-xs text-red-500 mt-1">
-                    {errors.importPrice}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
                   Giá bán <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
@@ -370,6 +337,7 @@ const ToggleProductModal = ({
                     } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm`}
                     placeholder="Nhập giá bán"
                     required
+                    min="1" // Ngăn nhập số âm và 0 trong giao diện
                   />
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">
                     VND

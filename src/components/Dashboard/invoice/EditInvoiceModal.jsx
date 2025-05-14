@@ -157,8 +157,8 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
                   productId: detail.productId,
                   productName: product?.name || `Sản phẩm ${detail.productId}`,
                   quantity: detail.quantity || 0,
-                  unitPrice: product?.exportPrice || 0,
-                  total: (detail.quantity || 0) * (product?.exportPrice || 0),
+                  unitPrice: detail?.unit_price || 0,
+                  total: (detail.quantity || 0) * (detail?.unit_price || 0),
                 };
               } catch (err) {
                 console.error(`Lỗi lấy sản phẩm ${detail.productId}:`, err);
@@ -167,8 +167,8 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
                   productId: detail.productId,
                   productName: `Sản phẩm ${detail.productId}`,
                   quantity: detail.quantity || 0,
-                  unitPrice: detail.unitPrice || 0,
-                  total: (detail.quantity || 0) * (detail.unitPrice || 0),
+                  unitPrice: detail.unit_price || 0,
+                  total: (detail.quantity || 0) * (detail.unit_price || 0),
                 };
               }
             })
@@ -608,4 +608,3 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
 };
 
 export default EditInvoiceModal;
-

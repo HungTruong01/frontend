@@ -30,7 +30,7 @@ import {
   MdManageAccounts,
   MdListAlt,
   MdHome,
-  MdSettings 
+  MdSettings,
 } from "react-icons/md";
 const iconStyles = {
   className: "w-5 h-5 text-inherit",

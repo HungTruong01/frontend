@@ -70,6 +70,11 @@ const OrderForm = ({ mode = "add" }) => {
           quantity: detail.quantity,
           unit_price: detail.unit_price,
           exportPrice: detail.exportPrice ?? product?.exportPrice ?? 0,
+          importPrice: product?.importPrice ?? 0,
+          profit:
+            (detail.exportPrice ??
+              product?.exportPrice ??
+              0 - (product?.importPrice ?? 0)) * detail.quantity,
         };
       });
       setOrderItems(items);
@@ -79,10 +84,16 @@ const OrderForm = ({ mode = "add" }) => {
       setIsLoading(false);
     }
   };
+
   const calculateTotal = () =>
-    orderItems.reduce((sum, i) => sum + i.quantity * i.unit_price, 0);
+    orderItems.reduce((sum, i) => {
+      const quantity = i.quantity || 1;
+      const price = i.unit_price || 0;
+      return sum + quantity * price;
+    }, 0);
+
   const calculateTotalProfit = () =>
-    orderItems.reduce((sum, i) => sum + i.profit, 0);
+    orderItems.reduce((sum, i) => sum + (i.profit || 0), 0);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -90,6 +101,14 @@ const OrderForm = ({ mode = "add" }) => {
       toast.error("Vui lòng điền đầy đủ thông tin và thêm sản phẩm");
       return;
     }
+    // Kiểm tra và xử lý orderItems để đảm bảo không có quantity hoặc exportPrice rỗng
+    const validatedItems = orderItems.map((item) => ({
+      ...item,
+      quantity: item.quantity || 1,
+      exportPrice: item.exportPrice || 0,
+      unit_price: item.unit_price || 0,
+      profit: (item.unit_price || 0 - item.importPrice) * (item.quantity || 1),
+    }));
     const totalMoney = calculateTotal();
     const totalProfit = calculateTotalProfit();
 
@@ -101,10 +120,10 @@ const OrderForm = ({ mode = "add" }) => {
         }
         await updateOrderDetailsByOrderId(
           id,
-          orderItems.map((i) => ({
+          validatedItems.map((i) => ({
             productId: i.id,
             quantity: i.quantity,
-            unit_price: i.exportPrice,
+            unit_price: i.unit_price,
           }))
         );
         await updateOrder(id, {
@@ -124,11 +143,11 @@ const OrderForm = ({ mode = "add" }) => {
           totalMoney,
         });
         await createOrderDetails(
-          orderItems.map((i) => ({
+          validatedItems.map((i) => ({
             orderId: res.id,
             productId: i.id,
             quantity: i.quantity,
-            unit_price: i.exportPrice,
+            unit_price: i.unit_price,
           }))
         );
         toast.success("Đã tạo đơn hàng thành công");
@@ -156,20 +175,57 @@ const OrderForm = ({ mode = "add" }) => {
       toast.info("Sản phẩm đã tồn tại");
       return;
     }
-    const exportPrice = product.exportPrice ?? 0;
+    const exportPrice =
+      selectedOrderType === "1" ? 0 : product.exportPrice ?? 0;
     const newItem = {
       id: product.id,
       product: product.name,
       quantity: 1,
       price: product.price,
-      profit: (exportPrice - (product.importPrice ?? 0)) * 1,
+      profit:
+        selectedOrderType === "1"
+          ? 0
+          : (exportPrice - (product.importPrice ?? 0)) * 1,
       exportPrice: exportPrice,
       unit_price: exportPrice,
       importPrice: product.importPrice ?? 0,
     };
-    console.log("New order item:", newItem);
     setOrderItems([...orderItems, newItem]);
     setIsProductModalOpen(false);
+  };
+
+  const handlePriceChange = (id, value) => {
+    // Cho phép chuỗi rỗng để người dùng có thể xóa và nhập số mới
+    if (value === "") {
+      setOrderItems(
+        orderItems.map((item) =>
+          item.id === id
+            ? {
+                ...item,
+                exportPrice: "",
+                unit_price: "",
+                profit: 0, // Profit tạm thời là 0 khi giá rỗng
+              }
+            : item
+        )
+      );
+      return;
+    }
+    const price = parseFloat(value);
+    if (!isNaN(price) && price >= 0) {
+      setOrderItems(
+        orderItems.map((item) =>
+          item.id === id
+            ? {
+                ...item,
+                exportPrice: price,
+                unit_price: price,
+                profit: (price - item.importPrice) * (item.quantity || 1),
+              }
+            : item
+        )
+      );
+    }
   };
 
   const handleRemoveItem = (id) => {
@@ -177,6 +233,21 @@ const OrderForm = ({ mode = "add" }) => {
   };
 
   const handleQuantityChange = (id, value) => {
+    // Cho phép chuỗi rỗng để người dùng có thể xóa và nhập số mới
+    if (value === "") {
+      setOrderItems(
+        orderItems.map((item) =>
+          item.id === id
+            ? {
+                ...item,
+                quantity: "",
+                profit: 0, // Profit tạm thời là 0 khi số lượng rỗng
+              }
+            : item
+        )
+      );
+      return;
+    }
     const quantity = parseInt(value);
     if (!isNaN(quantity) && quantity > 0) {
       setOrderItems(
@@ -198,7 +269,13 @@ const OrderForm = ({ mode = "add" }) => {
   };
 
   if (isEdit && isLoading)
-    return <div className="p-6">Đang tải dữ liệu...</div>;
+    return (
+      <div className="bg-gray-50 min-h-screen w-auto p-6">
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
+      </div>
+    );
 
   return (
     <div className="w-full bg-white shadow-lg rounded-lg overflow-hidden">
@@ -335,18 +412,24 @@ const OrderForm = ({ mode = "add" }) => {
                             />
                           </td>
                           <td className="px-6 py-4 text-blue-600 text-sm">
-                            {isEdit
-                              ? item?.unit_price?.toLocaleString()
-                              : item?.exportPrice?.toLocaleString()}
+                            {selectedOrderType === "1" ? (
+                              <input
+                                type="number"
+                                value={item.exportPrice}
+                                onChange={(e) =>
+                                  handlePriceChange(item.id, e.target.value)
+                                }
+                                min="0"
+                                className="w-32 px-2 py-1 border border-gray-300 rounded-md"
+                              />
+                            ) : (
+                              item.unit_price?.toLocaleString()
+                            )}
                           </td>
                           <td className="px-6 py-4 text-blue-600 text-sm">
-                            {isEdit
-                              ? (
-                                  item.unit_price * item.quantity
-                                ).toLocaleString()
-                              : (
-                                  item.exportPrice * item.quantity
-                                ).toLocaleString()}
+                            {(
+                              (item.unit_price || 0) * (item.quantity || 1)
+                            ).toLocaleString()}
                           </td>
                           <td className="px-6 py-4 text-right">
                             <button

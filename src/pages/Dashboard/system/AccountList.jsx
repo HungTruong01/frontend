@@ -9,6 +9,7 @@ import { FaSearch, FaEdit, FaRegTrashAlt } from "react-icons/fa";
 import { GoPlus } from "react-icons/go";
 import AddModal from "@/components/Dashboard/AddModal";
 import EditModal from "@/components/Dashboard/EditModal";
+import { toast } from "react-toastify";
 
 const AccountList = () => {
   const [accounts, setAccounts] = useState([]);
@@ -19,6 +20,8 @@ const AccountList = () => {
   const [itemsPerPage] = useState(7);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedRole, setSelectedRole] = useState("");
 
   const [roles] = useState([
     { id: 1, name: "ADMIN", label: "ADMIN" },
@@ -43,8 +46,7 @@ const AccountList = () => {
 
   const fetchAccounts = async (page = 1) => {
     try {
-      const response = await getAllUsers(page - 1, itemsPerPage, "id", "asc");
-      console.log("Dữ liệu trả về", response.data.content);
+      const response = await getAllUsers(page - 1, 100, "id", "asc");
       setAccounts(response.data.content);
       setTotalPages(response.data.totalPages);
       setTotalElements(response.data.totalElements);
@@ -56,6 +58,16 @@ const AccountList = () => {
     }
   };
 
+  const filteredAccounts = accounts.filter((acc) => {
+    const keyword = searchTerm.toLowerCase();
+    const usernameMatch = acc.username.toLowerCase().includes(keyword);
+    const roleLabel =
+      roles.find((r) => r.id === acc.roleId)?.label?.toLowerCase() ?? "";
+    const roleMatch = roleLabel.includes(keyword);
+
+    return usernameMatch || roleMatch;
+  });
+
   const handleAddAccount = async (formData) => {
     try {
       const accountData = {
@@ -64,7 +76,7 @@ const AccountList = () => {
         roleId: parseInt(formData.roleId, 10),
       };
       await createAccount(accountData);
-      alert("Thêm tài khoản thành công!");
+      toast.success("Thêm tài khoản thành công!");
       fetchAccounts();
     } catch (error) {
       console.error("Lỗi khi tạo tài khoản:", error);
@@ -81,11 +93,11 @@ const AccountList = () => {
       };
       // console.log("Dữ liệu gửi đi: ", accountData);
       await updateAccount(accountId, accountData);
-      alert("Cập nhật tài khoản thành công!");
+      toast.success("Cập nhật tài khoản thành công!");
       fetchAccounts();
     } catch (error) {
       console.error("Lỗi khi cập nhật tài khoản:", error);
-      alert("Cập nhật tài khoản thất bại!");
+      toast.error("Cập nhật tài khoản thất bại!");
     }
   };
 
@@ -97,17 +109,16 @@ const AccountList = () => {
 
     try {
       await deleteAccount(accountId);
-      alert("Xoá tài khoản thành công!");
+      toast.success("Xoá tài khoản thành công!");
       fetchAccounts();
     } catch (error) {
       console.error("Lỗi khi xoá tài khoản:", error);
-      alert("Xoá tài khoản thất bại!");
+      toast.error("Xoá tài khoản thất bại!");
     }
   };
 
   useEffect(() => {
     fetchAccounts(currentPage);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage]);
 
   const addAccountFields = [
@@ -199,10 +210,15 @@ const AccountList = () => {
             <div className="relative flex-grow w-64">
               <input
                 type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Tìm kiếm..."
                 className="w-full px-4 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
               />
-              <button className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700">
+              <button
+                onClick={() => {}}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              >
                 <FaSearch className="h-4 w-4" />
               </button>
             </div>
@@ -234,7 +250,7 @@ const AccountList = () => {
               </tr>
             </thead>
             <tbody>
-              {accounts.map((row) => (
+              {filteredAccounts.map((row) => (
                 <tr
                   key={row.id}
                   className="border-b border-gray-300 hover:bg-gray-100 transition-colors"

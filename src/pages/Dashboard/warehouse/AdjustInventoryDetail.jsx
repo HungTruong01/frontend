@@ -86,6 +86,10 @@ const AdjustInventoryDetail = () => {
     }
   };
 
+  const handleGoBack = () => {
+    navigate("/dashboard/warehouse/adjust-inventory");
+  };
+
   if (loading) {
     return (
       <div className="w-full h-64 flex items-center justify-center">
@@ -132,18 +136,18 @@ const AdjustInventoryDetail = () => {
         </div>
       )}
 
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center space-x-4">
-          <Link
-            to="/dashboard/warehouse/adjust-inventory"
-            className="flex items-center text-gray-600 hover:text-blue-600 transition-colors"
-          >
-            <FaArrowLeft />
-          </Link>
-          <h1 className="text-2xl font-bold text-gray-800">
+      <div className="flex justify-between items-center my-2">
+        <div className="flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-gray-800 leading-none px-2">
             Chi tiết điều chỉnh tồn kho #{adjustment.id}
           </h1>
         </div>
+        <button
+          onClick={handleGoBack}
+          className="px-6 py-2 border border-gray-300 rounded-md hover:bg-gray-100 transition-colors bg-white"
+        >
+          Quay lại
+        </button>
       </div>
 
       <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -180,27 +184,6 @@ const AdjustInventoryDetail = () => {
               <p className="text-gray-800">
                 {adjustment.warehouseName || "N/A"}
               </p>
-            </div>
-
-            <div className="space-y-2">
-              <p className="text-sm text-gray-500 font-medium">Số lượng</p>
-              <p className="text-gray-800">{adjustment.quantity || "0"}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="border-b border-gray-200 bg-gray-50 px-6 py-4">
-          <h2 className="text-lg font-semibold text-gray-800">
-            Thông tin sản phẩm
-          </h2>
-        </div>
-        <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="space-y-2">
-              <p className="text-sm text-gray-500 font-medium">Mã sản phẩm</p>
-              <p className="text-gray-800">{adjustment.productId || "N/A"}</p>
             </div>
 
             <div className="space-y-2">
