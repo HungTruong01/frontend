@@ -14,37 +14,6 @@ const RevenueReport = () => {
   const [revenueData, setSevenueData] = useState(0);
   const [profitData, setProfitData] = useState(0);
 
-  // Dữ liệu mẫu (có thể thay bằng dữ liệu thực từ API)
-  const sampleData = {
-    monthly: {
-      labels: ["Tháng 1", "Tháng 2", "Tháng 3"],
-      revenue: [5000000, 6000000, 5500000],
-    },
-    quarterly: {
-      labels: ["Q1", "Q2", "Q3"],
-      revenue: [16500000, 18000000, 17000000],
-    },
-    yearly: {
-      labels: ["2023", "2024", "2025"],
-      revenue: [60000000, 65000000, 70000000],
-    },
-  };
-
-  // Tổng doanh thu và lợi nhuận
-  const totalRevenue = sampleData[filter].revenue.reduce(
-    (sum, val) => sum + val,
-    0
-  );
-  const totalProfit = sampleData[filter].revenue.reduce(
-    (sum, val) => sum + val,
-    0
-  );
-  // const totalProfit = sampleData[filter].profit.reduce(
-  //   (sum, val) => sum + val,
-  //   0
-  // );
-  // const profitMargin = ((totalProfit / totalRevenue) * 100).toFixed(2);
-
   useEffect(() => {
     const getData = async () => {
       setReportData([]);
