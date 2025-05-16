@@ -58,7 +58,7 @@ const NewDetailTemplate = () => {
           title: item.title,
           excerpt: item.content.replace(/<[^>]+>/g, "").slice(0, 100).trim() + "...",
           date: new Date(item.postedAt).toLocaleDateString("vi-VN"),
-          image: `/public/${item.thumbnail}`,
+          image: item.thumbnail,
           link: `/news/${item.id}`,
         }));
   
@@ -86,7 +86,7 @@ const NewDetailTemplate = () => {
     <div className="min-h-screen bg-white-100 mb-20">
       <div className="max-w-6xl mx-auto p-6 bg-white shadow-lg rounded-lg">
         <img
-          src={`/public/${post.thumbnail}`}
+          src={post.thumbnail}
           alt={post.title}
           className="w-full h-80 object-cover rounded-lg mb-8"
         />

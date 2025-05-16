@@ -27,36 +27,29 @@ export const getAllPosts = (pageNo, pageSize, sortBy, sortDir) => {
   return axios.get(url);
 };
 
-// Tạo bài viết, sửa cấu hình Content-Type
-export const createPost = async (formData) => {
+export const createPost = async (postData) => {
   try {
-    const response = await axios.post(BASE_REST_API_URL, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
+    const response = await axios.post(BASE_REST_API_URL, {
+      ...postData,
+      thumbnail: postData.thumbnail || "",
     });
     return response.data;
   } catch (error) {
-    console.error(
-      "Error creating post:",
-      error.response?.data || error.message
-    );
+    console.log("Lỗi khi tạo bài đăng:", error.response?.data || error.message);
     throw error;
   }
 };
 
-// Cập nhật bài viết, thêm headers
-export const updatePost = async (id, formData) => {
+export const updatePost = async (id, postData) => {
   try {
-    const response = await axios.put(`${BASE_REST_API_URL}/${id}`, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
+    const response = await axios.put(`${BASE_REST_API_URL}/${id}`, {
+      ...postData,
+      thumbnail: postData.thumbnail || "",
     });
     return response.data;
   } catch (error) {
-    console.error(
-      "Error updating post:",
+    console.log(
+      "Lỗi khi cập nhật bài đăng:",
       error.response?.data || error.message
     );
     throw error;

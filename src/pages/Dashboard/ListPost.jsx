@@ -77,25 +77,8 @@ const ListPost = () => {
         return Promise.reject(new Error("Invalid post data"));
       }
 
-      const formData = new FormData();
-
-      const postDto = {
-        title: newPost.title,
-        content: newPost.content,
-      };
-
-      formData.append(
-        "post",
-        new Blob([JSON.stringify(postDto)], { type: "application/json" })
-      );
-
-      if (newPost.thumbnailFile) {
-        formData.append("thumbnail", newPost.thumbnailFile);
-      } else if (newPost.thumbnail && typeof newPost.thumbnail === "object") {
-        formData.append("thumbnail", newPost.thumbnail);
-      }
-
-      await createPost(formData);
+      // Gọi trực tiếp API với newPost object
+      await createPost(newPost);
       toast.success("Thêm bài đăng thành công");
       await listPosts();
       setIsAddModalOpen(false);
@@ -116,9 +99,22 @@ const ListPost = () => {
       if (!detailPost) {
         throw new Error("Không nhận được dữ liệu từ API");
       }
-      setCurrentEditPost(detailPost);
+      
+      // Transform the data to match the expected structure
+      const editPost = {
+        id: detailPost.id,
+        title: detailPost.title || '',
+        content: detailPost.content || '',
+        thumbnail: detailPost.thumbnail || '',
+        postedAt: detailPost.postedAt,
+        updatedAt: detailPost.updatedAt
+      };
+      
+      console.log('Transformed post data:', editPost);
+      setCurrentEditPost(editPost);
       setIsEditModalOpen(true);
     } catch (error) {
+      console.error("Error loading post:", error);
       toast.error("Không thể tải thông tin bài đăng");
     } finally {
       setIsLoading(false);
@@ -127,41 +123,37 @@ const ListPost = () => {
 
   const handleEditSubmit = async (updatedPost) => {
     try {
-      const formData = new FormData();
-      const postData = {
-        title: updatedPost.title,
-        content: updatedPost.content,
-        postedAt: updatedPost.postedAt || new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        thumbnail: updatedPost.thumbnail || "", // Gửi URL nếu có
-      };
-      console.log("Data to be sent:", {
-        postData,
-        hasThumbnailFile: !!updatedPost.thumbnailFile,
-      });
-      formData.append(
-        "post",
-        new Blob([JSON.stringify(postData)], { type: "application/json" })
-      );
-      if (updatedPost.thumbnailFile) {
-        formData.append("thumbnail", updatedPost.thumbnailFile); // Gửi file nếu có
+      setIsLoading(true);
+      
+      // Validate required fields
+      if (!updatedPost.title?.trim() || !updatedPost.content?.trim()) {
+        throw new Error("Tiêu đề và nội dung không được để trống");
       }
-      await updatePost(updatedPost.id, formData);
-      toast.success("Cập nhật bài đăng thành công");
-      await listPosts();
+
+      // Gửi trực tiếp dữ liệu mà không wrap trong FormData
+      const response = await updatePost(updatedPost.id, {
+        title: updatedPost.title.trim(),
+        content: updatedPost.content.trim(),
+        thumbnail: updatedPost.thumbnail || "",
+        postedAt: updatedPost.postedAt,
+        updatedAt: new Date().toISOString()
+      });
+      
+      if (!response) {
+        throw new Error("Không nhận được phản hồi từ server");
+      }
+
       setIsEditModalOpen(false);
       setCurrentEditPost(null);
-      return Promise.resolve();
+      await listPosts();
+      toast.success("Cập nhật bài đăng thành công");
+
     } catch (error) {
-      console.error("Error updating post:", {
-        status: error.response?.status,
-        data: error.response?.data,
-        message: error.message,
-      });
-      toast.error(
-        error.response?.data?.message || "Không thể cập nhật bài đăng"
-      );
-      return Promise.reject(error);
+      console.error("Error updating post:", error);
+      toast.error(error.message || "Không thể cập nhật bài đăng");
+      throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
   const formatDate = (dateString) => {
@@ -173,7 +165,7 @@ const ListPost = () => {
       const month = String(date.getMonth() + 1).padStart(2, "0");
       const year = date.getFullYear();
       return `${day}/${month}/${year}`;
-    } catch (error) {
+    } catch {
       return "N/A";
     }
   };

@@ -57,9 +57,9 @@ const QuillWrapper = memo(({ onChange, initialContent }) => {
   return (
     <div className="border-2 border-gray-300 rounded-lg">
       {/* Thêm min-height và style container cho Quill */}
-      <div className="min-h-[300px]">
+      <div className="min-h-[300px] relative">
         {/* Container cho toolbar */}
-        <div className="ql-toolbar ql-snow border-b border-gray-300" />
+        <div className="ql-toolbar ql-snow border-b border-gray-300 sticky top-0 bg-white z-10" />
         {/* Container cho editor với style cụ thể */}
         <div className="h-[250px] overflow-y-auto">
           <div ref={quillRef} className="!h-full" />
@@ -220,7 +220,7 @@ const handleSubmit = async (e) => {
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl p-6 w-full max-w-2xl flex flex-col shadow-2xl">
+      <div className="bg-white rounded-xl p-6 w-full max-w-4xl flex flex-col shadow-2xl">
         <div className="flex justify-between items-center mb-6 border-b pb-3">
           <h2 className="text-xl font-semibold text-gray-800">
             Chỉnh sửa cấu hình
