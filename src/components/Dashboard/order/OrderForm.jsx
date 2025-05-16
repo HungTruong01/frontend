@@ -10,7 +10,7 @@ import {
   createOrderDetails,
   updateOrderDetailsByOrderId,
 } from "@/api/orderDetailApi";
-import { getAllProducts } from "@/api/productApi";
+import { getAllProducts, updateProduct } from "@/api/productApi";
 import { toast } from "react-toastify";
 
 const OrderForm = ({ mode = "add" }) => {
@@ -30,6 +30,8 @@ const OrderForm = ({ mode = "add" }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   const isEdit = mode === "edit" && id;
+  const isPurchaseOrder = selectedOrderType === "1";
+  const isSalesOrder = selectedOrderType === "2";
 
   useEffect(() => {
     const fetchData = async () => {
@@ -53,6 +55,16 @@ const OrderForm = ({ mode = "add" }) => {
     if (isEdit && products.length) fetchOrder();
   }, [products]);
 
+  useEffect(() => {
+    if (orderItems.length > 0) {
+      const updatedItems = orderItems.map((item) => ({
+        ...item,
+        expireDate: isPurchaseOrder ? item.expireDate || "" : "",
+      }));
+      setOrderItems(updatedItems);
+    }
+  }, [selectedOrderType]);
+
   const fetchOrder = async () => {
     try {
       const res = await getOrderById(id);
@@ -69,10 +81,18 @@ const OrderForm = ({ mode = "add" }) => {
           product: product?.name || `SP #${detail.productId}`,
           quantity: detail.quantity,
           unit_price: detail.unit_price,
-          exportPrice: detail.exportPrice ?? product?.exportPrice ?? 0,
+          exportPrice:
+            detail.unit_price ??
+            detail.exportPrice ??
+            product?.exportPrice ??
+            0,
           importPrice: product?.importPrice ?? 0,
+          expireDate: detail.expireDate
+            ? new Date(detail.expireDate).toISOString().split("T")[0]
+            : "",
           profit:
-            (detail.exportPrice ??
+            (detail.unit_price ??
+              detail.exportPrice ??
               product?.exportPrice ??
               0 - (product?.importPrice ?? 0)) * detail.quantity,
         };
@@ -101,13 +121,33 @@ const OrderForm = ({ mode = "add" }) => {
       toast.error("Vui lòng điền đầy đủ thông tin và thêm sản phẩm");
       return;
     }
-    // Kiểm tra và xử lý orderItems để đảm bảo không có quantity hoặc exportPrice rỗng
+
+    if (isPurchaseOrder) {
+      const missingExpireDates = orderItems.some((item) => !item.expireDate);
+      if (missingExpireDates) {
+        toast.error(
+          "Vui lòng nhập ngày hết hạn cho tất cả sản phẩm trong đơn mua"
+        );
+        return;
+      }
+    }
+
+    const missingPrices = orderItems.some(
+      (item) => !item.unit_price || item.unit_price <= 0
+    );
+    if (missingPrices) {
+      toast.error("Vui lòng nhập đơn giá hợp lệ cho tất cả sản phẩm");
+      return;
+    }
+
     const validatedItems = orderItems.map((item) => ({
       ...item,
       quantity: item.quantity || 1,
-      exportPrice: item.exportPrice || 0,
-      unit_price: item.unit_price || 0,
-      profit: (item.unit_price || 0 - item.importPrice) * (item.quantity || 1),
+      unit_price: parseFloat(item.unit_price) || 0,
+      exportPrice: parseFloat(item.unit_price) || 0,
+      profit:
+        (parseFloat(item.unit_price) || 0 - item.importPrice) *
+        (item.quantity || 1),
     }));
     const totalMoney = calculateTotal();
     const totalProfit = calculateTotalProfit();
@@ -124,6 +164,9 @@ const OrderForm = ({ mode = "add" }) => {
             productId: i.id,
             quantity: i.quantity,
             unit_price: i.unit_price,
+            expireDate: i.expireDate
+              ? new Date(i.expireDate).toISOString()
+              : null,
           }))
         );
         await updateOrder(id, {
@@ -134,6 +177,7 @@ const OrderForm = ({ mode = "add" }) => {
           paidMoney: currentPaidMoney,
           profitMoney: totalProfit,
         });
+
         toast.success("Đã cập nhật đơn hàng");
       } else {
         const res = await createOrder({
@@ -148,12 +192,20 @@ const OrderForm = ({ mode = "add" }) => {
             productId: i.id,
             quantity: i.quantity,
             unit_price: i.unit_price,
+            expireDate: i.expireDate
+              ? new Date(i.expireDate).toISOString()
+              : null,
           }))
         );
+
         toast.success("Đã tạo đơn hàng thành công");
       }
       navigate("/dashboard/business/order-management");
-    } catch {
+    } catch (error) {
+      console.error(
+        "Lỗi khi lưu đơn hàng:",
+        error.response?.data || error.message
+      );
       toast.error("Có lỗi xảy ra khi lưu đơn hàng");
     }
   };
@@ -181,30 +233,29 @@ const OrderForm = ({ mode = "add" }) => {
       id: product.id,
       product: product.name,
       quantity: 1,
-      price: product.price,
+      unit_price: exportPrice,
+      exportPrice: exportPrice,
+      importPrice: product.importPrice ?? 0,
+      expireDate: "",
       profit:
         selectedOrderType === "1"
           ? 0
           : (exportPrice - (product.importPrice ?? 0)) * 1,
-      exportPrice: exportPrice,
-      unit_price: exportPrice,
-      importPrice: product.importPrice ?? 0,
     };
     setOrderItems([...orderItems, newItem]);
     setIsProductModalOpen(false);
   };
 
   const handlePriceChange = (id, value) => {
-    // Cho phép chuỗi rỗng để người dùng có thể xóa và nhập số mới
     if (value === "") {
       setOrderItems(
         orderItems.map((item) =>
           item.id === id
             ? {
                 ...item,
-                exportPrice: "",
                 unit_price: "",
-                profit: 0, // Profit tạm thời là 0 khi giá rỗng
+                exportPrice: "",
+                profit: 0,
               }
             : item
         )
@@ -218,8 +269,8 @@ const OrderForm = ({ mode = "add" }) => {
           item.id === id
             ? {
                 ...item,
-                exportPrice: price,
                 unit_price: price,
+                exportPrice: price,
                 profit: (price - item.importPrice) * (item.quantity || 1),
               }
             : item
@@ -228,12 +279,24 @@ const OrderForm = ({ mode = "add" }) => {
     }
   };
 
+  const handleExpireDateChange = (id, value) => {
+    setOrderItems(
+      orderItems.map((item) =>
+        item.id === id
+          ? {
+              ...item,
+              expireDate: value,
+            }
+          : item
+      )
+    );
+  };
+
   const handleRemoveItem = (id) => {
     setOrderItems(orderItems.filter((i) => i.id !== id));
   };
 
   const handleQuantityChange = (id, value) => {
-    // Cho phép chuỗi rỗng để người dùng có thể xóa và nhập số mới
     if (value === "") {
       setOrderItems(
         orderItems.map((item) =>
@@ -241,7 +304,7 @@ const OrderForm = ({ mode = "add" }) => {
             ? {
                 ...item,
                 quantity: "",
-                profit: 0, // Profit tạm thời là 0 khi số lượng rỗng
+                profit: 0,
               }
             : item
         )
@@ -256,7 +319,7 @@ const OrderForm = ({ mode = "add" }) => {
             ? {
                 ...item,
                 quantity,
-                profit: (item.exportPrice - item.importPrice) * quantity,
+                profit: (item.unit_price - item.importPrice) * quantity,
               }
             : item
         )
@@ -385,6 +448,14 @@ const OrderForm = ({ mode = "add" }) => {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                         Đơn giá
                       </th>
+                      {(isPurchaseOrder || isEdit) && (
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                          Ngày hết hạn{" "}
+                          {isPurchaseOrder && (
+                            <span className="text-red-500">*</span>
+                          )}
+                        </th>
+                      )}
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                         Thành tiền
                       </th>
@@ -412,10 +483,10 @@ const OrderForm = ({ mode = "add" }) => {
                             />
                           </td>
                           <td className="px-6 py-4 text-blue-600 text-sm">
-                            {selectedOrderType === "1" ? (
+                            {isPurchaseOrder || isSalesOrder ? (
                               <input
                                 type="number"
-                                value={item.exportPrice}
+                                value={item.unit_price}
                                 onChange={(e) =>
                                   handlePriceChange(item.id, e.target.value)
                                 }
@@ -426,6 +497,22 @@ const OrderForm = ({ mode = "add" }) => {
                               item.unit_price?.toLocaleString()
                             )}
                           </td>
+                          {(isPurchaseOrder || isEdit) && (
+                            <td className="px-6 py-4">
+                              <input
+                                type="date"
+                                value={item.expireDate}
+                                onChange={(e) =>
+                                  handleExpireDateChange(
+                                    item.id,
+                                    e.target.value
+                                  )
+                                }
+                                className="w-40 px-2 py-1 border border-gray-300 rounded-md"
+                                required={isPurchaseOrder}
+                              />
+                            </td>
+                          )}
                           <td className="px-6 py-4 text-blue-600 text-sm">
                             {(
                               (item.unit_price || 0) * (item.quantity || 1)

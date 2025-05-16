@@ -61,6 +61,7 @@ const OrderDetailModal = ({ isOpen, onClose, orderData, onOrderUpdated }) => {
           ...detail,
           productName: product?.name || "Không xác định",
           unitPrice: detail?.unit_price || 0,
+          expireDate: detail?.expireDate,
         };
       });
       setOrderItems(enhancedItems);
@@ -322,6 +323,9 @@ const OrderDetailModal = ({ isOpen, onClose, orderData, onOrderUpdated }) => {
                       Đơn giá
                     </th>
                     <th className="px-4 py-3 text-right text-sm font-semibold text-gray-600">
+                      Ngày hết hạn
+                    </th>
+                    <th className="px-4 py-3 text-right text-sm font-semibold text-gray-600">
                       Thành tiền
                     </th>
                   </tr>
@@ -336,6 +340,9 @@ const OrderDetailModal = ({ isOpen, onClose, orderData, onOrderUpdated }) => {
                         </td>
                         <td className="px-4 py-3 text-right">
                           {formatCurrency(item.unitPrice)}
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          {formatDate(item.expireDate)}
                         </td>
                         <td className="px-4 py-3 text-right">
                           {formatCurrency(item.unitPrice * item.quantity)}
@@ -356,7 +363,7 @@ const OrderDetailModal = ({ isOpen, onClose, orderData, onOrderUpdated }) => {
                 <tfoot>
                   <tr className="bg-white border-t-2 border-gray-200">
                     <td
-                      colSpan="3"
+                      colSpan="4"
                       className="px-4 py-3 text-right font-semibold text-gray-800"
                     >
                       Tổng cộng:

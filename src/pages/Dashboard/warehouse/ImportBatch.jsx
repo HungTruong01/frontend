@@ -11,11 +11,13 @@ import {
 import { getAllImportBatches } from "@/api/importBatch";
 import { getAllProducts } from "@/api/productApi";
 import { getAllWarehouse } from "@/api/warehouseApi";
+import { getAllWarehouseTransaction } from "@/api/warehouseTransactionApi";
 
 const ImportBatch = () => {
   const [importBatches, setImportBatches] = useState([]);
   const [products, setProducts] = useState([]);
   const [warehouses, setWarehouses] = useState([]);
+  const [warehouseTransaction, setWarehouseTransaction] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState({
@@ -29,7 +31,6 @@ const ImportBatch = () => {
     direction: "desc",
   });
 
-  // Pagination states
   const [itemsPerPage] = useState(7);
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -37,15 +38,21 @@ const ImportBatch = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [batchesResponse, productsResponse, warehousesResponse] =
-          await Promise.all([
-            getAllImportBatches(0, 1000, "importDate", "desc"),
-            getAllProducts(0, 1000, "id", "asc"),
-            getAllWarehouse(0, 1000, "id", "asc"),
-          ]);
+        const [
+          batchesResponse,
+          productsResponse,
+          warehousesResponse,
+          warehouseTransactionRes,
+        ] = await Promise.all([
+          getAllImportBatches(0, 1000, "importDate", "desc"),
+          getAllProducts(0, 1000, "id", "asc"),
+          getAllWarehouse(0, 1000, "id", "asc"),
+          getAllWarehouseTransaction(0, 1000, "id", "asc"),
+        ]);
         setImportBatches(batchesResponse.data.content || []);
         setProducts(productsResponse.data.content || []);
         setWarehouses(warehousesResponse.content || []);
+        setWarehouseTransaction(warehouseTransactionRes.content || []);
       } catch (error) {
         console.error("Lỗi khi tải dữ liệu:", error);
       } finally {
@@ -98,17 +105,17 @@ const ImportBatch = () => {
       return matchesSearch && matchesWarehouse && matchesProduct && matchesDate;
     })
     .sort((a, b) => {
-      if (sortConfig.key === "importDate") {
+      if (sortConfig.key === "importDate" || sortConfig.key === "expireDate") {
         return sortConfig.direction === "asc"
-          ? new Date(a.importDate) - new Date(b.importDate)
-          : new Date(b.importDate) - new Date(a.importDate);
+          ? new Date(a[sortConfig.key]) - new Date(b[sortConfig.key])
+          : new Date(b[sortConfig.key]) - new Date(a[sortConfig.key]);
       }
+
       return sortConfig.direction === "asc"
         ? a[sortConfig.key] - b[sortConfig.key]
         : b[sortConfig.key] - a[sortConfig.key];
     });
 
-  // Calculate total pages and paginated data
   const totalPages = Math.ceil(filteredBatches.length / itemsPerPage);
   const paginatedData = filteredBatches.slice(
     (currentPage - 1) * itemsPerPage,
@@ -142,7 +149,7 @@ const ImportBatch = () => {
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
-                setCurrentPage(1); // Reset to first page when search changes
+                setCurrentPage(1);
               }}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
@@ -207,24 +214,16 @@ const ImportBatch = () => {
                 <th className="py-3 px-4 font-semibold text-gray-700 text-left">
                   Kho
                 </th>
-                <th
-                  className="py-3 px-4 font-semibold text-gray-700 text-right cursor-pointer"
-                  onClick={() => handleSort("quantityRemaining")}
-                >
-                  <div className="flex items-center gap-2 justify-end">
-                    Số lượng
-                    <FaSort />
-                  </div>
+                <th className="py-3 px-4 font-semibold text-gray-700 text-left">
+                  Giá nhập
                 </th>
-                <th
-                  className="py-3 px-4 font-semibold text-gray-700 text-right cursor-pointer"
-                  onClick={() => handleSort("unitCost")}
-                >
-                  <div className="flex items-center gap-2 justify-end">
-                    Đơn giá nhập
-                    <FaSort />
-                  </div>
+                <th className="py-3 px-4 font-semibold text-gray-700 text-left">
+                  SL nhập
                 </th>
+                <th className="py-3 px-4 font-semibold text-gray-700 text-left">
+                  SL còn lại
+                </th>
+
                 <th
                   className="py-3 px-4 font-semibold text-gray-700 text-left cursor-pointer"
                   onClick={() => handleSort("importDate")}
@@ -233,6 +232,18 @@ const ImportBatch = () => {
                     Ngày nhập
                     <FaSort />
                   </div>
+                </th>
+                <th
+                  className="py-3 px-4 font-semibold text-gray-700 text-left cursor-pointer"
+                  onClick={() => handleSort("expireDate")}
+                >
+                  <div className="flex items-center gap-2">
+                    Ngày hết hạn
+                    <FaSort />
+                  </div>
+                </th>
+                <th className="py-3 px-4 font-semibold text-gray-700 text-left">
+                  Giao dịch kho
                 </th>
               </tr>
             </thead>
@@ -252,13 +263,22 @@ const ImportBatch = () => {
                       "Không xác định"}
                   </td>
                   <td className="py-3 px-4 text-gray-600 text-right">
-                    {batch.quantityRemaining.toLocaleString("vi-VN")}
+                    {batch.unitCost.toLocaleString("vi-VN")} VND
                   </td>
                   <td className="py-3 px-4 text-gray-600 text-right">
-                    {batch.unitCost.toLocaleString("vi-VN")} VND
+                    {batch.importQuantity}
+                  </td>
+                  <td className="py-3 px-4 text-gray-600 text-right">
+                    {batch.remainQuantity}
                   </td>
                   <td className="py-3 px-4 text-gray-600">
                     {new Date(batch.importDate).toLocaleDateString("vi-VN")}
+                  </td>
+                  <td className="py-3 px-4 text-gray-600">
+                    {new Date(batch.expireDate).toLocaleDateString("vi-VN")}
+                  </td>
+                  <td className="py-3 px-4 text-gray-600">
+                    {`GD#${batch.warehouseTransactionId}`}
                   </td>
                 </tr>
               ))}
