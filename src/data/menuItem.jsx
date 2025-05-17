@@ -150,7 +150,7 @@ const menuItem = [
     path: "/dashboard/business",
     subpages: [
       {
-        name: "Danh sách đối tác",
+        name: "Đối tác",
         path: "/dashboard/business/partner-list",
         icon: <FaHandshake {...iconStyles} />,
       },
@@ -177,7 +177,7 @@ const menuItem = [
         icon: <FaBoxes {...iconStyles} />,
       },
       {
-        name: "Quản lý lô hàng nhập",
+        name: "Lô hàng",
         path: "/dashboard/warehouse/import-products",
         icon: <TbPackageImport {...iconStyles} />,
       },
@@ -187,7 +187,7 @@ const menuItem = [
         icon: <FaExchangeAlt {...iconStyles} />,
       },
       {
-        name: "Chuyển kho",
+        name: "Đơn hàng nội bộ",
         path: "/dashboard/warehouse/warehouse-transfer",
         icon: <TbTruckDelivery {...iconStyles} />,
       },

@@ -32,7 +32,7 @@ const ListPost = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const columns = [
-    { key: "id", label: "Mã bài đăng" },
+    { key: "id", label: "Mã" },
     { key: "title", label: "Tiêu đề" },
     { key: "posted_at", label: "Ngày đăng" },
     { key: "updated_at", label: "Ngày cập nhật" },
