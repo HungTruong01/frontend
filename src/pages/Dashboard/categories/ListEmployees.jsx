@@ -5,7 +5,6 @@ import {
   createEmployee,
   updateEmployee,
   deleteEmployee,
-  getEmployeeById,
 } from "@/api/employeeApi";
 
 const ListEmployees = () => {
@@ -13,7 +12,7 @@ const ListEmployees = () => {
   const addEmployeeFields = [
     {
       key: "fullname",
-      label: "Họ tên nhân viên",
+      label: "Họ và tên",
       type: "text",
       required: true,
       placeholder: "Nhập họ tên nhân viên",
@@ -35,7 +34,7 @@ const ListEmployees = () => {
   ];
   const columns = [
     { key: "id", label: "Mã" },
-    { key: "fullname", label: "Họ tên nhân viên" },
+    { key: "fullname", label: "Họ và tên" },
     { key: "phoneNumber", label: "Số điện thoại" },
     { key: "address", label: "Địa chỉ" },
   ];

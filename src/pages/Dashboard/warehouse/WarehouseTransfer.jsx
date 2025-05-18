@@ -168,8 +168,8 @@ const WarehouseTransfer = () => {
 
     exportExcel({
       data: exportData,
-      fileName: "Danh sách chuyển kho",
-      sheetName: "Chuyển kho",
+      fileName: "Danh sách đơn hàng nội bộ",
+      sheetName: "Đơn hàng nội bộ",
       autoWidth: true,
       zebraPattern: true,
     });
@@ -206,7 +206,7 @@ const WarehouseTransfer = () => {
       <div className="p-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-gray-800">
-            Danh sách chuyển kho
+            Danh sách đơn hàng nội bộ
           </h1>
           <div className="flex items-center space-x-4">
             <div className="relative flex-grow w-64">

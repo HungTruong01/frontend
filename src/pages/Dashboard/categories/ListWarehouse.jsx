@@ -26,8 +26,8 @@ const ListWarehouse = () => {
   ];
   const columns = [
     { key: "id", label: "Mã" },
-    { key: "name", label: "Kho bãi" },
     { key: "address", label: "Địa chỉ" },
+    { key: "name", label: "Tên kho" },
   ];
 
   const fetchData = async () => {

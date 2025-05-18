@@ -27,7 +27,7 @@ const AccountList = () => {
     { id: 1, name: "ADMIN", label: "ADMIN" },
     { id: 2, name: "ADMIN_KD", label: "Nhân viên kinh doanh" },
     { id: 3, name: "ADMIN_BLD", label: "Ban lãnh đạo" },
-    { id: 4, name: "ADMIN_K", label: "Nhân viên kho vận" },
+    { id: 4, name: "ADMIN_K", label: "Nhân viên XNK & kho vận" },
     { id: 5, name: "ADMIN_TCKT", label: "Nhân viên tài chính kế toán" },
   ]);
   const columns = ["Mã", "Tên đăng nhập", "Ngày tạo", "Vai trò"];
@@ -91,7 +91,6 @@ const AccountList = () => {
         password: formData.password || undefined,
         roleId: roleId,
       };
-      // console.log("Dữ liệu gửi đi: ", accountData);
       await updateAccount(accountId, accountData);
       toast.success("Cập nhật tài khoản thành công!");
       fetchAccounts();
@@ -122,31 +121,33 @@ const AccountList = () => {
   }, [currentPage]);
 
   const addAccountFields = [
-    {
-      key: "username",
-      label: "Tên đăng nhập",
-      type: "text",
-      required: true,
-      placeholder: "Nhập tên đăng nhập",
-    },
-    {
-      key: "password",
-      label: "Mật khẩu",
-      type: "password",
-      required: true,
-      placeholder: "Nhập mật khẩu",
-    },
-    {
-      key: "roleId",
-      label: "Vai trò",
-      type: "select",
-      required: true,
-      options: roles.map((role) => ({
+  {
+    key: "username",
+    label: "Tên đăng nhập",
+    type: "text",
+    required: true,
+    placeholder: "Nhập tên đăng nhập",
+  },
+  {
+    key: "password",
+    label: "Mật khẩu",
+    type: "password",
+    required: true,
+    placeholder: "Nhập mật khẩu",
+  },
+  {
+    key: "roleId",
+    label: "Vai trò",
+    type: "select",
+    required: true,
+    options: roles
+      .filter((role) => role.label !== "ADMIN")
+      .map((role) => ({
         value: role.id.toString(),
         label: role.label,
       })),
-    },
-  ];
+  },
+];
 
   const editAccountFields = [
     {
@@ -160,7 +161,9 @@ const AccountList = () => {
       label: "Vai trò",
       type: "select",
       required: true,
-      options: roles.map((role) => ({
+      options: roles
+      .filter((role) => role.label !== "ADMIN")
+      .map((role) => ({
         value: role.id.toString(),
         label: role.label,
       })),
@@ -273,7 +276,9 @@ const AccountList = () => {
                           setSelectedAccount(row);
                           setIsEditModalOpen(true);
                         }}
-                        className="text-blue-500 hover:text-blue-700 transition-colors"
+                        className={`text-blue-500 hover:text-blue-700 transition-colors ${
+                          row.roleId === 1 && "cursor-not-allowed opacity-50"
+                        }`}
                         title="Sửa"
                       >
                         <FaEdit className="h-5 w-5" />

@@ -363,7 +363,7 @@ const ListInvoice = () => {
                     Đơn hàng
                   </th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 w-1/7">
-                    Tên đối tác
+                    Đối tác
                   </th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 w-1/7">
                     Loại hóa đơn

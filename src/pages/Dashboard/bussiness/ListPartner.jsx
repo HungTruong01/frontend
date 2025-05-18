@@ -18,7 +18,7 @@ const ListPartner = () => {
 
   const columns = [
     { key: "id", label: "Mã" },
-    { key: "name", label: "Tên đối tác" },
+    { key: "name", label: "Họ và tên" },
     { key: "address", label: "Địa chỉ" },
     { key: "partnerTypeId", label: "Loại đối tác" },
     { key: "debt", label: "Công nợ" },

@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, memo } from "react";
 import { FaTimes, FaUpload, FaSpinner } from "react-icons/fa";
 import { useQuill } from "react-quilljs";
 import "quill/dist/quill.snow.css";
-// eslint-disable-next-line no-unused-vars
 import { uploadImageToCloudinary } from "@/utils/uploadFile";
-import sanitizeHtml from "sanitize-html";
+import { toast } from "react-toastify";
 
-const EditPostModal = ({ isOpen, onClose, onSubmit, post }) => {
+// Tách QuillWrapper thành component riêng
+const QuillWrapper = memo(({ onChange, initialContent }) => {
   const { quill, quillRef } = useQuill({
     modules: {
       toolbar: [
@@ -14,12 +14,11 @@ const EditPostModal = ({ isOpen, onClose, onSubmit, post }) => {
         ["bold", "italic", "underline", "strike"],
         [{ list: "ordered" }, { list: "bullet" }],
         [{ indent: "-1" }, { indent: "+1" }],
-        ["link", "image"],
+        ["link"],
         ["clean"],
       ],
       clipboard: {
-        // Cấu hình xử lý clipboard để làm sạch nội dung
-        matchVisual: false, // Tắt khớp hình ảnh mặc định
+        matchVisual: false,
       },
     },
     formats: [
@@ -28,13 +27,46 @@ const EditPostModal = ({ isOpen, onClose, onSubmit, post }) => {
       "italic",
       "underline",
       "strike",
-      "list",
       "indent",
       "link",
-      "image",
     ],
   });
 
+  useEffect(() => {
+    if (quill) {
+      // Chỉ set content lần đầu khi initialContent thay đổi
+      if (quill.root.innerHTML !== initialContent) {
+        quill.root.innerHTML = initialContent || "";
+      }
+
+      const handleTextChange = () => {
+        const content = quill.root.innerHTML;
+        // Chỉ trigger onChange khi nội dung thực sự thay đổi
+        if (content !== initialContent) {
+          onChange(content);
+        }
+      };
+
+      quill.on("text-change", handleTextChange);
+      return () => {
+        quill.off("text-change", handleTextChange);
+      };
+    }
+  }, [quill, initialContent, onChange]);
+
+  return (
+    <div className="border-2 border-gray-300 rounded-lg">
+      <div className="min-h-[300px] relative">
+        <div className="ql-toolbar ql-snow border-b border-gray-300 sticky top-0 bg-white z-10" />
+        <div className="h-[250px] overflow-y-auto">
+          <div ref={quillRef} className="!h-full" />
+        </div>
+      </div>
+    </div>
+  );
+});
+
+const EditPostModal = ({ isOpen, onClose, onSubmit, post }) => {
   const fileInputRef = useRef(null);
 
   const [formData, setFormData] = useState({
@@ -43,7 +75,7 @@ const EditPostModal = ({ isOpen, onClose, onSubmit, post }) => {
     content: "",
     posted_at: "",
     thumbnail: "",
-    thumbnailFile: null, // Thêm trường mới để lưu file thumbnail
+    thumbnailFile: null,
   });
 
   const [errors, setErrors] = useState({
@@ -57,7 +89,7 @@ const EditPostModal = ({ isOpen, onClose, onSubmit, post }) => {
   const [uploadError, setUploadError] = useState("");
 
   useEffect(() => {
-    if (isOpen && post && quill) {
+    if (isOpen && post) {
       setFormData({
         id: post.id || "",
         title: post.title || "",
@@ -66,80 +98,42 @@ const EditPostModal = ({ isOpen, onClose, onSubmit, post }) => {
         thumbnail: post.thumbnail || "",
         thumbnailFile: null,
       });
-
-      const sanitizedContent = sanitizeHtml(post.content || "", {
-        allowedTags: [
-          "p",
-          "br",
-          "strong",
-          "em",
-          "u",
-          "s",
-          "h1",
-          "h2",
-          "h3",
-          "h4",
-          "h5",
-          "h6",
-          "ul",
-          "ol",
-          "li",
-          "a",
-          "img",
-        ],
-        allowedAttributes: {
-          a: ["href", "target"],
-          img: ["src", "alt"],
-        },
-        allowedClasses: {},
-        allowedStyles: {},
-      });
-
-      quill.clipboard.dangerouslyPasteHTML(sanitizedContent);
-
-      quill.off("text-change");
-      quill.on("text-change", () => {
-        const cleanedContent = sanitizeHtml(quill.root.innerHTML, {
-          allowedTags: [
-            "p",
-            "br",
-            "strong",
-            "em",
-            "u",
-            "s",
-            "h1",
-            "h2",
-            "h3",
-            "h4",
-            "h5",
-            "h6",
-            "ul",
-            "ol",
-            "li",
-            "a",
-            "img",
-          ],
-          allowedAttributes: {
-            a: ["href", "target"],
-            img: ["src", "alt"],
-          },
-          allowedClasses: {},
-          allowedStyles: {},
-        });
-        setFormData((prev) => ({ ...prev, content: cleanedContent }));
-        setErrors((prev) => ({ ...prev, content: "" }));
-      });
-
-      // Cập nhật preview dựa trên thumbnail
+      // Set preview với URL hiện tại
       setFilePreview(post.thumbnail || null);
+      setErrors({});
+      setUploadError("");
     }
-  }, [isOpen, post, quill]);
+  }, [isOpen, post]);
+
+  // Thêm cleanup effect
+  useEffect(() => {
+    return () => {
+      // Cleanup file preview URL khi component unmount
+      if (filePreview && filePreview !== post?.thumbnail) {
+        URL.revokeObjectURL(filePreview);
+      }
+    };
+  }, [filePreview, post]);
+
+  // Thêm handler cho Quill
+  const handleQuillChange = (content) => {
+    setFormData((prev) => ({
+      ...prev,
+      content: content,
+    }));
+    setErrors((prev) => ({
+      ...prev,
+      content: "",
+    }));
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
+  // Cải thiện handleFileUpload
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -154,21 +148,23 @@ const EditPostModal = ({ isOpen, onClose, onSubmit, post }) => {
         return;
       }
 
-      setUploadError("");
-      setIsUploading(true);
-
       try {
+        // Xóa preview URL cũ nếu có
+        if (filePreview && filePreview !== post?.thumbnail) {
+          URL.revokeObjectURL(filePreview);
+        }
+
+        const previewUrl = URL.createObjectURL(file);
+        setFilePreview(previewUrl);
         setFormData((prev) => ({
           ...prev,
           thumbnailFile: file,
+          thumbnail: "", // Reset thumbnail URL khi có file mới
         }));
-
-        // Cập nhật preview
-        setFilePreview(URL.createObjectURL(file));
+        setUploadError("");
       } catch (error) {
-        setUploadError(`Không thể xử lý ảnh: ${error.message}`);
-      } finally {
-        setIsUploading(false);
+        console.error("File handling error:", error);
+        setUploadError("Không thể xử lý file");
       }
     }
   };
@@ -201,65 +197,55 @@ const EditPostModal = ({ isOpen, onClose, onSubmit, post }) => {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-  const handleSubmit = (e) => {
+  // Cải thiện handleSubmit
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateForm()) return;
+    if (!validateForm() || isSubmitting) return;
+
     setIsSubmitting(true);
+    setErrors({});
 
-    const finalContent = sanitizeHtml(formData.content, {
-      allowedTags: [
-        "p",
-        "br",
-        "strong",
-        "em",
-        "u",
-        "s",
-        "h1",
-        "h2",
-        "h3",
-        "h4",
-        "h5",
-        "h6",
-        "ul",
-        "ol",
-        "li",
-        "a",
-        "img",
-      ],
-      allowedAttributes: {
-        a: ["href", "target"],
-        img: ["src", "alt"],
-      },
-      allowedClasses: {},
-      allowedStyles: {},
-    });
+    try {
+      let thumbnailUrl = formData.thumbnail;
 
-    const updatedPost = {
-      id: formData.id,
-      title: formData.title,
-      content: finalContent,
-      postedAt: formData.posted_at,
-      thumbnail: formData.thumbnail,
-      thumbnailFile: formData.thumbnailFile, // Bao gồm thumbnailFile
-    };
+      if (formData.thumbnailFile) {
+        setIsUploading(true);
+        const result = await uploadImageToCloudinary(formData.thumbnailFile);
+        if (!result?.secure_url) {
+          throw new Error("Không nhận được URL từ server");
+        }
+        thumbnailUrl = result.secure_url;
+        setIsUploading(false);
+      }
 
-    onSubmit(updatedPost)
-      .then(() => {
-        // eslint-disable-next-line no-undef
-        toast.success("Cập nhật bài đăng thành công");
-      })
-      .catch((error) => {
-        console.error("Error updating post:", error);
-        setErrors((prev) => ({
-          ...prev,
-          content:
-            error.response?.data?.message || "Không thể cập nhật bài đăng",
-        }));
-      })
-      .finally(() => {
-        setIsSubmitting(false);
-      });
+      const updatedPost = {
+        id: formData.id, // Make sure ID is included
+        title: formData.title.trim(),
+        content: formData.content,
+        thumbnail: thumbnailUrl,
+        postedAt: formData.posted_at, // Include original posted date
+        thumbnailFile: formData.thumbnailFile // Include if there's a new file
+      };
+
+      await onSubmit(updatedPost);
+    } catch (error) {
+      console.error("Error updating post:", error);
+      const errorMessage =
+        error.response?.data?.message ||
+        (error.response?.status === 403
+          ? "Bạn không có quyền thực hiện thao tác này"
+          : "Không thể cập nhật bài đăng");
+
+      setErrors((prev) => ({
+        ...prev,
+        submit: errorMessage,
+      }));
+      toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
   if (!isOpen) return null;
 
   return (
@@ -277,7 +263,11 @@ const EditPostModal = ({ isOpen, onClose, onSubmit, post }) => {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 flex-1 overflow-y-auto">
+        {/* Modify the form to handle submission */}
+        <form
+          onSubmit={handleSubmit}
+          className="p-6 flex-1 overflow-y-auto"
+        >
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Tiêu đề <span className="text-red-500">*</span>
@@ -349,39 +339,38 @@ const EditPostModal = ({ isOpen, onClose, onSubmit, post }) => {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Nội dung <span className="text-red-500">*</span>
             </label>
-            <div
-              className={`border-2 ${
-                errors.content ? "border-red-500" : "border-gray-300"
-              } rounded-lg max-h-[500px] overflow-y-auto`}
-            >
-              <div ref={quillRef} className="min-h-[300px]" />
+            <div className={errors.content ? "border-red-500" : ""}>
+              <QuillWrapper
+                onChange={handleQuillChange}
+                initialContent={formData.content}
+              />
             </div>
             {errors.content && (
               <p className="mt-1 text-sm text-red-500">{errors.content}</p>
             )}
           </div>
-        </form>
 
-        <div className="px-6 py-4 bg-gray-50 rounded-b-xl">
-          <div className="flex justify-end space-x-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-5 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-              disabled={isSubmitting || isUploading}
-            >
-              Hủy
-            </button>
-            <button
-              type="submit"
-              onClick={handleSubmit}
-              className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-              disabled={isSubmitting || isUploading}
-            >
-              {isSubmitting ? "Đang xử lý..." : "Lưu thay đổi"}
-            </button>
+          {/* Move the buttons inside the form */}
+          <div className="px-6 py-4 bg-gray-50 rounded-b-xl">
+            <div className="flex justify-end space-x-4">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-5 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                disabled={isSubmitting || isUploading}
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                disabled={isSubmitting || isUploading}
+              >
+                {isSubmitting ? "Đang xử lý..." : "Lưu thay đổi"}
+              </button>
+            </div>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   );
