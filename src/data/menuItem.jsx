@@ -177,7 +177,7 @@ const menuItem = [
         icon: <FaBoxes {...iconStyles} />,
       },
       {
-        name: "Quản lý lô hàng nhập",
+        name: "Lô hàng",
         path: "/dashboard/warehouse/import-products",
         icon: <TbPackageImport {...iconStyles} />,
       },

@@ -12,6 +12,7 @@ import {
 } from "@/api/orderDetailApi";
 import { getAllProducts, updateProduct } from "@/api/productApi";
 import { toast } from "react-toastify";
+import { getAllImportBatches } from "@/api/importBatch";
 
 const OrderForm = ({ mode = "add" }) => {
   const navigate = useNavigate();
@@ -28,6 +29,7 @@ const OrderForm = ({ mode = "add" }) => {
   const [isPartnerModalOpen, setIsPartnerModalOpen] = useState(false);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [importBatches, setImportBatches] = useState([]);
 
   const isEdit = mode === "edit" && id;
   const isPurchaseOrder = selectedOrderType === "1";
@@ -36,14 +38,18 @@ const OrderForm = ({ mode = "add" }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [partnerRes, typeRes, productRes] = await Promise.all([
-          partnerApi.getAllPartners(0, 100, "id", "asc"),
-          getAllOrderTypes(),
-          getAllProducts(0, 100, "id", "asc"),
-        ]);
+        const [partnerRes, typeRes, productRes, batchesRes] = await Promise.all(
+          [
+            partnerApi.getAllPartners(0, 100, "id", "asc"),
+            getAllOrderTypes(),
+            getAllProducts(0, 100, "id", "asc"),
+            getAllImportBatches(0, 1000, "importDate", "desc"),
+          ]
+        );
         setPartners(partnerRes.content || []);
         setOrderTypes(typeRes.content || []);
         setProducts(productRes.data?.content || []);
+        setImportBatches(batchesRes.data?.content || []);
       } catch {
         toast.error("Lỗi tải dữ liệu cơ bản");
       }
@@ -227,20 +233,25 @@ const OrderForm = ({ mode = "add" }) => {
       toast.info("Sản phẩm đã tồn tại");
       return;
     }
+
+    // Tìm lô hàng mới nhất của sản phẩm
+    const latestBatch = importBatches
+      .filter((batch) => batch.productId === product.id)
+      .sort((a, b) => new Date(b.importDate) - new Date(a.importDate))[0];
+
+    const importPrice = latestBatch?.unitCost ?? 0;
     const exportPrice =
-      selectedOrderType === "1" ? 0 : product.exportPrice ?? 0;
+      selectedOrderType === "1" ? importPrice : product.exportPrice ?? 0;
+
     const newItem = {
       id: product.id,
       product: product.name,
       quantity: 1,
       unit_price: exportPrice,
       exportPrice: exportPrice,
-      importPrice: product.importPrice ?? 0,
+      importPrice: importPrice,
       expireDate: "",
-      profit:
-        selectedOrderType === "1"
-          ? 0
-          : (exportPrice - (product.importPrice ?? 0)) * 1,
+      profit: selectedOrderType === "2" ? (exportPrice - importPrice) * 1 : 0,
     };
     setOrderItems([...orderItems, newItem]);
     setIsProductModalOpen(false);

@@ -376,6 +376,11 @@ const ListOrder = () => {
                       <span>Đã trả</span>
                     </div>
                   </th>
+                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700 w-1/7">
+                    <div className="flex items-center justify-end space-x-1">
+                      <span>Lợi nhuận</span>
+                    </div>
+                  </th>
                   <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700 w-1/7">
                     <div className="flex items-center justify-center space-x-1">
                       <span>Trạng thái</span>
@@ -420,6 +425,11 @@ const ListOrder = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <div className="text-sm text-gray-900">
                         {formatCurrency(order.paidMoney)}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                      <div className="text-sm text-gray-900">
+                        {formatCurrency(order.profitMoney)}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-center">
