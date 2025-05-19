@@ -1,5 +1,5 @@
 import React from "react";
-import { BellIcon, UserCircleIcon } from "@heroicons/react/24/outline";
+import { UserCircleIcon } from "@heroicons/react/24/outline";
 import { getLoggedInUser } from "@/api/authService";
 
 const Navbar = () => {
@@ -13,10 +13,6 @@ const Navbar = () => {
         </p>
       </div>
       <div className="flex items-center space-x-4">
-        <button className="relative text-gray-600 hover:text-gray-800 focus:outline-none">
-          <BellIcon className="h-5 w-5" />
-        </button>
-
         <div className="flex items-center space-x-2">
           <UserCircleIcon className="h-7 w-7 text-gray-600" />
           <div className="hidden md:block">

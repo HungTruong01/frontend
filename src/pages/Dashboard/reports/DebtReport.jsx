@@ -7,6 +7,8 @@ import {
   getDebtReportByDateRange,
 } from "@/api/debtApi";
 import { toast } from "react-toastify";
+import { exportExcel } from "@/utils/exportExcel";
+import { FaFilter, FaDownload } from "react-icons/fa";
 
 ChartJS.register(Title, Tooltip, Legend, ArcElement);
 
@@ -19,6 +21,8 @@ const DebtReport = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [reportData, setReportData] = useState(null);
+  const [filter, setFilter] = useState("monthly");
+  const [timeRange, setTimeRange] = useState("2023");
 
   const fetchReportData = async () => {
     try {
@@ -130,6 +134,51 @@ const DebtReport = () => {
       (partner) => (partner.debt || 0) - (partner.paid || 0) > 0
     ) || [];
 
+  const handleExportExcel = () => {
+    try {
+      // Xuất dữ liệu tổng quan
+      const overviewData = [
+        {
+          "Tổng công nợ": formatCurrency(reportData.totalDebt || 0),
+          "Đã thanh toán": formatCurrency(reportData.totalInvoicePaid || 0),
+          "Còn nợ": formatCurrency(
+            (reportData.totalDebt || 0) - (reportData.totalInvoicePaid || 0)
+          ),
+          "Tỷ lệ thanh toán": `${(
+            (reportData.totalInvoicePaid / reportData.totalDebt) *
+            100
+          ).toFixed(2)}%`,
+        },
+      ];
+
+      // Xuất dữ liệu chi tiết đối tác còn nợ
+      const detailData = remainingDebtPartners.map((partner) => ({
+        "Đối tác": partner.name,
+        "Loại đối tác": partner.partnerTypeName,
+        "Nợ còn lại": formatCurrency((partner.debt || 0) - (partner.paid || 0)),
+      }));
+
+      exportExcel({
+        data: overviewData,
+        fileName: "Báo cáo công nợ",
+        sheetName: "Tổng quan",
+        autoWidth: true,
+        zebraPattern: true,
+      });
+
+      exportExcel({
+        data: detailData,
+        fileName: "Báo cáo công nợ",
+        sheetName: "Chi tiết đối tác",
+        autoWidth: true,
+        zebraPattern: true,
+      });
+    } catch (error) {
+      console.error("Lỗi khi xuất Excel:", error);
+      toast.error("Có lỗi xảy ra khi xuất file Excel");
+    }
+  };
+
   return (
     <div className="w-full bg-white shadow-lg rounded-lg overflow-hidden">
       <div className="p-6">
@@ -137,7 +186,17 @@ const DebtReport = () => {
           <h1 className="text-2xl font-bold text-gray-800">
             Báo cáo công nợ đối tác
           </h1>
+
           <div className="flex items-center space-x-4">
+            <div className="flex justify-between items-center gap-4">
+              <button
+                onClick={handleExportExcel}
+                className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+              >
+                <FaDownload className="mr-2" />
+                Tải xuống
+              </button>
+            </div>
             <select
               value={reportType}
               onChange={(e) => setReportType(e.target.value)}

@@ -5,6 +5,7 @@ import { getAllOrderStatus } from "@/api/orderStatusApi";
 import { partnerApi } from "@/api/partnerApi";
 import { getAllProducts } from "@/api/productApi";
 import AddInvoiceModal from "../invoice/AddInvoiceModal";
+import { toast } from "react-toastify";
 
 const OrderDetailModal = ({ isOpen, onClose, orderData, onOrderUpdated }) => {
   const [paymentAmount, setPaymentAmount] = useState("");
@@ -168,7 +169,6 @@ const OrderDetailModal = ({ isOpen, onClose, orderData, onOrderUpdated }) => {
 
   // Xử lý khi hoàn thành việc tạo hoá đơn
   const handleSubmitInvoice = (invoiceData) => {
-    console.log("Đã tạo hoá đơn với dữ liệu:", invoiceData);
     setIsInvoiceModalOpen(false);
     if (onOrderUpdated) {
       onOrderUpdated();

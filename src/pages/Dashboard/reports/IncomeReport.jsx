@@ -15,6 +15,8 @@ import {
   getIncomeReportByDateRange,
 } from "@/api/incomeReportApi";
 import { toast } from "react-toastify";
+import { exportExcel } from "@/utils/exportExcel";
+import { FaFilter, FaDownload } from "react-icons/fa";
 
 ChartJS.register(
   CategoryScale,
@@ -34,6 +36,8 @@ const IncomeReport = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [reportData, setReportData] = useState(null);
+  const [filter, setFilter] = useState("monthly");
+  const [timeRange, setTimeRange] = useState("2023");
 
   const fetchReportData = async () => {
     try {
@@ -144,12 +148,67 @@ const IncomeReport = () => {
     },
   };
 
+  const handleExportExcel = () => {
+    try {
+      // Xuất dữ liệu tổng quan
+      const overviewData = [
+        {
+          "Tổng thu": formatCurrency(reportData.totalIncome || 0),
+          "Tổng chi": formatCurrency(reportData.totalExpense || 0),
+          "Lợi nhuận": formatCurrency(
+            (reportData.totalIncome || 0) - (reportData.totalExpense || 0)
+          ),
+          "Tỷ lệ chi/thu": `${(
+            (reportData.totalExpense / reportData.totalIncome) *
+            100
+          ).toFixed(2)}%`,
+        },
+      ];
+
+      // Xuất dữ liệu chi tiết theo thời gian
+      const detailData = reportData.labels.map((label, index) => ({
+        "Thời gian": label,
+        Thu: formatCurrency(reportData.income[index] || 0),
+        Chi: formatCurrency(reportData.expense[index] || 0),
+        "Chênh lệch": formatCurrency(
+          (reportData.income[index] || 0) - (reportData.expense[index] || 0)
+        ),
+      }));
+
+      exportExcel({
+        data: overviewData,
+        fileName: "Báo cáo thu chi",
+        sheetName: "Tổng quan",
+        autoWidth: true,
+        zebraPattern: true,
+      });
+
+      exportExcel({
+        data: detailData,
+        fileName: "Báo cáo thu chi",
+        sheetName: "Chi tiết theo thời gian",
+        autoWidth: true,
+        zebraPattern: true,
+      });
+    } catch (error) {
+      console.error("Lỗi khi xuất Excel:", error);
+      toast.error("Có lỗi xảy ra khi xuất file Excel");
+    }
+  };
+
   return (
     <div className="w-full bg-white shadow-lg rounded-lg overflow-hidden">
       <div className="p-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-gray-800">Báo cáo thu chi</h1>
           <div className="flex items-center space-x-4">
+            <button
+              onClick={handleExportExcel}
+              className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+            >
+              <FaDownload className="mr-2" />
+              Tải xuống
+            </button>
             <select
               value={reportType}
               onChange={(e) => setReportType(e.target.value)}

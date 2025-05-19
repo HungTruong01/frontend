@@ -6,6 +6,7 @@ import {
   FaPlus,
   FaSearch,
   FaFileExport,
+  FaSort,
 } from "react-icons/fa";
 import InvoiceDetailModal from "@/components/Dashboard/invoice/InvoiceDetailModal";
 import AddInvoiceModal from "@/components/Dashboard/invoice/AddInvoiceModal";
@@ -21,6 +22,7 @@ import { getAllInvoiceTypes } from "@/api/invoiceTypeApi";
 import "jspdf-autotable";
 import { toast } from "react-toastify";
 import { exportExcel } from "@/utils/exportExcel";
+import { Pagination } from "@/utils/pagination";
 
 const ListInvoice = () => {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -33,21 +35,22 @@ const ListInvoice = () => {
   const [itemsPerPage, setItemsPerPage] = useState(7);
   const [currentPage, setCurrentPage] = useState(1);
   const [allInvoices, setAllInvoices] = useState([]);
-  const [filteredInvoices, setFilteredInvoices] = useState([]);
   const [invoiceType, setInvoiceType] = useState([]);
   const [totalElements, setTotalElements] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [sortConfig, setSortConfig] = useState({
+    key: "createdAt",
+    direction: "desc",
+  });
 
   const fetchInvoices = async () => {
     try {
       setIsLoading(true);
       const response = await getAllInvoicesWithPartnerName(0, 100, "id", "asc");
       const allInvoicesData = response.content || [];
-      // console.log(allInvoicesData);
       setAllInvoices(allInvoicesData);
       setTotalElements(allInvoicesData.length);
-      applyFilters(allInvoicesData, searchType, searchPartner, searchDate);
       setIsLoading(false);
     } catch (error) {
       console.log("Lỗi khi lấy hóa đơn", error);
@@ -69,32 +72,60 @@ const ListInvoice = () => {
     fetchInvoiceType();
   }, []);
 
-  const applyFilters = (invoices, typeFilter, partnerFilter, dateFilter) => {
-    const filtered = invoices.filter((invoice) => {
-      const matchType =
-        typeFilter === "" || invoice.invoiceTypeId === parseInt(typeFilter);
-      const matchPartner =
-        partnerFilter === "" ||
-        invoice.partnerName
-          ?.toLowerCase()
-          .includes(partnerFilter.toLowerCase());
-      const matchDate =
-        dateFilter === "" ||
-        (invoice.createdAt &&
-          new Date(invoice.createdAt).toISOString().split("T")[0] ===
-            dateFilter);
-      return matchType && matchPartner && matchDate;
-    });
-
-    setFilteredInvoices(filtered);
-    setTotalElements(filtered.length);
-    setTotalPages(Math.ceil(filtered.length / itemsPerPage));
+  const handleSort = (key) => {
+    setSortConfig((prevConfig) => ({
+      key,
+      direction:
+        prevConfig.key === key && prevConfig.direction === "asc"
+          ? "desc"
+          : "asc",
+    }));
   };
 
+  const filteredInvoices = allInvoices
+    .filter((invoice) => {
+      const matchesType =
+        searchType === "" || invoice.invoiceTypeId === searchType;
+      const matchesPartner =
+        searchPartner === "" ||
+        invoice.partnerName
+          ?.toLowerCase()
+          .includes(searchPartner.toLowerCase());
+      const matchesDate =
+        searchDate === "" || formatDate(invoice.createdAt).includes(searchDate);
+
+      return matchesType && matchesPartner && matchesDate;
+    })
+    .sort((a, b) => {
+      if (sortConfig.key === "createdAt") {
+        return sortConfig.direction === "asc"
+          ? new Date(a[sortConfig.key]) - new Date(b[sortConfig.key])
+          : new Date(b[sortConfig.key]) - new Date(a[sortConfig.key]);
+      }
+
+      if (sortConfig.key === "moneyAmount") {
+        return sortConfig.direction === "asc"
+          ? a[sortConfig.key] - b[sortConfig.key]
+          : b[sortConfig.key] - a[sortConfig.key];
+      }
+
+      return sortConfig.direction === "asc"
+        ? a[sortConfig.key] - b[sortConfig.key]
+        : b[sortConfig.key] - a[sortConfig.key];
+    });
+
   useEffect(() => {
-    applyFilters(allInvoices, searchType, searchPartner, searchDate);
+    setTotalElements(filteredInvoices.length);
+    setTotalPages(Math.ceil(filteredInvoices.length / itemsPerPage));
     setCurrentPage(1);
-  }, [searchType, searchPartner, searchDate, allInvoices, itemsPerPage]);
+  }, [
+    searchType,
+    searchPartner,
+    searchDate,
+    allInvoices,
+    itemsPerPage,
+    filteredInvoices.length,
+  ]);
 
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
@@ -350,14 +381,32 @@ const ListInvoice = () => {
             <table className="w-full">
               <thead>
                 <tr className="bg-gray-200">
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 w-1/7">
-                    Mã
+                  <th
+                    className="px-6 py-3 text-left text-sm font-semibold text-gray-700 w-1/7 cursor-pointer"
+                    onClick={() => handleSort("id")}
+                  >
+                    <div className="flex items-center gap-2">
+                      Mã
+                      <FaSort />
+                    </div>
                   </th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 w-1/7">
-                    Số tiền
+                  <th
+                    className="px-6 py-3 text-left text-sm font-semibold text-gray-700 w-1/7 cursor-pointer"
+                    onClick={() => handleSort("moneyAmount")}
+                  >
+                    <div className="flex items-center gap-2">
+                      Số tiền
+                      <FaSort />
+                    </div>
                   </th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 w-1/7">
-                    Ngày lập
+                  <th
+                    className="px-6 py-3 text-left text-sm font-semibold text-gray-700 w-1/7 cursor-pointer"
+                    onClick={() => handleSort("createdAt")}
+                  >
+                    <div className="flex items-center gap-2">
+                      Ngày lập
+                      <FaSort />
+                    </div>
                   </th>
                   <th className="px-6 py-3 text-center text-sm font-semibold text-gray-700 w-1/7">
                     Đơn hàng
@@ -445,7 +494,7 @@ const ListInvoice = () => {
           )}
         </div>
 
-        <div className="flex items-center justify-between mt-6">
+        <div className="mt-4 flex items-center justify-between">
           <p className="text-sm text-gray-600">
             Hiển thị{" "}
             {filteredInvoices.length === 0
@@ -454,63 +503,12 @@ const ListInvoice = () => {
             đến {Math.min(currentPage * itemsPerPage, filteredInvoices.length)}{" "}
             của {filteredInvoices.length} bản ghi
           </p>
-          <div className="flex space-x-2">
-            <button
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-            >
-              Trước
-            </button>
-            <div className="flex items-center space-x-2">
-              {showFirst && (
-                <>
-                  <button
-                    onClick={() => setCurrentPage(1)}
-                    className="w-8 h-8 rounded-md text-sm bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors"
-                  >
-                    1
-                  </button>
-                  {pages[0] > 2 && <span className="text-gray-600">...</span>}
-                </>
-              )}
-              {pages.map((page) => (
-                <button
-                  key={page}
-                  onClick={() => setCurrentPage(page)}
-                  className={`w-8 h-8 rounded-md text-sm ${
-                    currentPage === page
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                  } transition-colors`}
-                >
-                  {page}
-                </button>
-              ))}
-              {showLast && (
-                <>
-                  {pages[pages.length - 1] < totalPages - 1 && (
-                    <span className="text-gray-600">...</span>
-                  )}
-                  <button
-                    onClick={() => setCurrentPage(totalPages)}
-                    className="w-8 h-8 rounded-md text-sm bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors"
-                  >
-                    {totalPages}
-                  </button>
-                </>
-              )}
-            </div>
-            <button
-              onClick={() =>
-                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-              }
-              disabled={currentPage === totalPages || totalPages === 0}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-            >
-              Tiếp
-            </button>
-          </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            maxPagesToShow={3}
+          />
         </div>
       </div>
     </div>

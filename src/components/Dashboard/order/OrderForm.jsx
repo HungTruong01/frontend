@@ -251,7 +251,7 @@ const OrderForm = ({ mode = "add" }) => {
       exportPrice: exportPrice,
       importPrice: importPrice,
       expireDate: "",
-      profit: selectedOrderType === "2" ? (exportPrice - importPrice) * 1 : 0,
+      profit: 0,
     };
     setOrderItems([...orderItems, newItem]);
     setIsProductModalOpen(false);
@@ -282,7 +282,10 @@ const OrderForm = ({ mode = "add" }) => {
                 ...item,
                 unit_price: price,
                 exportPrice: price,
-                profit: (price - item.importPrice) * (item.quantity || 1),
+                profit:
+                  selectedOrderType === "2"
+                    ? (price - item.importPrice) * (item.quantity || 1)
+                    : 0,
               }
             : item
         )
@@ -330,7 +333,10 @@ const OrderForm = ({ mode = "add" }) => {
             ? {
                 ...item,
                 quantity,
-                profit: (item.unit_price - item.importPrice) * quantity,
+                profit:
+                  selectedOrderType === "2"
+                    ? (item.unit_price - item.importPrice) * quantity
+                    : 0,
               }
             : item
         )

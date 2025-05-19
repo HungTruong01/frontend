@@ -6,6 +6,7 @@ import {
   FaEdit,
   FaPlus,
   FaFileExport,
+  FaSort,
 } from "react-icons/fa";
 import OrderDetailModal from "@/components/Dashboard/order/OrderDetailModal";
 import { getAllOrders, getOrderById } from "@/api/orderApi";
@@ -15,6 +16,7 @@ import { getAllWarehouseTransaction } from "@/api/warehouseTransactionApi";
 import { getAllDeliveryStatus } from "@/api/deliveryStatusApi";
 import { partnerApi } from "@/api/partnerApi";
 import { exportExcel } from "@/utils/exportExcel";
+import { Pagination } from "@/utils/pagination";
 
 const ListOrder = () => {
   const navigate = useNavigate();
@@ -32,6 +34,10 @@ const ListOrder = () => {
   const [warehouseTransactions, setWarehouseTransactions] = useState([]);
   const [deliveryStatuses, setDeliveryStatuses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [sortConfig, setSortConfig] = useState({
+    key: "createdAt",
+    direction: "desc",
+  });
 
   const fetchOrders = async () => {
     try {
@@ -110,27 +116,51 @@ const ListOrder = () => {
     fetchAllData();
   }, []);
 
+  const handleSort = (key) => {
+    setSortConfig((prevConfig) => ({
+      key,
+      direction:
+        prevConfig.key === key && prevConfig.direction === "asc"
+          ? "desc"
+          : "asc",
+    }));
+  };
+
   const filteredOrders = orders
-    ? orders.filter((order) => {
-        const matchStatus =
-          searchStatus === "" || order.orderStatusId === parseInt(searchStatus);
-        const matchType =
-          searchType === "" || order.orderTypeId === parseInt(searchType);
-        const matchQuery =
-          searchQuery === "" ||
-          order.id
-            .toString()
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase()) ||
-          (
-            partners.find((partner) => partner.id === order.partnerId)?.name ||
-            ""
-          )
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase());
-        return matchStatus && matchType && matchQuery;
-      })
-    : [];
+    .filter((order) => {
+      const matchesSearch =
+        order.id.toString().includes(searchQuery) ||
+        getPartnerName(order.partnerId)
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase());
+
+      const matchesType = searchType === "" || order.orderTypeId === searchType;
+      const matchesStatus =
+        searchStatus === "" || order.orderStatusId === searchStatus;
+
+      return matchesSearch && matchesType && matchesStatus;
+    })
+    .sort((a, b) => {
+      if (sortConfig.key === "createdAt") {
+        return sortConfig.direction === "asc"
+          ? new Date(a[sortConfig.key]) - new Date(b[sortConfig.key])
+          : new Date(b[sortConfig.key]) - new Date(a[sortConfig.key]);
+      }
+
+      if (
+        sortConfig.key === "totalMoney" ||
+        sortConfig.key === "paidMoney" ||
+        sortConfig.key === "profitMoney"
+      ) {
+        return sortConfig.direction === "asc"
+          ? a[sortConfig.key] - b[sortConfig.key]
+          : b[sortConfig.key] - a[sortConfig.key];
+      }
+
+      return sortConfig.direction === "asc"
+        ? a[sortConfig.key] - b[sortConfig.key]
+        : b[sortConfig.key] - a[sortConfig.key];
+    });
 
   const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
   const paginatedData = filteredOrders.slice(
@@ -346,14 +376,22 @@ const ListOrder = () => {
             <table className="w-full">
               <thead>
                 <tr className="bg-gray-200">
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 w-1/7">
+                  <th
+                    className="px-6 py-4 text-left text-sm font-semibold text-gray-700 w-1/7 cursor-pointer"
+                    onClick={() => handleSort("id")}
+                  >
                     <div className="flex items-center space-x-1">
                       <span>Mã</span>
+                      <FaSort />
                     </div>
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 w-1/7">
+                  <th
+                    className="px-6 py-4 text-left text-sm font-semibold text-gray-700 w-1/7 cursor-pointer"
+                    onClick={() => handleSort("createdAt")}
+                  >
                     <div className="flex items-center space-x-1">
                       <span>Ngày tạo</span>
+                      <FaSort />
                     </div>
                   </th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 w-1/5">
@@ -366,19 +404,31 @@ const ListOrder = () => {
                       <span>Loại đơn</span>
                     </div>
                   </th>
-                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700 w-1/7">
+                  <th
+                    className="px-6 py-4 text-right text-sm font-semibold text-gray-700 w-1/7 cursor-pointer"
+                    onClick={() => handleSort("totalMoney")}
+                  >
                     <div className="flex items-center justify-end space-x-1">
                       <span>Tổng tiền</span>
+                      <FaSort />
                     </div>
                   </th>
-                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700 w-1/7">
+                  <th
+                    className="px-6 py-4 text-right text-sm font-semibold text-gray-700 w-1/7 cursor-pointer"
+                    onClick={() => handleSort("paidMoney")}
+                  >
                     <div className="flex items-center justify-end space-x-1">
                       <span>Đã trả</span>
+                      <FaSort />
                     </div>
                   </th>
-                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700 w-1/7">
+                  <th
+                    className="px-6 py-4 text-right text-sm font-semibold text-gray-700 w-1/7 cursor-pointer"
+                    onClick={() => handleSort("profitMoney")}
+                  >
                     <div className="flex items-center justify-end space-x-1">
                       <span>Lợi nhuận</span>
+                      <FaSort />
                     </div>
                   </th>
                   <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700 w-1/7">
@@ -476,58 +526,22 @@ const ListOrder = () => {
           </div>
         )}
 
-        {orders.length > 0 && (
-          <div className="flex items-center justify-between mt-6">
-            <p className="text-sm text-gray-600">
-              Hiển thị {(currentPage - 1) * itemsPerPage + 1} đến{" "}
-              {Math.min(currentPage * itemsPerPage, filteredOrders.length)} của{" "}
-              {filteredOrders.length} bản ghi
-            </p>
-            <div className="flex space-x-2">
-              <button
-                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-                className="px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-600 hover:bg-gray-100 disabled:opacity-50 transition-all"
-              >
-                Trước
-              </button>
-              <div className="flex items-center space-x-2">
-                {Array.from({ length: 3 }, (_, idx) => {
-                  let startPage = Math.max(1, currentPage - 1);
-                  if (currentPage === totalPages)
-                    startPage = Math.max(1, totalPages - 2);
-                  if (totalPages <= 3) startPage = 1;
-
-                  const page = startPage + idx;
-                  if (page > totalPages) return null;
-
-                  return (
-                    <button
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className={`w-8 h-8 rounded-md text-sm ${
-                        currentPage === page
-                          ? "bg-blue-600 text-white"
-                          : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                      } transition-colors`}
-                    >
-                      {page}
-                    </button>
-                  );
-                })}
-              </div>
-              <button
-                onClick={() =>
-                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                }
-                disabled={currentPage === totalPages || totalPages === 0}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 disabled:opacity-50 transition-all"
-              >
-                Tiếp
-              </button>
-            </div>
-          </div>
-        )}
+        <div className="mt-4 flex items-center justify-between">
+          <p className="text-sm text-gray-600">
+            Hiển thị{" "}
+            {filteredOrders.length > 0
+              ? (currentPage - 1) * itemsPerPage + 1
+              : 0}{" "}
+            đến {Math.min(currentPage * itemsPerPage, filteredOrders.length)}{" "}
+            của {filteredOrders.length} bản ghi
+          </p>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            maxPagesToShow={3}
+          />
+        </div>
       </div>
     </div>
   );

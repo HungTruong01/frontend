@@ -4,6 +4,8 @@ import { getAllInventoryWarehouse } from "@/api/inventoryWarehouseApi";
 import { getWarehouseById } from "@/api/warehouseApi";
 import { getProductById } from "@/api/productApi";
 import { toast } from "react-toastify";
+import { Pagination } from "@/utils/pagination";
+
 const InventoryProduct = () => {
   const [inventoryProducts, setInventoryProducts] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
@@ -84,30 +86,6 @@ const InventoryProduct = () => {
     currentPage * itemsPerPage
   );
 
-  // Hàm tạo danh sách các nút trang hiển thị
-  const getPageNumbers = () => {
-    const maxPagesToShow = 5;
-    const pages = [];
-    let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
-    let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
-
-    if (endPage - startPage + 1 < maxPagesToShow) {
-      startPage = Math.max(1, endPage - maxPagesToShow + 1);
-    }
-
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(i);
-    }
-
-    return {
-      pages,
-      showFirst: startPage > 1,
-      showLast: endPage < totalPages,
-    };
-  };
-
-  const { pages, showFirst, showLast } = getPageNumbers();
-
   return (
     <div className="w-full bg-white shadow-lg rounded-lg overflow-hidden">
       <div className="p-6">
@@ -181,63 +159,12 @@ const InventoryProduct = () => {
             {Math.min(currentPage * itemsPerPage, filteredData.length)} của{" "}
             {filteredData.length} bản ghi
           </p>
-          <div className="flex space-x-2">
-            <button
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-            >
-              Trước
-            </button>
-            <div className="flex items-center space-x-2">
-              {showFirst && (
-                <>
-                  <button
-                    onClick={() => setCurrentPage(1)}
-                    className="w-8 h-8 rounded-md text-sm bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors"
-                  >
-                    1
-                  </button>
-                  {pages[0] > 2 && <span className="text-gray-600">...</span>}
-                </>
-              )}
-              {pages.map((page) => (
-                <button
-                  key={page}
-                  onClick={() => setCurrentPage(page)}
-                  className={`w-8 h-8 rounded-md text-sm ${
-                    currentPage === page
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                  } transition-colors`}
-                >
-                  {page}
-                </button>
-              ))}
-              {showLast && (
-                <>
-                  {pages[pages.length - 1] < totalPages - 1 && (
-                    <span className="text-gray-600">...</span>
-                  )}
-                  <button
-                    onClick={() => setCurrentPage(totalPages)}
-                    className="w-8 h-8 rounded-md text-sm bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors"
-                  >
-                    {totalPages}
-                  </button>
-                </>
-              )}
-            </div>
-            <button
-              onClick={() =>
-                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-              }
-              disabled={currentPage === totalPages}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-            >
-              Tiếp
-            </button>
-          </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            maxPagesToShow={3}
+          />
         </div>
       </div>
     </div>

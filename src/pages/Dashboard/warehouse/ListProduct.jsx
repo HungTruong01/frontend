@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { FiSearch } from "react-icons/fi";
-import { FaRegTrashAlt, FaEye, FaEdit, FaPlus } from "react-icons/fa";
+import { FaRegTrashAlt, FaEye, FaEdit, FaPlus, FaSort } from "react-icons/fa";
 import ToggleProductModal from "@/components/Dashboard/product/ToggleProductModal";
 import ProductDetailModal from "@/components/Dashboard/product/ProductDetailModal";
 import {
@@ -31,6 +31,11 @@ const ListProduct = () => {
   const [productUnits, setProductUnits] = useState([]);
 
   const [imageErrors, setImageErrors] = useState({});
+
+  const [sortConfig, setSortConfig] = useState({
+    key: "id",
+    direction: "asc",
+  });
 
   const fetchProductTypes = async () => {
     try {
@@ -89,13 +94,42 @@ const ListProduct = () => {
     return unit ? unit.name : "Không xác định";
   };
 
-  const filteredProducts = products.filter((product) => {
-    const matchStatus = searchStatus === "" || product.status === searchStatus;
-    const matchName =
-      searchName === "" ||
-      product.name.toLowerCase().includes(searchName.toLowerCase());
-    return matchStatus && matchName;
-  });
+  const handleSort = (key) => {
+    setSortConfig((prevConfig) => ({
+      key,
+      direction:
+        prevConfig.key === key && prevConfig.direction === "asc"
+          ? "desc"
+          : "asc",
+    }));
+  };
+
+  const filteredProducts = products
+    .filter((product) => {
+      const matchStatus =
+        searchStatus === "" || product.status === searchStatus;
+      const matchName =
+        searchName === "" ||
+        product.name.toLowerCase().includes(searchName.toLowerCase());
+      return matchStatus && matchName;
+    })
+    .sort((a, b) => {
+      if (sortConfig.key === "exportPrice" || sortConfig.key === "quantity") {
+        return sortConfig.direction === "asc"
+          ? a[sortConfig.key] - b[sortConfig.key]
+          : b[sortConfig.key] - a[sortConfig.key];
+      }
+
+      if (sortConfig.key === "name") {
+        return sortConfig.direction === "asc"
+          ? a[sortConfig.key].localeCompare(b[sortConfig.key])
+          : b[sortConfig.key].localeCompare(a[sortConfig.key]);
+      }
+
+      return sortConfig.direction === "asc"
+        ? a[sortConfig.key] - b[sortConfig.key]
+        : b[sortConfig.key] - a[sortConfig.key];
+    });
 
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
   const paginatedData = filteredProducts.slice(
@@ -309,9 +343,13 @@ const ListProduct = () => {
           <table className="w-full">
             <thead>
               <tr className="bg-gray-200">
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                <th
+                  className="px-4 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer"
+                  onClick={() => handleSort("id")}
+                >
                   <div className="flex items-center space-x-1">
                     <span>Mã</span>
+                    <FaSort />
                   </div>
                 </th>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
@@ -319,19 +357,31 @@ const ListProduct = () => {
                     <span>Hình ảnh</span>
                   </div>
                 </th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                <th
+                  className="px-4 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer"
+                  onClick={() => handleSort("name")}
+                >
                   <div className="flex items-center space-x-1">
                     <span>Tên sản phẩm</span>
+                    <FaSort />
                   </div>
                 </th>
-                <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">
+                <th
+                  className="px-4 py-3 text-right text-sm font-semibold text-gray-700 cursor-pointer"
+                  onClick={() => handleSort("exportPrice")}
+                >
                   <div className="flex items-center justify-end space-x-1">
                     <span>Giá bán</span>
+                    <FaSort />
                   </div>
                 </th>
-                <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
+                <th
+                  className="px-4 py-3 text-center text-sm font-semibold text-gray-700 cursor-pointer"
+                  onClick={() => handleSort("quantity")}
+                >
                   <div className="flex items-center justify-center space-x-1">
                     <span>Số lượng</span>
+                    <FaSort />
                   </div>
                 </th>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
