@@ -22,8 +22,8 @@ const Config = () => {
       setCurrentItem(data);        // Set data sau
       setIsDetailModalOpen(true);  // Mở detail modal cuối cùng
     } catch (error) {
-      console.error("Lỗi khi lấy chi tiết cấu hình:", error);
-      toast.error("Không thể lấy chi tiết cấu hình");
+      console.error("Lỗi khi lấy chi tiết nội dung:", error);
+      toast.error("Không thể lấy chi tiết nội dung");
     }
   };
 
@@ -34,8 +34,8 @@ const Config = () => {
       setCurrentItem(data);        // Set data sau
       setIsEditModalOpen(true);    // Mở edit modal cuối cùng
     } catch (error) {
-      console.error("Lỗi khi lấy chi tiết cấu hình:", error);
-      toast.error("Không thể lấy chi tiết cấu hình");
+      console.error("Lỗi khi lấy chi tiết nội dung:", error);
+      toast.error("Không thể lấy chi tiết nội dung");
     }
   };
 
@@ -52,10 +52,10 @@ const Config = () => {
     await fetchConfigs();
 
     setIsEditModalOpen(false);
-    toast.success("Cập nhật cấu hình thành công");
+    toast.success("Cập nhật nội dung thành công");
   } catch (error) {
-    console.error("Lỗi khi cập nhật cấu hình:", error);
-    toast.error("Không thể cập nhật cấu hình");
+    console.error("Lỗi khi cập nhật nội dung:", error);
+    toast.error("Không thể cập nhật nội dung");
   }
 };
 
@@ -77,8 +77,8 @@ const Config = () => {
     setConfigs(configs);
     setFilteredData(configs);
   } catch (error) {
-    console.error("Lỗi khi lấy danh sách cấu hình:", error);
-    toast.error("Không thể tải danh sách cấu hình");
+    console.error("Lỗi khi lấy danh sách nội dung:", error);
+    toast.error("Không thể tải danh sách nội dung");
   }
 };
 

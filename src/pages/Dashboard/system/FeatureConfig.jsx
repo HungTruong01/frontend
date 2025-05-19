@@ -31,8 +31,8 @@ const FeatureConfig = () => {
       setCurrentItem(data);
       setIsDetailModalOpen(true);
     } catch (error) {
-      console.error("Lỗi khi lấy chi tiết đặc sắc:", error);
-      toast.error("Không thể lấy chi tiết đặc sắc");
+      console.error("Lỗi khi lấy chi tiết nội dung:", error);
+      toast.error("Không thể lấy chi tiết nội dung");
     }
   };
 
@@ -43,8 +43,8 @@ const FeatureConfig = () => {
       setCurrentItem(data);
       setIsEditModalOpen(true);
     } catch (error) {
-      console.error("Lỗi khi lấy chi tiết đặc sắc:", error);
-      toast.error("Không thể lấy chi tiết đặc sắc");
+      console.error("Lỗi khi lấy chi tiết nội dung:", error);
+      toast.error("Không thể lấy chi tiết nội dung");
     }
   };
 
@@ -62,10 +62,10 @@ const FeatureConfig = () => {
       await updateFeatureContent(formData.id, formData);
       await fetchServices();
       setIsEditModalOpen(false);
-      toast.success("Cập nhật đặc sắc thành công");
+      toast.success("Cập nhật thành công");
     } catch (error) {
-      console.error("Lỗi khi cập nhật đặc sắc:", error);
-      toast.error("Không thể cập nhật đặc sắc");
+      console.error("Lỗi khi cập nhật:", error);
+      toast.error("Không thể cập nhật");
     }
   };
 
@@ -74,22 +74,22 @@ const FeatureConfig = () => {
       await addFeatureContent(formData);
       await fetchServices();
       setIsAddModalOpen(false);
-      toast.success("Thêm mới đặc sắc thành công");
+      toast.success("Thêm mới nội dung thành công");
     } catch (error) {
-      console.error("Lỗi khi thêm mới đặc sắc:", error);
-      toast.error("Không thể thêm mới đặc sắc");
+      console.error("Lỗi khi thêm mới nội dung:", error);
+      toast.error("Không thể thêm mới nội dung");
     }
   };
 
   const handleDelete = async (row) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa đặc sắc này?')) {
+    if (window.confirm('Bạn có chắc chắn muốn xóa nội dung này?')) {
       try {
         await deleteFeatureContent(row.id);
         await fetchServices();
-        toast.success("Xóa đặc sắc thành công");
+        toast.success("Xóa nội dung thành công");
       } catch (error) {
-        console.error("Lỗi khi xóa đặc sắc:", error);
-        toast.error("Không thể xóa đặc sắc");
+        console.error("Lỗi khi xóa nội dung:", error);
+        toast.error("Không thể xóa nội dung");
       }
     }
   };
@@ -111,8 +111,8 @@ const FeatureConfig = () => {
       setTotalElements(totalElements);
       setTotalPages(totalPages);
     } catch (error) {
-      console.error("Lỗi khi lấy danh sách đặc sắc:", error);
-      toast.error("Không thể tải danh sách đặc sắc");
+      console.error("Lỗi khi lấy danh sách nội dung:", error);
+      toast.error("Không thể tải danh sách nội dung");
     }
   };
 
@@ -159,7 +159,7 @@ const FeatureConfig = () => {
     <div className="w-full bg-white shadow-lg rounded-lg overflow-hidden mt-4">
       <div className="p-6">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-800">Cấu hình nội dung đặc sắc</h1>
+          <h1 className="text-2xl font-bold text-gray-800">Cấu hình nội dung nổi bật</h1>
           <div className="flex items-center gap-4">
             <div className="relative w-64">
               <input
