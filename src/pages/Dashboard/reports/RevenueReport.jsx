@@ -128,7 +128,7 @@ const RevenueReport = () => {
               Tổng lợi nhuận
             </h3>
             <p className="text-2xl font-semibold text-blue-600">
-              {profitData} VND
+              {profitData.toLocaleString()} VND
             </p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow-md">

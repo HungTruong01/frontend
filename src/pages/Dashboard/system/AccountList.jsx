@@ -79,12 +79,16 @@ const AccountList = () => {
       toast.success("Thêm tài khoản thành công!");
       fetchAccounts();
     } catch (error) {
+<<<<<<< HEAD
+      toast.error(error.response?.data || "Thêm tài khoản thất bại!");
+=======
       if (error.response?.status === 403) {
         toast.warning("Tài khoản đã tồn tại!");
       } else {
         console.error("Lỗi khi tạo tài khoản:", error);
         toast.error("Đã xảy ra lỗi khi tạo tài khoản!");
       }
+>>>>>>> 808fdcc79370d4bac378bbd3a2e8afb4975e89f7
     }
   };
 
@@ -100,8 +104,7 @@ const AccountList = () => {
       toast.success("Cập nhật tài khoản thành công!");
       fetchAccounts();
     } catch (error) {
-      console.error("Lỗi khi cập nhật tài khoản:", error);
-      toast.error("Cập nhật tài khoản thất bại!");
+      toast.error(error?.response?.data || "Cập nhật tài khoản thất bại!");
     }
   };
 

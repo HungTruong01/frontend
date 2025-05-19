@@ -32,8 +32,8 @@ const ServiceConfig = () => {
       setCurrentItem(data);
       setIsDetailModalOpen(true);
     } catch (error) {
-      console.error("Lỗi khi lấy chi tiết dịch vụ:", error);
-      toast.error("Không thể lấy chi tiết dịch vụ");
+      console.error("Lỗi khi lấy chi tiết nội dung:", error);
+      toast.error("Không thể lấy chi tiết nội dung");
     }
   };
 
@@ -44,8 +44,8 @@ const ServiceConfig = () => {
       setCurrentItem(data);
       setIsEditModalOpen(true);
     } catch (error) {
-      console.error("Lỗi khi lấy chi tiết dịch vụ:", error);
-      toast.error("Không thể lấy chi tiết dịch vụ");
+      console.error("Lỗi khi lấy chi tiết nội dung:", error);
+      toast.error("Không thể lấy chi tiết nội dung");
     }
   };
 
@@ -63,10 +63,10 @@ const ServiceConfig = () => {
       await updateServiceContent(formData.id, formData);
       await fetchServices();
       setIsEditModalOpen(false);
-      toast.success("Cập nhật dịch vụ thành công");
+      toast.success("Cập nhật nội dung thành công");
     } catch (error) {
-      console.error("Lỗi khi cập nhật dịch vụ:", error);
-      toast.error("Không thể cập nhật dịch vụ");
+      console.error("Lỗi khi cập nhật nội dung:", error);
+      toast.error("Không thể cập nhật nội dung");
     }
   };
 
@@ -75,22 +75,22 @@ const ServiceConfig = () => {
       await addServiceContent(formData);
       await fetchServices();
       setIsAddModalOpen(false);
-      toast.success("Thêm mới dịch vụ thành công");
+      toast.success("Thêm mới nội dung thành công");
     } catch (error) {
-      console.error("Lỗi khi thêm mới dịch vụ:", error);
-      toast.error("Không thể thêm mới dịch vụ");
+      console.error("Lỗi khi thêm mới nội dung:", error);
+      toast.error("Không thể thêm mới nội dung");
     }
   };
 
   const handleDelete = async (row) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa dịch vụ này?')) {
+    if (window.confirm('Bạn có chắc chắn muốn xóa nội dung này?')) {
       try {
         await deleteServiceContent(row.id);
         await fetchServices();
-        toast.success("Xóa dịch vụ thành công");
+        toast.success("Xóa nội dung thành công");
       } catch (error) {
-        console.error("Lỗi khi xóa dịch vụ:", error);
-        toast.error("Không thể xóa dịch vụ");
+        console.error("Lỗi khi xóa nội dung:", error);
+        toast.error("Không thể xóa nội dung");
       }
     }
   };
@@ -111,8 +111,8 @@ const ServiceConfig = () => {
       setTotalElements(totalElements);
       setTotalPages(totalPages);
     } catch (error) {
-      console.error("Lỗi khi lấy danh sách dịch vụ:", error);
-      toast.error("Không thể tải danh sách dịch vụ");
+      console.error("Lỗi khi lấy danh sách nội dung:", error);
+      toast.error("Không thể tải danh sách nội dung");
     }
   };
 

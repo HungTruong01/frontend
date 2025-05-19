@@ -22,7 +22,13 @@ export const getProductById = async (id) => {
   }
 };
 
-export const getProductsByProductTypeId = async (pageNo, pageSize, sortBy, sortDir, productTypeId) => {
+export const getProductsByProductTypeId = async (
+  pageNo,
+  pageSize,
+  sortBy,
+  sortDir,
+  productTypeId
+) => {
   try {
     const response = await axios.get(
       `${BASE_API_URL}/product-types/${productTypeId}?pageNo=${pageNo}&pageSize=${pageSize}&sortBy=${sortBy}&sortDir=${sortDir}`
@@ -35,7 +41,7 @@ export const getProductsByProductTypeId = async (pageNo, pageSize, sortBy, sortD
     );
     throw error;
   }
-}
+};
 
 export const createProduct = async (productData) => {
   try {
@@ -51,6 +57,7 @@ export const createProduct = async (productData) => {
 };
 
 export const updateProduct = async (id, productData) => {
+  // eslint-disable-next-line no-useless-catch
   try {
     const response = await axios.put(`${BASE_API_URL}/${id}`, {
       ...productData,
@@ -58,10 +65,6 @@ export const updateProduct = async (id, productData) => {
     });
     return response.data;
   } catch (error) {
-    console.log(
-      "Lỗi khi cập nhật sản phẩm:",
-      error.response?.data || error.message
-    );
     throw error;
   }
 };

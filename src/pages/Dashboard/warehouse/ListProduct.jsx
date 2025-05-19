@@ -154,19 +154,12 @@ const ListProduct = () => {
         productUnitId: Number(newProduct.productUnitId),
         thumbnail: newProduct.thumbnail || "",
       };
-      const response = await createProduct(productData);
+      await createProduct(productData);
       toast.success("Thêm sản phẩm mới thành công");
-
-      // Cập nhật lại danh sách sản phẩm bằng cách tải lại từ API
       await fetchProducts();
       setIsAddModalOpen(false);
     } catch (error) {
-      console.log("Chi tiết lỗi:", error.response?.data || error.message);
-      const errorMessage =
-        error.response?.status === 400
-          ? error.response.data
-          : "Không thể thêm sản phẩm. Vui lòng thử lại.";
-      toast.error(errorMessage);
+      toast.error(error?.response?.data || "Không thể thêm sản phẩm. Vui lòng thử lại.");
     }
   };
 
@@ -217,11 +210,7 @@ const ListProduct = () => {
       await fetchProducts();
       setIsEditModalOpen(false);
     } catch (error) {
-      console.error(
-        "Không thể cập nhật sản phẩm:",
-        error.response?.data || error.message
-      );
-      toast.error("Không thể cập nhật sản phẩm. Vui lòng thử lại.");
+      toast.error(error?.response?.data || "Không thể cập nhật sản phẩm. Vui lòng thử lại.");
     }
   };
 

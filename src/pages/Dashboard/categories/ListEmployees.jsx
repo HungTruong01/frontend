@@ -6,6 +6,7 @@ import {
   updateEmployee,
   deleteEmployee,
 } from "@/api/employeeApi";
+import { toast } from "react-toastify";
 
 const ListEmployees = () => {
   const [employees, setEmployees] = useState([]);
@@ -50,18 +51,20 @@ const ListEmployees = () => {
   const handleAdd = async (data) => {
     try {
       await createEmployee(data);
+      toast.success("Thêm nhân viên thành công");
       fetchData();
     } catch (error) {
-      console.error("Error adding employee", error);
+      toast.error(error.response?.data || "Không thể thêm nhân viên!!!");
     }
   };
 
   const handleEdit = async (data) => {
     try {
       await updateEmployee(data.id, data);
+      toast.success("Sửa thông tin nhân viên thành công");
       fetchData();
     } catch (error) {
-      console.error("Error updating employee", error);
+      toast.error(error.response?.data || "Không thể sửa thông tin nhân viên!!!");
     }
   };
 
