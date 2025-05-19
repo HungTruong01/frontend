@@ -1,13 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  FaRegTrashAlt,
-  FaEye,
-  FaEdit,
-  FaPlus,
-  FaFileExport,
-  FaSort,
-} from "react-icons/fa";
+import { FaEye, FaEdit, FaPlus, FaFileExport, FaSort } from "react-icons/fa";
 import OrderDetailModal from "@/components/Dashboard/order/OrderDetailModal";
 import { getAllOrders, getOrderById } from "@/api/orderApi";
 import { getAllOrderTypes } from "@/api/orderTypeApi";
@@ -413,13 +406,9 @@ const ListOrder = () => {
                       <FaSort />
                     </div>
                   </th>
-                  <th
-                    className="px-6 py-4 text-right text-sm font-semibold text-gray-700 w-1/7 cursor-pointer"
-                    onClick={() => handleSort("paidMoney")}
-                  >
+                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700 w-1/7 cursor-pointer">
                     <div className="flex items-center justify-end space-x-1">
                       <span>Đã trả</span>
-                      <FaSort />
                     </div>
                   </th>
                   <th
