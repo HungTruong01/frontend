@@ -6,6 +6,7 @@ import {
 import { exportExcel } from "@/utils/exportExcel";
 import React, { useEffect, useState } from "react";
 import { FaDownload, FaFilter } from "react-icons/fa";
+import { toast } from "react-toastify";
 
 const RevenueReport = () => {
   const [filter, setFilter] = useState("monthly");
@@ -41,28 +42,40 @@ const RevenueReport = () => {
   }, [timeRange, filter]);
 
   const handleExportExcel = () => {
-    const exportData = reportData.map((order) => ({
-      Label: order.label,
-      "Doanh thu": +order.revenue.toLocaleString(),
-    }));
+    try {
+      const exportData = reportData.map((order) => ({
+        Label: order.label,
+        "Doanh thu": Number(order.revenue || 0).toLocaleString(),
+        "Lợi nhuận": Number(order.profit || 0).toLocaleString(),
+        "Tỷ lệ lợi nhuận": `${(
+          (Number(order.profit || 0) / Number(order.revenue || 1)) *
+          100
+        ).toFixed(2)}%`,
+      }));
 
-    const totalRevenue = reportData.reduce(
-      (sum, order) => sum + +order.revenue,
-      0
-    );
+      exportData.push({
+        Label: "Tổng",
+        "Doanh thu": revenueData.toLocaleString(),
+        "Lợi nhuận": profitData.toLocaleString(),
+        "Tỷ lệ lợi nhuận": `${((profitData / revenueData) * 100).toFixed(2)}%`,
+      });
 
-    exportData.push({
-      Label: "Tổng",
-      "Doanh thu": totalRevenue.toLocaleString(),
-    });
-
-    exportExcel(exportData, "Doanh thu theo tháng", "Doanh thu");
+      exportExcel({
+        data: exportData,
+        fileName: "Báo cáo doanh thu và lợi nhuận",
+        sheetName: "Báo cáo",
+        autoWidth: true,
+        zebraPattern: true,
+      });
+    } catch (error) {
+      console.error("Lỗi khi xuất Excel:", error);
+      toast.error("Có lỗi xảy ra khi xuất file Excel");
+    }
   };
 
   return (
     <div className="bg-gray-100 min-h-screen p-6">
       <div className="bg-white rounded-lg shadow-lg p-6">
-        {/* Tiêu đề và nút điều khiển */}
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-semibold text-gray-800">
             Báo cáo Doanh thu & Lợi nhuận
@@ -90,7 +103,6 @@ const RevenueReport = () => {
                 <option value="2025">2025</option>
               </select>
             </div>
-            {/* Nút tải xuống */}
             <button
               onClick={handleExportExcel}
               className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"

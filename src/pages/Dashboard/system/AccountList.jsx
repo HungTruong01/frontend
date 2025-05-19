@@ -79,7 +79,12 @@ const AccountList = () => {
       toast.success("Thêm tài khoản thành công!");
       fetchAccounts();
     } catch (error) {
-      console.error("Lỗi khi tạo tài khoản:", error);
+      if (error.response?.status === 403) {
+        toast.warning("Tài khoản đã tồn tại!");
+      } else {
+        console.error("Lỗi khi tạo tài khoản:", error);
+        toast.error("Đã xảy ra lỗi khi tạo tài khoản!");
+      }
     }
   };
 
@@ -121,33 +126,33 @@ const AccountList = () => {
   }, [currentPage]);
 
   const addAccountFields = [
-  {
-    key: "username",
-    label: "Tên đăng nhập",
-    type: "text",
-    required: true,
-    placeholder: "Nhập tên đăng nhập",
-  },
-  {
-    key: "password",
-    label: "Mật khẩu",
-    type: "password",
-    required: true,
-    placeholder: "Nhập mật khẩu",
-  },
-  {
-    key: "roleId",
-    label: "Vai trò",
-    type: "select",
-    required: true,
-    options: roles
-      .filter((role) => role.label !== "ADMIN")
-      .map((role) => ({
-        value: role.id.toString(),
-        label: role.label,
-      })),
-  },
-];
+    {
+      key: "username",
+      label: "Tên đăng nhập",
+      type: "text",
+      required: true,
+      placeholder: "Nhập tên đăng nhập",
+    },
+    {
+      key: "password",
+      label: "Mật khẩu",
+      type: "password",
+      required: true,
+      placeholder: "Nhập mật khẩu",
+    },
+    {
+      key: "roleId",
+      label: "Vai trò",
+      type: "select",
+      required: true,
+      options: roles
+        .filter((role) => role.label !== "ADMIN")
+        .map((role) => ({
+          value: role.id.toString(),
+          label: role.label,
+        })),
+    },
+  ];
 
   const editAccountFields = [
     {
@@ -162,11 +167,11 @@ const AccountList = () => {
       type: "select",
       required: true,
       options: roles
-      .filter((role) => role.label !== "ADMIN")
-      .map((role) => ({
-        value: role.id.toString(),
-        label: role.label,
-      })),
+        .filter((role) => role.label !== "ADMIN")
+        .map((role) => ({
+          value: role.id.toString(),
+          label: role.label,
+        })),
     },
   ];
 

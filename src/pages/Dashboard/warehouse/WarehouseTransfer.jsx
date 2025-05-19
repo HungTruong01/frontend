@@ -21,6 +21,7 @@ import { toast } from "react-toastify";
 import ToggleWarehouseTransfer from "@/components/Dashboard/warehouse/ToggleWarehouseTransfer";
 import { useNavigate } from "react-router-dom";
 import { exportExcel } from "@/utils/exportExcel";
+import { Pagination } from "@/utils/pagination";
 
 const WarehouseTransfer = () => {
   const [warehouseTransfer, setWarehouseTransfer] = useState([]);
@@ -323,43 +324,12 @@ const WarehouseTransfer = () => {
             {Math.min(currentPage * itemsPerPage, filteredData.length)} của{" "}
             {filteredData.length} bản ghi
           </p>
-          <div className="flex space-x-2">
-            <button
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-600 hover:bg-gray-100 disabled:opacity-50 transition-all"
-            >
-              Trước
-            </button>
-            <div className="flex items-center space-x-2">
-              {[...Array(totalPages)].map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setCurrentPage(i + 1)}
-                  className={`
-                    w-8 h-8 rounded-md text-sm 
-                    ${
-                      currentPage === i + 1
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                    }
-                    transition-colors
-                  `}
-                >
-                  {i + 1}
-                </button>
-              ))}
-            </div>
-            <button
-              onClick={() =>
-                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-              }
-              disabled={currentPage === totalPages}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 disabled:opacity-50 transition-all"
-            >
-              Tiếp
-            </button>
-          </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            maxPagesToShow={3}
+          />
         </div>
       </div>
     </div>

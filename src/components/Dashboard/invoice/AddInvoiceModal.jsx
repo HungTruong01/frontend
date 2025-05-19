@@ -255,6 +255,7 @@ const AddInvoiceModal = ({
 
       const response = await createInvoice(submitData);
       onSubmit(response);
+      toast.success("Lập hoá đơn thành công");
       onClose();
     } catch (err) {
       toast.error("Lỗi khi tạo hóa đơn: " + err.message);

@@ -13,6 +13,7 @@ import { getAllProducts } from "@/api/productApi";
 import { getAllWarehouse } from "@/api/warehouseApi";
 import { getAllWarehouseTransaction } from "@/api/warehouseTransactionApi";
 import { getAllTransactionBatches } from "@/api/transactionBatchApi";
+import { Pagination } from "@/utils/pagination";
 
 const ImportBatch = () => {
   const [importBatches, setImportBatches] = useState([]);
@@ -157,45 +158,6 @@ const ImportBatch = () => {
     (transactionPage - 1) * transactionPerPage,
     transactionPage * transactionPerPage
   );
-
-  const getPageNumbers = () => {
-    const maxPagesToShow = 3; // Show only first 3 pages
-    const pages = [];
-    let startPage = 1;
-    let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
-
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(i);
-    }
-
-    return {
-      pages,
-      showLast: endPage < totalPages,
-    };
-  };
-
-  const getTransactionPageNumbers = () => {
-    const maxPagesToShow = 3; // Show only first 3 pages
-    const pages = [];
-    let startPage = 1;
-    let endPage = Math.min(
-      transactionTotalPages,
-      startPage + maxPagesToShow - 1
-    );
-
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(i);
-    }
-
-    return {
-      pages,
-      showLast: endPage < transactionTotalPages,
-    };
-  };
-
-  const { pages, showLast } = getPageNumbers();
-  const { pages: transactionPages, showLast: transactionShowLast } =
-    getTransactionPageNumbers();
 
   if (loading) {
     return (
@@ -369,56 +331,12 @@ const ImportBatch = () => {
             đến {Math.min(currentPage * itemsPerPage, filteredBatches.length)}{" "}
             của {filteredBatches.length} bản ghi
           </p>
-          <div className="flex space-x-2">
-            <button
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-600 hover:bg-gray-100 disabled:opacity-50 transition-all"
-            >
-              Trước
-            </button>
-            <div className="flex items-center space-x-2">
-              {pages.map((page) => (
-                <button
-                  key={page}
-                  onClick={() => setCurrentPage(page)}
-                  className={`w-8 h-8 rounded-md text-sm ${
-                    currentPage === page
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                  } transition-colors`}
-                >
-                  {page}
-                </button>
-              ))}
-              {showLast && (
-                <>
-                  {pages[pages.length - 1] < totalPages - 1 && (
-                    <span className="text-gray-600">...</span>
-                  )}
-                  <button
-                    onClick={() => setCurrentPage(totalPages)}
-                    className={`w-8 h-8 rounded-md text-sm ${
-                      currentPage === totalPages
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                    } transition-colors`}
-                  >
-                    {totalPages}
-                  </button>
-                </>
-              )}
-            </div>
-            <button
-              onClick={() =>
-                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-              }
-              disabled={currentPage === totalPages || totalPages === 0}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 disabled:opacity-50 transition-all"
-            >
-              Tiếp
-            </button>
-          </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            maxPagesToShow={3}
+          />
         </div>
       </div>
 
@@ -510,64 +428,12 @@ const ImportBatch = () => {
             )}{" "}
             của {filteredTransactionBatches.length} bản ghi
           </p>
-          <div className="flex space-x-2">
-            <button
-              onClick={() =>
-                setTransactionPage((prev) => Math.max(prev - 1, 1))
-              }
-              disabled={transactionPage === 1}
-              className="px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-600 hover:bg-gray-100 disabled:opacity-50 transition-all"
-            >
-              Trước
-            </button>
-            <div className="flex items-center space-x-2">
-              {transactionPages.map((page) => (
-                <button
-                  key={page}
-                  onClick={() => setTransactionPage(page)}
-                  className={`w-8 h-8 rounded-md text-sm ${
-                    transactionPage === page
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                  } transition-colors`}
-                >
-                  {page}
-                </button>
-              ))}
-              {transactionShowLast && (
-                <>
-                  {transactionPages[transactionPages.length - 1] <
-                    transactionTotalPages - 1 && (
-                    <span className="text-gray-600">...</span>
-                  )}
-                  <button
-                    onClick={() => setTransactionPage(transactionTotalPages)}
-                    className={`w-8 h-8 rounded-md text-sm ${
-                      transactionPage === transactionTotalPages
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                    } transition-colors`}
-                  >
-                    {transactionTotalPages}
-                  </button>
-                </>
-              )}
-            </div>
-            <button
-              onClick={() =>
-                setTransactionPage((prev) =>
-                  Math.min(prev + 1, transactionTotalPages)
-                )
-              }
-              disabled={
-                transactionPage === transactionTotalPages ||
-                transactionTotalPages === 0
-              }
-              className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 disabled:opacity-50 transition-all"
-            >
-              Tiếp
-            </button>
-          </div>
+          <Pagination
+            currentPage={transactionPage}
+            totalPages={transactionTotalPages}
+            onPageChange={setTransactionPage}
+            maxPagesToShow={3}
+          />
         </div>
       </div>
     </div>

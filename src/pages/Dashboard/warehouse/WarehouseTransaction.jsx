@@ -14,12 +14,13 @@ import { getWarehouseTransactionTypeById } from "@/api/warehouseTransactionTypeA
 import ToggleWarehouseTransaction from "@/components/Dashboard/warehouse/ToggleWarehouseTransaction";
 import { toast } from "react-toastify";
 import { exportExcel } from "@/utils/exportExcel";
+import { Pagination } from "@/utils/pagination";
 
 const WarehouseTransaction = () => {
   const [warehouseTransaction, setWarehouseTransaction] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [searchValue, setSearchValue] = useState("");
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(7);
   const [currentPage, setCurrentPage] = useState(1);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -57,8 +58,8 @@ const WarehouseTransaction = () => {
               statusName: status?.name || "Trạng thái không rõ",
               transactionTypeName: type?.name || "Loại không rõ",
             };
-          } catch (innerErr) {
-            console.error(`Lỗi khi enrich giao dịch ${tran.id}:`, innerErr);
+          } catch (error) {
+            console.error(`Lỗi khi enrich giao dịch ${tran.id}:`, error);
             return {
               ...tran,
               warehouseName: "Lỗi kho",
@@ -134,18 +135,18 @@ const WarehouseTransaction = () => {
     await fetchWarehouseTransaction();
   };
 
-  const handleDelete = async (item) => {
-    if (window.confirm("Bạn có chắc muốn xóa giao dịch này?")) {
-      try {
-        await deleteWarehouseTransaction(item.id);
-        await fetchWarehouseTransaction();
-        toast.success("Xóa giao dịch kho thành công");
-      } catch (error) {
-        console.error("Lỗi khi xóa giao dịch:", error);
-        toast.error("Lỗi khi xóa giao dịch kho");
-      }
-    }
-  };
+  // const handleDelete = async (item) => {
+  //   if (window.confirm("Bạn có chắc muốn xóa giao dịch này?")) {
+  //     try {
+  //       await deleteWarehouseTransaction(item.id);
+  //       await fetchWarehouseTransaction();
+  //       toast.success("Xóa giao dịch kho thành công");
+  //     } catch (error) {
+  //       console.error("Lỗi khi xóa giao dịch:", error);
+  //       toast.error("Lỗi khi xóa giao dịch kho");
+  //     }
+  //   }
+  // };
 
   const handleExportExcel = () => {
     const exportData = filteredData.map((transaction) => ({
@@ -310,49 +311,18 @@ const WarehouseTransaction = () => {
             </tbody>
           </table>
         </div>
-        <div className="flex justify-between mt-4 space-x-2">
+        <div className="flex justify-between items-center mt-4">
           <p className="text-sm text-gray-600">
             Hiển thị {(currentPage - 1) * itemsPerPage + 1} đến{" "}
             {Math.min(currentPage * itemsPerPage, filteredData.length)} của{" "}
             {filteredData.length} bản ghi
           </p>
-          <div className="flex space-x-2">
-            <button
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-600 hover:bg-gray-100 disabled:opacity-50 transition-all"
-            >
-              Trước
-            </button>
-            <div className="flex items-center space-x-2">
-              {[...Array(totalPages)].map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setCurrentPage(i + 1)}
-                  className={`
-                    w-8 h-8 rounded-md text-sm 
-                    ${
-                      currentPage === i + 1
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                    }
-                    transition-colors
-                  `}
-                >
-                  {i + 1}
-                </button>
-              ))}
-            </div>
-            <button
-              onClick={() =>
-                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-              }
-              disabled={currentPage === totalPages}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 disabled:opacity-50 transition-all"
-            >
-              Tiếp
-            </button>
-          </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            maxPagesToShow={3}
+          />
         </div>
       </div>
     </div>
