@@ -142,7 +142,7 @@ const OrderForm = ({ mode = "add" }) => {
       (item) => !item.unit_price || item.unit_price <= 0
     );
     if (missingPrices) {
-      toast.error("Vui lòng nhập đơn giá hợp lệ cho tất cả sản phẩm");
+      toast.error("Vui lòng nhập đơn giá hợp lệ cho sản phẩm");
       return;
     }
 

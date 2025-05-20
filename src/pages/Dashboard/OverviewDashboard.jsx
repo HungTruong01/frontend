@@ -5,10 +5,8 @@ import {
   FaDollarSign,
   FaTruck,
   FaSearch,
-  FaFilter,
 } from "react-icons/fa";
-import { getAllOrders } from "@/api/orderApi";
-import { analyzeWithCondition } from "@/api/orderApi";
+import { analyzeWithCondition, getAllOrders } from "@/api/orderApi";
 import { partnerApi } from "@/api/partnerApi";
 import { getAllWarehouseTransaction } from "@/api/warehouseTransactionApi";
 import { getAllWarehouseTransactionType } from "@/api/warehouseTransactionTypeApi";
@@ -85,11 +83,9 @@ const OverviewDashboard = () => {
         const revenueResponse = await analyzeWithCondition(currentYear);
         const monthlyData = revenueResponse.content || [];
 
-        // Lấy danh sách đơn hàng
         const ordersResponse = await getAllOrders(0, 100, "id", "desc");
         const orders = ordersResponse.content || [];
 
-        // Lấy danh sách đối tác
         const partnersResponse = await partnerApi.getAllPartners(
           0,
           100,
@@ -98,7 +94,6 @@ const OverviewDashboard = () => {
         );
         const partners = partnersResponse.content || [];
 
-        // Lấy dữ liệu giao dịch kho
         const transactionsResponse = await getAllWarehouseTransaction(
           0,
           1000,
@@ -107,7 +102,6 @@ const OverviewDashboard = () => {
         );
         const transactions = transactionsResponse.content;
 
-        // Lấy danh sách loại giao dịch
         const typesResponse = await getAllWarehouseTransactionType();
         const transactionTypes = typesResponse.content;
 
@@ -124,11 +118,13 @@ const OverviewDashboard = () => {
         // Phân loại giao dịch nhập/xuất
         const importType = transactionTypes.find(
           (type) =>
-            type.code === "IMPORT" || type.name?.toLowerCase().includes("nhập")
+            type.name === "Nhập kho" ||
+            type.name?.toLowerCase().includes("nhập")
         );
         const exportType = transactionTypes.find(
           (type) =>
-            type.code === "EXPORT" || type.name?.toLowerCase().includes("xuất")
+            type.name === "Xuất kho" ||
+            type.name?.toLowerCase().includes("xuất")
         );
 
         // Tính toán số liệu thống kê
@@ -148,7 +144,6 @@ const OverviewDashboard = () => {
           (t) => t.statusId === 2
         ).length;
 
-        // Cập nhật state
         setStats({
           totalRevenue,
           totalProfit,
@@ -185,7 +180,7 @@ const OverviewDashboard = () => {
           );
           return {
             id: transaction.id,
-            orderCode: transaction.orderCode || `DH${transaction.orderId}`,
+            orderCode: `DH${transaction.orderId}`,
             type: type?.name || "Không xác định",
             date: new Date(transaction.createdAt).toLocaleDateString("vi-VN"),
             status:

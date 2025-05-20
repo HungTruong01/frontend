@@ -166,7 +166,7 @@ const RevenueReport = () => {
                   key={index}
                   className="border-b border-gray-100 hover:bg-gray-50"
                 >
-                  <td className="py-3 px-4 text-sm text-gray-600 text-right">
+                  <td className="py-3 px-4 text-sm text-gray-600 text-left">
                     {item?.label}
                   </td>
                   <td className="py-3 px-4 text-sm text-gray-600 text-right">
