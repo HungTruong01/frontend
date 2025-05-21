@@ -35,27 +35,64 @@ const OrderForm = ({ mode = "add" }) => {
   const isPurchaseOrder = selectedOrderType === "1";
   const isSalesOrder = selectedOrderType === "2";
 
+  const fetchData = async () => {
+    try {
+      const [partnerRes, typeRes, productRes, batchesRes] = await Promise.all([
+        partnerApi.getAllPartners(0, 100, "id", "asc"),
+        getAllOrderTypes(),
+        getAllProducts(0, 100, "id", "asc"),
+        getAllImportBatches(0, 1000, "importDate", "desc"),
+      ]);
+      setPartners(partnerRes.content || []);
+      setOrderTypes(typeRes.content || []);
+      setProducts(productRes.data?.content || []);
+      setImportBatches(batchesRes.data?.content || []);
+    } catch {
+      toast.error("Lỗi tải dữ liệu cơ bản");
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [partnerRes, typeRes, productRes, batchesRes] = await Promise.all(
-          [
-            partnerApi.getAllPartners(0, 100, "id", "asc"),
-            getAllOrderTypes(),
-            getAllProducts(0, 100, "id", "asc"),
-            getAllImportBatches(0, 1000, "importDate", "desc"),
-          ]
-        );
-        setPartners(partnerRes.content || []);
-        setOrderTypes(typeRes.content || []);
-        setProducts(productRes.data?.content || []);
-        setImportBatches(batchesRes.data?.content || []);
-      } catch {
-        toast.error("Lỗi tải dữ liệu cơ bản");
-      }
-    };
     fetchData();
   }, []);
+
+  const fetchOrder = async () => {
+    try {
+      const res = await getOrderById(id);
+      setSelectedPartner(res.partnerId);
+      setOriginalPartner(res.partnerId);
+      setSelectedOrderType(res.orderTypeId);
+      setSelectedStatus(res.orderStatusId);
+      setCurrentPaidMoney(res.paidMoney || 0);
+      const items = res.orderDetails.map((detail) => {
+        console.log(detail);
+        const product = products.find((p) => p.id === detail.productId);
+        return {
+          detailId: detail.id,
+          id: detail.productId,
+          product: product?.name || `SP #${detail.productId}`,
+          quantity: detail.quantity,
+          unit_price: detail.unit_price,
+          exportPrice: detail.unit_price ?? 0,
+          // importPrice: product?.importPrice ?? 0,
+          expireDate: detail.expireDate
+            ? new Date(detail.expireDate).toISOString().split("T")[0]
+            : "",
+          profit:
+            (detail.unit_price ??
+              detail.exportPrice ??
+              product?.exportPrice ??
+              0 - (product?.importPrice ?? 0)) * detail.quantity,
+        };
+      });
+      console.log(items);
+      setOrderItems(items);
+    } catch {
+      toast.error("Không thể tải dữ liệu đơn hàng");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (isEdit && products.length) fetchOrder();
@@ -70,46 +107,6 @@ const OrderForm = ({ mode = "add" }) => {
       setOrderItems(updatedItems);
     }
   }, [selectedOrderType]);
-
-  const fetchOrder = async () => {
-    try {
-      const res = await getOrderById(id);
-      setSelectedPartner(res.partnerId);
-      setOriginalPartner(res.partnerId);
-      setSelectedOrderType(res.orderTypeId);
-      setSelectedStatus(res.orderStatusId);
-      setCurrentPaidMoney(res.paidMoney || 0);
-      const items = res.orderDetails.map((detail) => {
-        const product = products.find((p) => p.id === detail.productId);
-        return {
-          detailId: detail.id,
-          id: detail.productId,
-          product: product?.name || `SP #${detail.productId}`,
-          quantity: detail.quantity,
-          unit_price: detail.unit_price,
-          exportPrice:
-            detail.unit_price ??
-            detail.exportPrice ??
-            product?.exportPrice ??
-            0,
-          importPrice: product?.importPrice ?? 0,
-          expireDate: detail.expireDate
-            ? new Date(detail.expireDate).toISOString().split("T")[0]
-            : "",
-          profit:
-            (detail.unit_price ??
-              detail.exportPrice ??
-              product?.exportPrice ??
-              0 - (product?.importPrice ?? 0)) * detail.quantity,
-        };
-      });
-      setOrderItems(items);
-    } catch {
-      toast.error("Không thể tải dữ liệu đơn hàng");
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const calculateTotal = () =>
     orderItems.reduce((sum, i) => {
@@ -152,18 +149,41 @@ const OrderForm = ({ mode = "add" }) => {
       unit_price: parseFloat(item.unit_price) || 0,
       exportPrice: parseFloat(item.unit_price) || 0,
       profit:
-        (parseFloat(item.unit_price) || 0 - item.importPrice) *
-        (item.quantity || 1),
+        selectedOrderType === "2"
+          ? (parseFloat(item.unit_price) - item.importPrice) *
+            (item.quantity || 1)
+          : 0,
     }));
+
     const totalMoney = calculateTotal();
     const totalProfit = calculateTotalProfit();
 
     try {
+      if (isSalesOrder) {
+        for (const item of validatedItems) {
+          const product = products.find((p) => p.id === item.id);
+          const newExportPrice = parseFloat(item.unit_price);
+
+          if (product && product.exportPrice !== newExportPrice) {
+            try {
+              await updateProduct(item.id, {
+                ...product,
+                exportPrice: newExportPrice,
+                price: newExportPrice,
+              });
+            } catch (err) {
+              console.warn(`Lỗi cập nhật giá SP #${item.id}:`, err);
+            }
+          }
+        }
+      }
+
       if (isEdit) {
         if (selectedPartner !== originalPartner) {
           await partnerApi.updateDebt(originalPartner, -totalMoney);
           await partnerApi.updateDebt(selectedPartner, totalMoney);
         }
+
         await updateOrderDetailsByOrderId(
           id,
           validatedItems.map((i) => ({
@@ -175,6 +195,7 @@ const OrderForm = ({ mode = "add" }) => {
               : null,
           }))
         );
+
         await updateOrder(id, {
           partnerId: selectedPartner,
           orderTypeId: selectedOrderType,
@@ -192,6 +213,7 @@ const OrderForm = ({ mode = "add" }) => {
           profitMoney: totalProfit,
           totalMoney,
         });
+
         await createOrderDetails(
           validatedItems.map((i) => ({
             orderId: res.id,
@@ -206,6 +228,7 @@ const OrderForm = ({ mode = "add" }) => {
 
         toast.success("Đã tạo đơn hàng thành công");
       }
+
       navigate("/dashboard/business/order-management");
     } catch (error) {
       console.error(
@@ -228,32 +251,71 @@ const OrderForm = ({ mode = "add" }) => {
     }
   };
 
-  const handleProductSelect = (product) => {
-    if (orderItems.find((i) => i.id === product.id)) {
-      toast.info("Sản phẩm đã tồn tại");
-      return;
+  const handleProductSelect = (selectedProducts) => {
+    // Xử lý chọn nhiều sản phẩm
+    if (Array.isArray(selectedProducts)) {
+      const newItems = selectedProducts
+        .map((product) => {
+          // Kiểm tra nếu sản phẩm đã tồn tại trong đơn hàng
+          if (orderItems.find((item) => item.id === product.id)) {
+            return null;
+          }
+
+          // Tìm lô hàng mới nhất của sản phẩm
+          const latestBatch = importBatches
+            .filter((batch) => batch.productId === product.id)
+            .sort((a, b) => new Date(b.importDate) - new Date(a.importDate))[0];
+
+          const importPrice = latestBatch?.unitCost ?? 0;
+          const exportPrice =
+            selectedOrderType === "1" ? importPrice : product.exportPrice ?? 0;
+
+          return {
+            id: product.id,
+            product: product.name,
+            quantity: 1,
+            unit_price: exportPrice,
+            exportPrice: exportPrice,
+            importPrice: importPrice,
+            expireDate: "",
+            profit: 0,
+          };
+        })
+        .filter((item) => item !== null);
+
+      if (newItems.length > 0) {
+        setOrderItems([...orderItems, ...newItems]);
+      } else {
+        toast.info("Không có sản phẩm mới nào được thêm");
+      }
+    } else {
+      const product = selectedProducts;
+      if (orderItems.find((i) => i.id === product.id)) {
+        toast.info("Sản phẩm đã tồn tại");
+        return;
+      }
+
+      // Tìm lô hàng mới nhất của sản phẩm
+      const latestBatch = importBatches
+        .filter((batch) => batch.productId === product.id)
+        .sort((a, b) => new Date(b.importDate) - new Date(a.importDate))[0];
+
+      const importPrice = latestBatch?.unitCost ?? 0;
+      const exportPrice =
+        selectedOrderType === "1" ? importPrice : product.exportPrice ?? 0;
+
+      const newItem = {
+        id: product.id,
+        product: product.name,
+        quantity: 1,
+        unit_price: exportPrice,
+        exportPrice: exportPrice,
+        importPrice: importPrice,
+        expireDate: "",
+        profit: 0,
+      };
+      setOrderItems([...orderItems, newItem]);
     }
-
-    // Tìm lô hàng mới nhất của sản phẩm
-    const latestBatch = importBatches
-      .filter((batch) => batch.productId === product.id)
-      .sort((a, b) => new Date(b.importDate) - new Date(a.importDate))[0];
-
-    const importPrice = latestBatch?.unitCost ?? 0;
-    const exportPrice =
-      selectedOrderType === "1" ? importPrice : product.exportPrice ?? 0;
-
-    const newItem = {
-      id: product.id,
-      product: product.name,
-      quantity: 1,
-      unit_price: exportPrice,
-      exportPrice: exportPrice,
-      importPrice: importPrice,
-      expireDate: "",
-      profit: 0,
-    };
-    setOrderItems([...orderItems, newItem]);
     setIsProductModalOpen(false);
   };
 

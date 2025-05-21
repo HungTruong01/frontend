@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import {
-  FaRegTrashAlt,
   FaEye,
   FaEdit,
   FaPlus,
@@ -16,10 +15,8 @@ import {
   deleteInvoice,
   updateInvoice,
   getInvoiceWithDetails,
-  getAllInvoices,
 } from "@/api/invoiceApi";
 import { getAllInvoiceTypes } from "@/api/invoiceTypeApi";
-import "jspdf-autotable";
 import { toast } from "react-toastify";
 import { exportExcel } from "@/utils/exportExcel";
 import { Pagination } from "@/utils/pagination";
@@ -44,32 +41,24 @@ const ListInvoice = () => {
     direction: "desc",
   });
 
-  const fetchInvoices = async () => {
+  const fetchData = async () => {
     try {
-      setIsLoading(true);
-      const response = await getAllInvoicesWithPartnerName(0, 100, "id", "asc");
-      const allInvoicesData = response.content || [];
-      setAllInvoices(allInvoicesData);
-      setTotalElements(allInvoicesData.length);
+      const [invoiceRes, invoiceTypeRes] = await Promise.all([
+        getAllInvoicesWithPartnerName(0, 100, "id", "asc"),
+        getAllInvoiceTypes(),
+      ]);
+      setAllInvoices(invoiceRes.content);
+      setTotalElements(invoiceRes.length);
+      setInvoiceType(invoiceTypeRes.content);
       setIsLoading(false);
     } catch (error) {
-      console.log("Lỗi khi lấy hóa đơn", error);
-      setIsLoading(false);
-    }
-  };
-
-  const fetchInvoiceType = async () => {
-    try {
-      const response = await getAllInvoiceTypes();
-      setInvoiceType(response.content || []);
-    } catch (error) {
-      console.log("Lỗi khi lấy loại hóa đơn", error);
+      console.log("error", error);
+      toast.error("Lỗi tải dữ liệu hoá đơn");
     }
   };
 
   useEffect(() => {
-    fetchInvoices();
-    fetchInvoiceType();
+    fetchData();
   }, []);
 
   const handleSort = (key) => {
@@ -82,17 +71,37 @@ const ListInvoice = () => {
     }));
   };
 
+  const formatForFilter = (dateString) => {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "";
+    return date.toISOString().split("T")[0]; // yyyy-MM-dd
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "N/A";
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
+  const formatCurrency = (amount) => {
+    return `${new Intl.NumberFormat("vi-VN").format(amount)}`;
+  };
+
   const filteredInvoices = allInvoices
     .filter((invoice) => {
       const matchesType =
-        searchType === "" || invoice.invoiceTypeId === searchType;
+        searchType === "" || invoice.invoiceTypeId === parseInt(searchType);
       const matchesPartner =
         searchPartner === "" ||
         invoice.partnerName
           ?.toLowerCase()
           .includes(searchPartner.toLowerCase());
       const matchesDate =
-        searchDate === "" || formatDate(invoice.createdAt).includes(searchDate);
+        searchDate === "" || formatForFilter(invoice.createdAt) === searchDate;
 
       return matchesType && matchesPartner && matchesDate;
     })
@@ -126,20 +135,6 @@ const ListInvoice = () => {
     itemsPerPage,
     filteredInvoices.length,
   ]);
-
-  const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) return "N/A";
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
-  };
-
-  const formatCurrency = (amount) => {
-    return `${new Intl.NumberFormat("vi-VN").format(amount)}`;
-  };
 
   const handleExportExcel = () => {
     const exportData = filteredInvoices.map((invoice, index) => ({
@@ -256,34 +251,6 @@ const ListInvoice = () => {
     setCurrentPage(1);
   };
 
-  const handleChangeItemsPerPage = (e) => {
-    const newItemsPerPage = parseInt(e.target.value);
-    setItemsPerPage(newItemsPerPage);
-  };
-
-  const getPageNumbers = () => {
-    const maxPagesToShow = 5;
-    const pages = [];
-    let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
-    let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
-
-    if (endPage - startPage + 1 < maxPagesToShow) {
-      startPage = Math.max(1, endPage - maxPagesToShow + 1);
-    }
-
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(i);
-    }
-
-    return {
-      pages,
-      showFirst: startPage > 1,
-      showLast: endPage < totalPages,
-    };
-  };
-
-  const { pages, showFirst, showLast } = getPageNumbers();
-
   return (
     <div className="w-full bg-white shadow-lg rounded-lg overflow-hidden">
       <InvoiceDetailModal
@@ -374,8 +341,10 @@ const ListInvoice = () => {
 
         <div className="overflow-x-auto bg-white mt-6">
           {isLoading ? (
-            <div className="text-center py-4">
-              <p>Đang tải dữ liệu...</p>
+            <div className="bg-gray-50 min-h-screen w-auto p-6">
+              <div className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+              </div>
             </div>
           ) : (
             <table className="w-full">
