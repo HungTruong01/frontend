@@ -78,7 +78,8 @@ const OrderForm = ({ mode = "add" }) => {
           expireDate: detail.expireDate
             ? new Date(detail.expireDate).toISOString().split("T")[0]
             : "",
-          profit:
+          // XEM LẠI PHẦN NÀY
+          profit: 
             (detail.unit_price ??
               detail.exportPrice ??
               product?.exportPrice ??
@@ -108,6 +109,7 @@ const OrderForm = ({ mode = "add" }) => {
     }
   }, [selectedOrderType]);
 
+  // XEM LẠI PHẦN NÀY
   const calculateTotal = () =>
     orderItems.reduce((sum, i) => {
       const quantity = i.quantity || 1;
@@ -115,6 +117,7 @@ const OrderForm = ({ mode = "add" }) => {
       return sum + quantity * price;
     }, 0);
 
+  // XEM LẠI PHẦN NÀY
   const calculateTotalProfit = () =>
     orderItems.reduce((sum, i) => sum + (i.profit || 0), 0);
 
@@ -143,6 +146,7 @@ const OrderForm = ({ mode = "add" }) => {
       return;
     }
 
+    // XEM LẠI PHẦN NÀY
     const validatedItems = orderItems.map((item) => ({
       ...item,
       quantity: item.quantity || 1,
@@ -155,6 +159,7 @@ const OrderForm = ({ mode = "add" }) => {
           : 0,
     }));
 
+    // XEM LẠI PHẦN NÀY
     const totalMoney = calculateTotal();
     const totalProfit = calculateTotalProfit();
 
@@ -178,6 +183,7 @@ const OrderForm = ({ mode = "add" }) => {
         }
       }
 
+      // XEM LẠI PHẦN NÀY
       if (isEdit) {
         if (selectedPartner !== originalPartner) {
           await partnerApi.updateDebt(originalPartner, -totalMoney);
@@ -440,7 +446,7 @@ const OrderForm = ({ mode = "add" }) => {
         <div className="flex items-center mb-6">
           <button
             onClick={() => navigate("/dashboard/business/order-management")}
-            className="flex items-center justify-center text-gray-600 border border-gray-300 rounded-md p-2 hover:text-gray-800 mr-2 h-8 w-8"
+            className="flex items-center justify-center text-gray-600 border border-gray-300 rounded-md p-2 hover:text-gray-800 mr-2 h-8 w-8 mb-4"
           >
             <FaArrowLeft className="h-4 w-4" />
           </button>
@@ -527,12 +533,9 @@ const OrderForm = ({ mode = "add" }) => {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                         Đơn giá
                       </th>
-                      {(isPurchaseOrder || isEdit) && (
+                      {isPurchaseOrder && ( // Only show for purchase orders
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                          Ngày hết hạn{" "}
-                          {isPurchaseOrder && (
-                            <span className="text-red-500">*</span>
-                          )}
+                          Ngày hết hạn <span className="text-red-500">*</span>
                         </th>
                       )}
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
@@ -544,71 +547,64 @@ const OrderForm = ({ mode = "add" }) => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {orderItems.map((item) => {
-                      return (
-                        <tr key={item.id}>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {item.product}
-                          </td>
-                          <td className="px-6 py-4">
+                    {orderItems.map((item) => (
+                      <tr key={item.id}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {item.product}
+                        </td>
+                        <td className="px-6 py-4">
+                          <input
+                            type="number"
+                            value={item.quantity}
+                            onChange={(e) =>
+                              handleQuantityChange(item.id, e.target.value)
+                            }
+                            min="1"
+                            className="w-20 px-2 py-1 border border-gray-300 rounded-md"
+                          />
+                        </td>
+                        <td className="px-6 py-4 text-blue-600 text-sm">
+                          {isPurchaseOrder || isSalesOrder ? (
                             <input
                               type="number"
-                              value={item.quantity}
+                              value={item.unit_price}
                               onChange={(e) =>
-                                handleQuantityChange(item.id, e.target.value)
+                                handlePriceChange(item.id, e.target.value)
                               }
-                              min="1"
-                              className="w-20 px-2 py-1 border border-gray-300 rounded-md"
+                              min="0"
+                              className="w-32 px-2 py-1 border border-gray-300 rounded-md"
+                            />
+                          ) : (
+                            item.unit_price?.toLocaleString()
+                          )}
+                        </td>
+                        {isPurchaseOrder && ( // Only show for purchase orders
+                          <td className="px-6 py-4">
+                            <input
+                              type="date"
+                              value={item.expireDate}
+                              onChange={(e) =>
+                                handleExpireDateChange(item.id, e.target.value)
+                              }
+                              className="w-40 px-2 py-1 border border-gray-300 rounded-md"
+                              required={isPurchaseOrder}
                             />
                           </td>
-                          <td className="px-6 py-4 text-blue-600 text-sm">
-                            {isPurchaseOrder || isSalesOrder ? (
-                              <input
-                                type="number"
-                                value={item.unit_price}
-                                onChange={(e) =>
-                                  handlePriceChange(item.id, e.target.value)
-                                }
-                                min="0"
-                                className="w-32 px-2 py-1 border border-gray-300 rounded-md"
-                              />
-                            ) : (
-                              item.unit_price?.toLocaleString()
-                            )}
-                          </td>
-                          {(isPurchaseOrder || isEdit) && (
-                            <td className="px-6 py-4">
-                              <input
-                                type="date"
-                                value={item.expireDate}
-                                onChange={(e) =>
-                                  handleExpireDateChange(
-                                    item.id,
-                                    e.target.value
-                                  )
-                                }
-                                className="w-40 px-2 py-1 border border-gray-300 rounded-md"
-                                required={isPurchaseOrder}
-                              />
-                            </td>
-                          )}
-                          <td className="px-6 py-4 text-blue-600 text-sm">
-                            {(
-                              (item.unit_price || 0) * (item.quantity || 1)
-                            ).toLocaleString()}
-                          </td>
-                          <td className="px-6 py-4 text-right">
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveItem(item.id)}
-                              className="text-red-500 hover:text-red-700"
-                            >
-                              <FaTrash />
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
+                        )}
+                        <td className="px-6 py-4 text-blue-600 text-sm">
+                          {((item.unit_price || 0) * (item.quantity || 1)).toLocaleString()}
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveItem(item.id)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <FaTrash />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>

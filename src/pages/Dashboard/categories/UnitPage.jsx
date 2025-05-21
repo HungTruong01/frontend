@@ -7,7 +7,7 @@ import {
   deleteProductUnit,
 } from "@/api/productUnitApi";
 const UnitPage = () => {
-  const [unit, setUnit] = useState([]);
+  const [units, setUnits] = useState([]);
   const addUnitFields = [
     {
       key: "name",
@@ -23,10 +23,11 @@ const UnitPage = () => {
   ];
   const fetchProductUnit = async () => {
     try {
-      const response = await getAllProductUnits();
-      setUnit(response.content);
+      // Lấy tất cả dữ liệu một lần
+      const response = await getAllProductUnits(0, 1000, "id", "asc");
+      setUnits(response.data.content || []);
     } catch (error) {
-      console.log("Error fetching product units:", error);
+      console.error("Error fetching product units:", error);
     }
   };
 
@@ -60,13 +61,14 @@ const UnitPage = () => {
   useEffect(() => {
     fetchProductUnit();
   }, []);
+
   return (
     <div>
       <Table
-        title={"Đơn vị tính"}
-        subtitle={"đơn vị tính"}
+        title="Đơn vị tính"
+        subtitle="đơn vị tính"
         addFields={addUnitFields}
-        data={unit}
+        data={units} // Table sẽ tự handle phân trang
         columns={productUnitColumns}
         onAdd={handleAddUnit}
         onEdit={handleEditUnit}

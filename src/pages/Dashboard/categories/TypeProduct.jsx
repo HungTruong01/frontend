@@ -24,8 +24,8 @@ const TypeProduct = () => {
 
   const fetchTypeProduct = async () => {
     try {
-      const response = await getAllProductTypes();
-      setTypeProduct(response.content);
+      const response = await getAllProductTypes(0, 1000, "id", "asc");
+      setTypeProduct(response.data.content);
     } catch (error) {
       console.error("Lỗi khi lấy danh sách loại sản phẩm:", error);
     }

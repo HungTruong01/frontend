@@ -28,8 +28,8 @@ const ProductSelectionModal = ({
 
   const fetchProductUnits = async () => {
     try {
-      const response = await getAllProductUnits();
-      setProductUnits(response.content);
+      const response = await getAllProductUnits(0, 1000, "id", "asc");
+      setProductUnits(response.data.content);
     } catch (error) {
       console.log("Error fetching product units: ", error);
     }

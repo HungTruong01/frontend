@@ -39,19 +39,26 @@ const ListProduct = () => {
 
   const fetchProductTypes = async () => {
     try {
-      const response = await getAllProductTypes();
-      setProductTypes(response.content);
+      const response = await getAllProductTypes(0, 1000, "id", "asc");
+      if (response && response.data) {
+        setProductTypes(response.data.content || []);
+      }
     } catch (error) {
       console.log("Lỗi khi lấy loại sản phẩm:", error);
+      setProductTypes([]);
     }
   };
 
   const fetchProductUnits = async () => {
     try {
-      const response = await getAllProductUnits();
-      setProductUnits(response.content);
+      // Đảm bảo truyền đầy đủ các tham số theo yêu cầu của API
+      const response = await getAllProductUnits(0, 1000, "id", "asc");
+      if (response && response.data) {
+        setProductUnits(response.data.content || []);
+      }
     } catch (error) {
-      console.log("Lỗi khi lấy đơn vị tính:", error);
+      console.error("Lỗi khi lấy đơn vị tính:", error);
+      setProductUnits([]); // Fallback về mảng rỗng khi có lỗi
     }
   };
 

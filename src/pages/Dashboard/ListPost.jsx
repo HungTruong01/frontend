@@ -276,7 +276,7 @@ const ListPost = () => {
                 {columns.map((col) => (
                   <th
                     key={col.key}
-                    className="py-3 px-4 font-semibold text-sm text-left min-w-[100px]"
+                    className="py-3 px-4 font-semibold text-sm text-left min-w-[100px] truncate"
                   >
                     {col.label}
                   </th>
@@ -306,7 +306,7 @@ const ListPost = () => {
                     className="border-b border-gray-100 hover:bg-gray-50"
                   >
                     <td className="py-3 px-4 text-left">{post.id}</td>
-                    <td className="py-3 px-4 text-left">{post.title}</td>
+                    <td className="py-3 px-4 text-left max-w-[700px] truncate">{post.title}</td>
                     <td className="py-3 px-4 text-left">
                       {formatDate(post.postedAt)}
                     </td>

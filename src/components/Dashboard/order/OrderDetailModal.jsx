@@ -176,6 +176,11 @@ const OrderDetailModal = ({ isOpen, onClose, orderData, onOrderUpdated }) => {
     onClose();
   };
 
+  // First, add a helper function to check if it's a purchase order
+  const isPurchaseOrder = () => {
+    return getOrderTypeName(orderData.orderTypeId) === "Đơn mua";
+  };
+
   return (
     <div className="fixed inset-0 bg-black/20 backdrop-blur-lg flex items-center justify-center z-50">
       <div className="bg-white p-8 w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl">
@@ -322,9 +327,11 @@ const OrderDetailModal = ({ isOpen, onClose, orderData, onOrderUpdated }) => {
                     <th className="px-4 py-3 text-right text-sm font-semibold text-gray-600">
                       Đơn giá
                     </th>
-                    <th className="px-4 py-3 text-right text-sm font-semibold text-gray-600">
-                      Ngày hết hạn
-                    </th>
+                    {isPurchaseOrder() && (
+                      <th className="px-4 py-3 text-right text-sm font-semibold text-gray-600">
+                        Ngày hết hạn
+                      </th>
+                    )}
                     <th className="px-4 py-3 text-right text-sm font-semibold text-gray-600">
                       Thành tiền
                     </th>
@@ -341,9 +348,11 @@ const OrderDetailModal = ({ isOpen, onClose, orderData, onOrderUpdated }) => {
                         <td className="px-4 py-3 text-right">
                           {formatCurrency(item.unitPrice)}
                         </td>
-                        <td className="px-4 py-3 text-right">
-                          {formatDate(item.expireDate)}
-                        </td>
+                        {isPurchaseOrder() && (
+                          <td className="px-4 py-3 text-right">
+                            {formatDate(item.expireDate)}
+                          </td>
+                        )}
                         <td className="px-4 py-3 text-right">
                           {formatCurrency(item.unitPrice * item.quantity)}
                         </td>
@@ -352,7 +361,7 @@ const OrderDetailModal = ({ isOpen, onClose, orderData, onOrderUpdated }) => {
                   ) : (
                     <tr>
                       <td
-                        colSpan="4"
+                        colSpan={isPurchaseOrder() ? "5" : "4"}
                         className="text-center py-4 text-gray-500"
                       >
                         Không có thông tin sản phẩm
@@ -363,7 +372,7 @@ const OrderDetailModal = ({ isOpen, onClose, orderData, onOrderUpdated }) => {
                 <tfoot>
                   <tr className="bg-white border-t-2 border-gray-200">
                     <td
-                      colSpan="4"
+                      colSpan={isPurchaseOrder() ? "4" : "3"}
                       className="px-4 py-3 text-right font-semibold text-gray-800"
                     >
                       Tổng cộng:

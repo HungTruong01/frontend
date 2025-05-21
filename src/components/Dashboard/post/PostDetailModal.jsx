@@ -300,7 +300,7 @@ const PostDetailModal = ({ isOpen, onClose, postId }) => {
                   <h3 className="font-medium text-gray-700">Nội dung</h3>
                 </div>
                 <div
-                  className="prose prose-blue max-w-none bg-white border border-gray-200 p-5 rounded-lg shadow-inner min-h-[320px] overflow-y-auto"
+                  className="prose prose-blue max-w-none bg-white border border-gray-200 p-5 rounded-lg shadow-inner overflow-y-auto max-h-[340px] min-h-[320px]"
                   dangerouslySetInnerHTML={createMarkup(post.content)}
                 />
               </div>

@@ -16,7 +16,7 @@ const Table = ({
   onDelete,
 }) => {
   const [filteredData, setFilteredData] = useState(data);
-  const [itemsPerPage] = useState(7);
+  const [itemsPerPage] = useState(8);
   const [currentPage, setCurrentPage] = useState(1);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);

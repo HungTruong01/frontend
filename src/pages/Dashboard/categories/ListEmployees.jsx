@@ -41,7 +41,7 @@ const ListEmployees = () => {
   ];
   const fetchData = async () => {
     try {
-      const response = await getAllEmployees(0, 100, "id", "asc");
+      const response = await getAllEmployees(0, 1000, "id", "asc");
       setEmployees(response.data.content);
     } catch (error) {
       console.error("Error fetching all employees", error);
