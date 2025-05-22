@@ -35,67 +35,58 @@ const OrderForm = ({ mode = "add" }) => {
   const isPurchaseOrder = selectedOrderType === "1";
   const isSalesOrder = selectedOrderType === "2";
 
-  const fetchData = async () => {
-    try {
-      const [partnerRes, typeRes, productRes, batchesRes] = await Promise.all([
-        partnerApi.getAllPartners(0, 100, "id", "asc"),
-        getAllOrderTypes(),
-        getAllProducts(0, 100, "id", "asc"),
-        getAllImportBatches(0, 1000, "importDate", "desc"),
-      ]);
-      setPartners(partnerRes.content || []);
-      setOrderTypes(typeRes.content || []);
-      setProducts(productRes.data?.content || []);
-      setImportBatches(batchesRes.data?.content || []);
-    } catch {
-      toast.error("Lỗi tải dữ liệu cơ bản");
-    }
-  };
-
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [partnerRes, typeRes, productRes, batchesRes] = await Promise.all(
+          [
+            partnerApi.getAllPartners(0, 100, "id", "asc"),
+            getAllOrderTypes(),
+            getAllProducts(0, 100, "id", "asc"),
+            getAllImportBatches(0, 1000, "importDate", "desc"),
+          ]
+        );
+        setPartners(partnerRes.content || []);
+        setOrderTypes(typeRes.content || []);
+        setProducts(productRes.data?.content || []);
+        setImportBatches(batchesRes.data?.content || []);
+      } catch {
+        toast.error("Lỗi tải dữ liệu cơ bản");
+      }
+    };
     fetchData();
   }, []);
 
-  const fetchOrder = async () => {
-    try {
-      const res = await getOrderById(id);
-      setSelectedPartner(res.partnerId);
-      setOriginalPartner(res.partnerId);
-      setSelectedOrderType(res.orderTypeId);
-      setSelectedStatus(res.orderStatusId);
-      setCurrentPaidMoney(res.paidMoney || 0);
-      const items = res.orderDetails.map((detail) => {
-        console.log(detail);
-        const product = products.find((p) => p.id === detail.productId);
-        return {
-          detailId: detail.id,
-          id: detail.productId,
-          product: product?.name || `SP #${detail.productId}`,
-          quantity: detail.quantity,
-          unit_price: detail.unit_price,
-          exportPrice: detail.unit_price ?? 0,
-          // importPrice: product?.importPrice ?? 0,
-          expireDate: detail.expireDate
-            ? new Date(detail.expireDate).toISOString().split("T")[0]
-            : "",
-          // XEM LẠI PHẦN NÀY
-          profit: 
-            (detail.unit_price ??
-              detail.exportPrice ??
-              product?.exportPrice ??
-              0 - (product?.importPrice ?? 0)) * detail.quantity,
-        };
-      });
-      console.log(items);
-      setOrderItems(items);
-    } catch {
-      toast.error("Không thể tải dữ liệu đơn hàng");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const fetchOrder = async () => {
+      try {
+        const res = await getOrderById(id);
+        setSelectedPartner(res.partnerId);
+        setOriginalPartner(res.partnerId);
+        setSelectedOrderType(res.orderTypeId);
+        setSelectedStatus(res.orderStatusId);
+        setCurrentPaidMoney(res.paidMoney || 0);
+        const items = res.orderDetails.map((detail) => {
+          const product = products.find((p) => p.id === detail.productId);
+          return {
+            detailId: detail.id,
+            id: detail.productId,
+            product: product?.name || `SP #${detail.productId}`,
+            quantity: detail.quantity,
+            unit_price: detail.unit_price,
+            exportPrice: detail.unit_price,
+            expireDate: detail.expireDate
+              ? new Date(detail.expireDate).toISOString().split("T")[0]
+              : "",
+          };
+        });
+        setOrderItems(items);
+      } catch {
+        toast.error("Không thể tải dữ liệu đơn hàng");
+      } finally {
+        setIsLoading(false);
+      }
+    };
     if (isEdit && products.length) fetchOrder();
   }, [products]);
 
@@ -109,87 +100,69 @@ const OrderForm = ({ mode = "add" }) => {
     }
   }, [selectedOrderType]);
 
-  // XEM LẠI PHẦN NÀY
-  const calculateTotal = () =>
-    orderItems.reduce((sum, i) => {
-      const quantity = i.quantity || 1;
-      const price = i.unit_price || 0;
-      return sum + quantity * price;
-    }, 0);
-
-  // XEM LẠI PHẦN NÀY
-  const calculateTotalProfit = () =>
-    orderItems.reduce((sum, i) => sum + (i.profit || 0), 0);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!selectedPartner || !selectedOrderType || orderItems.length === 0) {
-      toast.error("Vui lòng điền đầy đủ thông tin và thêm sản phẩm");
-      return;
+  const validateForm = () => {
+    if (!selectedOrderType || !selectedPartner || orderItems.length === 0) {
+      toast.error("Vui lòng điền đầy đủ thông tin đơn hàng");
+      return false;
     }
+    if (isPurchaseOrder && orderItems.some((item) => !item.expireDate)) {
+      toast.error(
+        "Vui lòng nhập ngày hết hạn cho tất cả sản phẩm trong đơn mua"
+      );
+      return false;
+    }
+    if (orderItems.some((item) => !item.unit_price || item.unit_price <= 0)) {
+      toast.error("Vui lòng nhập đơn giá hợp lệ cho sản phẩm");
+      return false;
+    }
+    if (orderItems.some((item) => !item.quantity || item.quantity <= 0)) {
+      toast.error("Vui lòng nhập số lượng hợp lệ cho sản phẩm");
+      return false;
+    }
+    return true;
+  };
 
-    if (isPurchaseOrder) {
-      const missingExpireDates = orderItems.some((item) => !item.expireDate);
-      if (missingExpireDates) {
-        toast.error(
-          "Vui lòng nhập ngày hết hạn cho tất cả sản phẩm trong đơn mua"
-        );
-        return;
+  const updateProductPrices = async (validatedItems) => {
+    const tempProduct = products.map((p) => [p.id, p]);
+    for (const item of validatedItems) {
+      const product = tempProduct[item.id];
+      const newExportPrice = parseFloat(item.unit_price);
+      if (product && product.exportPrice !== newExportPrice) {
+        try {
+          await updateProduct(item.id, {
+            ...product,
+            exportPrice: newExportPrice,
+            price: newExportPrice,
+          });
+        } catch (err) {
+          console.warn(`Lỗi cập nhật giá SP #${item.id}:`, err);
+        }
       }
     }
+  };
 
-    const missingPrices = orderItems.some(
-      (item) => !item.unit_price || item.unit_price <= 0
-    );
-    if (missingPrices) {
-      toast.error("Vui lòng nhập đơn giá hợp lệ cho sản phẩm");
-      return;
-    }
-
-    // XEM LẠI PHẦN NÀY
+  const OrderPayload = () => {
     const validatedItems = orderItems.map((item) => ({
       ...item,
       quantity: item.quantity || 1,
       unit_price: parseFloat(item.unit_price) || 0,
-      exportPrice: parseFloat(item.unit_price) || 0,
-      profit:
-        selectedOrderType === "2"
-          ? (parseFloat(item.unit_price) - item.importPrice) *
-            (item.quantity || 1)
-          : 0,
     }));
+    return validatedItems;
+  };
 
-    // XEM LẠI PHẦN NÀY
+  const calculateTotal = () =>
+    orderItems.reduce((sum, i) => i.quantity * i.unit_price + sum, 0);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+
+    const validatedItems = OrderPayload();
     const totalMoney = calculateTotal();
-    const totalProfit = calculateTotalProfit();
 
     try {
-      if (isSalesOrder) {
-        for (const item of validatedItems) {
-          const product = products.find((p) => p.id === item.id);
-          const newExportPrice = parseFloat(item.unit_price);
-
-          if (product && product.exportPrice !== newExportPrice) {
-            try {
-              await updateProduct(item.id, {
-                ...product,
-                exportPrice: newExportPrice,
-                price: newExportPrice,
-              });
-            } catch (err) {
-              console.warn(`Lỗi cập nhật giá SP #${item.id}:`, err);
-            }
-          }
-        }
-      }
-
-      // XEM LẠI PHẦN NÀY
+      if (isSalesOrder) await updateProductPrices(validatedItems);
       if (isEdit) {
-        if (selectedPartner !== originalPartner) {
-          await partnerApi.updateDebt(originalPartner, -totalMoney);
-          await partnerApi.updateDebt(selectedPartner, totalMoney);
-        }
-
         await updateOrderDetailsByOrderId(
           id,
           validatedItems.map((i) => ({
@@ -208,15 +181,12 @@ const OrderForm = ({ mode = "add" }) => {
           orderStatusId: selectedStatus,
           totalMoney,
           paidMoney: currentPaidMoney,
-          profitMoney: totalProfit,
         });
-
         toast.success("Đã cập nhật đơn hàng");
       } else {
         const res = await createOrder({
           partnerId: selectedPartner,
           orderTypeId: selectedOrderType,
-          profitMoney: totalProfit,
           totalMoney,
         });
 
@@ -284,7 +254,6 @@ const OrderForm = ({ mode = "add" }) => {
             exportPrice: exportPrice,
             importPrice: importPrice,
             expireDate: "",
-            profit: 0,
           };
         })
         .filter((item) => item !== null);
@@ -318,7 +287,6 @@ const OrderForm = ({ mode = "add" }) => {
         exportPrice: exportPrice,
         importPrice: importPrice,
         expireDate: "",
-        profit: 0,
       };
       setOrderItems([...orderItems, newItem]);
     }
@@ -326,21 +294,6 @@ const OrderForm = ({ mode = "add" }) => {
   };
 
   const handlePriceChange = (id, value) => {
-    if (value === "") {
-      setOrderItems(
-        orderItems.map((item) =>
-          item.id === id
-            ? {
-                ...item,
-                unit_price: "",
-                exportPrice: "",
-                profit: 0,
-              }
-            : item
-        )
-      );
-      return;
-    }
     const price = parseFloat(value);
     if (!isNaN(price) && price >= 0) {
       setOrderItems(
@@ -349,11 +302,7 @@ const OrderForm = ({ mode = "add" }) => {
             ? {
                 ...item,
                 unit_price: price,
-                exportPrice: price,
-                profit:
-                  selectedOrderType === "2"
-                    ? (price - item.importPrice) * (item.quantity || 1)
-                    : 0,
+                // exportPrice: price,
               }
             : item
         )
@@ -379,20 +328,6 @@ const OrderForm = ({ mode = "add" }) => {
   };
 
   const handleQuantityChange = (id, value) => {
-    if (value === "") {
-      setOrderItems(
-        orderItems.map((item) =>
-          item.id === id
-            ? {
-                ...item,
-                quantity: "",
-                profit: 0,
-              }
-            : item
-        )
-      );
-      return;
-    }
     const quantity = parseInt(value);
     if (!isNaN(quantity) && quantity > 0) {
       setOrderItems(
@@ -401,10 +336,6 @@ const OrderForm = ({ mode = "add" }) => {
             ? {
                 ...item,
                 quantity,
-                profit:
-                  selectedOrderType === "2"
-                    ? (item.unit_price - item.importPrice) * quantity
-                    : 0,
               }
             : item
         )
@@ -564,7 +495,7 @@ const OrderForm = ({ mode = "add" }) => {
                           />
                         </td>
                         <td className="px-6 py-4 text-blue-600 text-sm">
-                          {isPurchaseOrder || isSalesOrder ? (
+                          {isPurchaseOrder || isSalesOrder || isEdit ? (
                             <input
                               type="number"
                               value={item.unit_price}
@@ -592,7 +523,9 @@ const OrderForm = ({ mode = "add" }) => {
                           </td>
                         )}
                         <td className="px-6 py-4 text-blue-600 text-sm">
-                          {((item.unit_price || 0) * (item.quantity || 1)).toLocaleString()}
+                          {(
+                            (item.unit_price || 0) * (item.quantity || 1)
+                          ).toLocaleString()}
                         </td>
                         <td className="px-6 py-4 text-right">
                           <button

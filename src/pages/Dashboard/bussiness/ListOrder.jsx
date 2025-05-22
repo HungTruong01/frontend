@@ -127,9 +127,10 @@ const ListOrder = () => {
           .toLowerCase()
           .includes(searchQuery.toLowerCase());
 
-      const matchesType = searchType === "" || order.orderTypeId === searchType;
+      const matchesType =
+        searchType === "" || order.orderTypeId === parseInt(searchType);
       const matchesStatus =
-        searchStatus === "" || order.orderStatusId === searchStatus;
+        searchStatus === "" || order.orderStatusId === parseInt(searchStatus);
 
       return matchesSearch && matchesType && matchesStatus;
     })
