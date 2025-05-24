@@ -7,7 +7,7 @@ export const getMonthlyDebtReport = async (year, month) => {
       throw new Error("Năm hoặc tháng không hợp lệ");
     }
     const partnerResponse = await getAllPartners(0, 100, "id", "asc");
-    const partners = partnerResponse.content;
+    const partners = partnerResponse.data.content;
 
     // Lấy dữ liệu hóa đơn
     const invoiceResponse = await getAllInvoices(0, 1000, "id", "asc");
@@ -68,13 +68,8 @@ export const getYearlyDebtReport = async (year) => {
       throw new Error("Năm không hợp lệ");
     }
 
-    const partnerResponse = await partnerApi.getAllPartners(
-      0,
-      100,
-      "id",
-      "asc"
-    );
-    const partners = partnerResponse.content;
+    const partnerResponse = await getAllPartners(0, 100, "id", "asc");
+    const partners = partnerResponse.data.content;
     const invoiceResponse = await getAllInvoices(0, 1000, "id", "asc");
     const invoices = invoiceResponse.content;
     // Lọc khách hàng (partnerTypeId === 1) theo năm
@@ -137,13 +132,8 @@ export const getDebtReportByDateRange = async (startDate, endDate) => {
       throw new Error("Ngày bắt đầu phải trước ngày kết thúc");
     }
 
-    const partnerResponse = await partnerApi.getAllPartners(
-      0,
-      100,
-      "id",
-      "asc"
-    );
-    const partners = partnerResponse.content;
+    const partnerResponse = await getAllPartners(0, 100, "id", "asc");
+    const partners = partnerResponse.data.content;
 
     // Lấy dữ liệu hóa đơn
     const invoiceResponse = await getAllInvoices(0, 1000, "id", "asc");
