@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { FaTimes, FaFileInvoiceDollar, FaUser, FaBox } from "react-icons/fa";
 import { getAllOrderTypes } from "@/api/orderTypeApi";
 import { getAllOrderStatus } from "@/api/orderStatusApi";
-import { partnerApi } from "@/api/partnerApi";
+import { getAllPartners } from "@/api/partnerApi";
 import { getAllProducts } from "@/api/productApi";
 import AddInvoiceModal from "../invoice/AddInvoiceModal";
 import { toast } from "react-toastify";
@@ -47,8 +47,8 @@ const OrderDetailModal = ({ isOpen, onClose, orderData, onOrderUpdated }) => {
 
   const fetchPartners = async () => {
     try {
-      const response = await partnerApi.getAllPartners(0, 100, "id", "asc");
-      setPartners(response.content);
+      const response = await getAllPartners(0, 100, "id", "asc");
+      setPartners(response.data.content);
     } catch (error) {
       console.error("Lỗi tải đối tác:", error);
     }

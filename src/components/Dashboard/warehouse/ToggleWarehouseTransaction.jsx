@@ -12,7 +12,7 @@ import {
   getAllWarehouseTransaction,
 } from "@/api/warehouseTransactionApi";
 import { getProductById } from "@/api/productApi";
-import { partnerApi } from "@/api/partnerApi";
+import { getPartnerById } from "@/api/partnerApi";
 
 const ToggleWarehouseTransaction = ({
   isOpen,
@@ -188,9 +188,7 @@ const ToggleWarehouseTransaction = ({
 
         let orderPartner = "Không xác định";
         if (orderDetails.partnerId) {
-          const partnerData = await partnerApi.getPartnerById(
-            orderDetails.partnerId
-          );
+          const partnerData = await getPartnerById(orderDetails.partnerId);
           orderPartner = partnerData?.name || "Không xác định";
         }
         setPartner(orderPartner);

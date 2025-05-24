@@ -196,33 +196,35 @@ const InvoiceDetailModal = ({ isOpen, onClose, invoice }) => {
                         </tr>
                       </thead>
                       <tbody>
-                        {invoiceDetails.order.items?.length > 0 ? (
-                          invoiceDetails.order.items.map((item, index) => (
-                            <tr
-                              key={index}
-                              className={`border-t border-gray-200 ${
-                                index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                              }`}
-                            >
-                              <td className="px-6 py-4">
-                                {item.productName ||
-                                  `SP ${item.productId || index}`}
-                              </td>
-                              <td className="px-6 py-4 text-right">
-                                {item.quantity || 0}
-                              </td>
-                              <td className="px-6 py-4 text-right">
-                                {formatCurrency(item.unitPrice || 0)}
-                              </td>
-                              <td className="px-6 py-4 text-right font-medium">
-                                {formatCurrency(
-                                  item.total ||
-                                    item.quantity * item.unitPrice ||
-                                    0
-                                )}
-                              </td>
-                            </tr>
-                          ))
+                        {invoiceDetails.order.orderDetails?.length > 0 ? (
+                          invoiceDetails.order.orderDetails.map(
+                            (item, index) => (
+                              <tr
+                                key={index}
+                                className={`border-t border-gray-200 ${
+                                  index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                                }`}
+                              >
+                                <td className="px-6 py-4">
+                                  {item.productName ||
+                                    `SP ${item.productId || index}`}
+                                </td>
+                                <td className="px-6 py-4 text-right">
+                                  {item.quantity || 0}
+                                </td>
+                                <td className="px-6 py-4 text-right">
+                                  {formatCurrency(item.unit_price || 0)}
+                                </td>
+                                <td className="px-6 py-4 text-right font-medium">
+                                  {formatCurrency(
+                                    item.total ||
+                                      item.quantity * item.unit_price ||
+                                      0
+                                  )}
+                                </td>
+                              </tr>
+                            )
+                          )
                         ) : (
                           <tr>
                             <td

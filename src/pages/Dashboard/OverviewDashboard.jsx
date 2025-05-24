@@ -7,7 +7,7 @@ import {
   FaSearch,
 } from "react-icons/fa";
 import { analyzeWithCondition, getAllOrders } from "@/api/orderApi";
-import { partnerApi } from "@/api/partnerApi";
+import { getAllPartners } from "@/api/partnerApi";
 import { getAllWarehouseTransaction } from "@/api/warehouseTransactionApi";
 import { getAllWarehouseTransactionType } from "@/api/warehouseTransactionTypeApi";
 import { Pie, Bar } from "react-chartjs-2";
@@ -86,12 +86,7 @@ const OverviewDashboard = () => {
         const ordersResponse = await getAllOrders(0, 100, "id", "desc");
         const orders = ordersResponse.content || [];
 
-        const partnersResponse = await partnerApi.getAllPartners(
-          0,
-          100,
-          "id",
-          "asc"
-        );
+        const partnersResponse = await getAllPartners(0, 100, "id", "asc");
         const partners = partnersResponse.content || [];
 
         const transactionsResponse = await getAllWarehouseTransaction(

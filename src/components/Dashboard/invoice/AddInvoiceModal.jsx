@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { partnerApi } from "@/api/partnerApi";
+import { getAllPartners } from "@/api/partnerApi";
 import { getAllInvoiceTypes } from "@/api/invoiceTypeApi";
 import { getProductById } from "@/api/productApi";
 import { createInvoice } from "@/api/invoiceApi";
@@ -89,10 +89,10 @@ const AddInvoiceModal = ({
       setLoading(true);
       try {
         const [partnersData, invoiceTypesData] = await Promise.all([
-          partnerApi.getAllPartners(0, 100, "id", "asc"),
+          getAllPartners(0, 100, "id", "asc"),
           getAllInvoiceTypes(),
         ]);
-        setPartners(partnersData.content || []);
+        setPartners(partnersData.data.content || []);
         setInvoiceTypes(invoiceTypesData.content || []);
       } catch (err) {
         setError("Không thể tải dữ liệu từ server.");

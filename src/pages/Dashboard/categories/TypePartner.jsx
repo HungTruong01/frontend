@@ -23,8 +23,8 @@ const TypePartner = () => {
   ];
   const fetchTypePartner = async () => {
     try {
-      const response = await getAllPartnerTypes();
-      setPartnerType(response.content);
+      const response = await getAllPartnerTypes(0, 100, "id", "asc");
+      setPartnerType(response.data.content);
     } catch (error) {
       console.error("Lỗi khi lấy danh sách loại đối tác:", error);
     }

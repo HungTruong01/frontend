@@ -1,13 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { FaSearch, FaEye, FaEdit, FaPlus } from "react-icons/fa";
-import { partnerApi } from "@/api/partnerApi";
+import {
+  getAllPartners,
+  addPartner,
+  updatePartner,
+  getPartnerById,
+} from "@/api/partnerApi";
 import PartnerDetailModal from "@/components/Dashboard/partner/PartnerDetailModal";
 import TogglePartnerModal from "@/components/Dashboard/partner/TogglePartnerModal";
 import { toast } from "react-toastify";
 import { Pagination } from "@/utils/pagination";
+import { getAllPartnerTypes } from "@/api/partnerTypeApi";
 
 const ListPartner = () => {
   const [partners, setPartners] = useState([]);
+  const [partnerTypes, setPartnerTypes] = useState([]);
   const [searchName, setSearchName] = useState("");
   const [searchType, setSearchType] = useState("");
   const [itemsPerPage] = useState(7);
@@ -27,12 +34,16 @@ const ListPartner = () => {
 
   const fetchPartners = async () => {
     try {
-      const data = await partnerApi.getAllPartners(0, 100, "id", "asc");
-      // console.log(data.content);
-      setPartners(data.content || data);
+      const [partnerRes, partnerTypeRes] = await Promise.all([
+        getAllPartners(0, 100, "id", "asc"),
+        getAllPartnerTypes(0, 100, "id", "asc"),
+      ]);
+      setPartners(partnerRes.data.content);
+      setPartnerTypes(partnerTypeRes.data.content);
     } catch (error) {
       toast.error("Không thể tải danh sách đối tác");
       setPartners([]);
+      setPartnerTypes([]);
     }
   };
 
@@ -67,7 +78,17 @@ const ListPartner = () => {
 
   const handleAddNew = async (newPartner) => {
     try {
-      await partnerApi.addPartner(newPartner);
+      const partnerData = {
+        name: newPartner.name,
+        phone: newPartner.phone,
+        email: newPartner.email,
+        address: newPartner.address,
+        partnerTypeId: parseInt(newPartner.type),
+        organization: newPartner.organization,
+        taxCode: newPartner.taxCode,
+      };
+      console.log(partnerData);
+      await addPartner(partnerData);
       toast.success("Thêm đối tác thành công");
       await fetchPartners();
       setIsAddModalOpen(false);
@@ -84,10 +105,16 @@ const ListPartner = () => {
 
   const handleEditSubmit = async (updatedPartner) => {
     try {
-      const response = await partnerApi.updatePartner(
-        updatedPartner.id,
-        updatedPartner
-      );
+      const partnerData = {
+        name: updatedPartner.name,
+        phone: updatedPartner.phone,
+        email: updatedPartner.email,
+        address: updatedPartner.address,
+        partnerTypeId: parseInt(updatedPartner.type),
+        organization: updatedPartner.organization || "",
+        taxCode: updatedPartner.taxCode || "",
+      };
+      await updatePartner(currentPartner.id, partnerData);
       toast.success("Cập nhật đối tác thành công");
       await fetchPartners();
       setIsEditModalOpen(false);
@@ -124,6 +151,10 @@ const ListPartner = () => {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+  const getPartnerTypeName = (partnerTypeId) => {
+    const type = partnerTypes.find((type) => type.id === partnerTypeId);
+    return type ? type.name : "Unknown";
+  };
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat("vi-VN").format(amount);
@@ -182,8 +213,11 @@ const ListPartner = () => {
                   className="w-48 px-4 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                 >
                   <option value="">Lọc theo loại đối tác</option>
-                  <option value="1">Khách hàng</option>
-                  <option value="2">Nhà cung cấp</option>
+                  {partnerTypes.map((type) => (
+                    <option key={type.id} value={type.id}>
+                      {type.name}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -226,17 +260,9 @@ const ListPartner = () => {
                       className="py-3 px-4 text-sm text-gray-600 text-left truncate max-w-[200px]"
                     >
                       {col.key === "debt" ? (
-                        <span className="">
-                          {formatCurrency(partner[col.key])}
-                        </span>
+                        <span>{formatCurrency(partner[col.key])}</span>
                       ) : col.key === "partnerTypeId" ? (
-                        partner[col.key] === 1 ? (
-                          "Khách hàng"
-                        ) : partner[col.key] === 2 ? (
-                          "Nhà cung cấp"
-                        ) : (
-                          "Không xác định"
-                        )
+                        <span>{getPartnerTypeName(partner[col.key])}</span>
                       ) : (
                         <span title={partner[col.key] || "-"}>
                           {partner[col.key] || "-"}
@@ -244,6 +270,7 @@ const ListPartner = () => {
                       )}
                     </td>
                   ))}
+
                   <td className="py-3 px-4 text-center">
                     <div className="flex justify-center space-x-3">
                       <button

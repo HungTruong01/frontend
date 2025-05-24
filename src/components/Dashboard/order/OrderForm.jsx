@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { FaArrowLeft, FaPlus, FaTrash } from "react-icons/fa";
 import TogglePartnerModal from "@/components/Dashboard/partner/TogglePartnerModal";
 import ProductSelectionModal from "@/components/Dashboard/product/ProductSelectionModal";
-import { partnerApi } from "@/api/partnerApi";
+import { getAllPartners } from "@/api/partnerApi";
 import { getAllOrderTypes } from "@/api/orderTypeApi";
 import { createOrder, getOrderById, updateOrder } from "@/api/orderApi";
 import {
@@ -40,13 +40,13 @@ const OrderForm = ({ mode = "add" }) => {
       try {
         const [partnerRes, typeRes, productRes, batchesRes] = await Promise.all(
           [
-            partnerApi.getAllPartners(0, 100, "id", "asc"),
+            getAllPartners(0, 100, "id", "asc"),
             getAllOrderTypes(),
             getAllProducts(0, 100, "id", "asc"),
             getAllImportBatches(0, 1000, "importDate", "desc"),
           ]
         );
-        setPartners(partnerRes.content || []);
+        setPartners(partnerRes.data.content || []);
         setOrderTypes(typeRes.content || []);
         setProducts(productRes.data?.content || []);
         setImportBatches(batchesRes.data?.content || []);

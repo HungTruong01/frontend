@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { FaTimes } from "react-icons/fa";
 import { toast } from "react-toastify";
+import { getAllPartnerTypes } from "@/api/partnerTypeApi";
 
 const TogglePartnerModal = ({
   isOpen,
@@ -14,14 +15,36 @@ const TogglePartnerModal = ({
     phone: "",
     address: "",
     email: "",
-    type: "Khách hàng",
-    debt: "",
+    type: "",
+    //debt: "",
     organization: "",
     taxCode: "",
   });
-
+  const [partnerTypes, setPartnerTypes] = useState([]);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+
+  const fetchTypePartner = async () => {
+    try {
+      const response = await getAllPartnerTypes(0, 100, "id", "asc");
+      setPartnerTypes(response.data.content);
+      if (mode === "add" && response.data.content.length > 0) {
+        setFormData((prev) => ({
+          ...prev,
+          type: response.data.content[0].id.toString(),
+        }));
+      }
+    } catch (error) {
+      console.error("Lỗi khi lấy danh sách loại đối tác:", error);
+      setPartnerTypes([]);
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchTypePartner();
+    }
+  }, [isOpen]);
 
   const normalizeString = (str) => {
     return str.trim().replace(/\s+/g, " ");
@@ -61,8 +84,7 @@ const TogglePartnerModal = ({
         phone: partner?.phone || "",
         email: partner?.email || "",
         address: partner?.address || "",
-        type: partner?.partnerTypeId === 1 ? "Khách hàng" : "Nhà cung cấp",
-        debt: partner?.debt || "",
+        type: partner?.partnerTypeId || "",
         organization: partner?.organization || "",
         taxCode: partner?.taxCode || "",
       });
@@ -72,14 +94,13 @@ const TogglePartnerModal = ({
         phone: "",
         address: "",
         email: "",
-        type: "Khách hàng",
-        debt: "",
+        type: "",
         organization: "",
         taxCode: "",
       });
     }
     setErrors({});
-  }, [mode, partner]);
+  }, [mode, partner, isOpen]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -119,8 +140,13 @@ const TogglePartnerModal = ({
       setLoading(true);
       if (mode === "add") {
         const submittedData = {
-          ...normalizedData,
-          debt: formData.debt === "" ? 0 : parseFloat(formData.debt),
+          name: normalizedData.name,
+          phone: formData.phone,
+          email: normalizedData.email,
+          address: normalizedData.address,
+          type: parseInt(formData.type),
+          organization: normalizedData.organization,
+          taxCode: formData.taxCode,
         };
         await onSubmit(submittedData);
         setFormData({
@@ -128,8 +154,7 @@ const TogglePartnerModal = ({
           phone: "",
           address: "",
           email: "",
-          type: "Khách hàng",
-          debt: "",
+          type: "",
           organization: "",
           taxCode: "",
         });
@@ -140,8 +165,7 @@ const TogglePartnerModal = ({
           phone: formData.phone,
           email: formData.email,
           address: normalizedData.address,
-          type: formData.type === "Khách hàng" ? 1 : 2,
-          debt: parseFloat(formData.debt) || 0,
+          type: parseInt(formData.type),
           organization: normalizedData.organization,
           taxCode: formData.taxCode,
         };
@@ -285,8 +309,11 @@ const TogglePartnerModal = ({
               onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="Khách hàng">Khách hàng</option>
-              <option value="Nhà cung cấp">Nhà cung cấp</option>
+              {partnerTypes.map((type) => (
+                <option key={type.id} value={type.id}>
+                  {type.name}
+                </option>
+              ))}
             </select>
           </div>
 

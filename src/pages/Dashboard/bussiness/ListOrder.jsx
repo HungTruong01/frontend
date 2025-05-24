@@ -7,7 +7,7 @@ import { getAllOrderTypes } from "@/api/orderTypeApi";
 import { getAllOrderStatus } from "@/api/orderStatusApi";
 import { getAllWarehouseTransaction } from "@/api/warehouseTransactionApi";
 import { getAllDeliveryStatus } from "@/api/deliveryStatusApi";
-import { partnerApi } from "@/api/partnerApi";
+import { getAllPartners } from "@/api/partnerApi";
 import { exportExcel } from "@/utils/exportExcel";
 import { Pagination } from "@/utils/pagination";
 
@@ -64,8 +64,8 @@ const ListOrder = () => {
 
   const fetchPartners = async () => {
     try {
-      const response = await partnerApi.getAllPartners(0, 100, "id", "asc");
-      setPartners(response.content);
+      const response = await getAllPartners(0, 100, "id", "asc");
+      setPartners(response.data.content);
     } catch (error) {
       console.log("Error fetching partners: ", error);
       setPartners([]);
@@ -108,6 +108,34 @@ const ListOrder = () => {
 
     fetchAllData();
   }, []);
+
+  const getOrderTypeName = (orderTypeId) => {
+    const type = orderType.find((type) => type.id === orderTypeId);
+    return type ? type.name : "Unknown";
+  };
+
+  const getOrderStatusName = (orderStatusId) => {
+    const status = orderStatus.find((status) => status.id === orderStatusId);
+    return status ? status.name : "Unknown";
+  };
+
+  const getPartnerName = (partnerId) => {
+    const partner = partners.find((partner) => partner.id === partnerId);
+    return partner ? partner.name : "Unknown";
+  };
+
+  const getPaymentStatusColor = (order) => {
+    switch (order.orderStatusId) {
+      case 1:
+        return "bg-green-600 text-gray-100";
+      case 2:
+        return "bg-red-400 text-gray-100";
+      case 3:
+        return "bg-orange-400 text-gray-100";
+      default:
+        return "bg-gray-400 text-gray-100";
+    }
+  };
 
   const handleSort = (key) => {
     setSortConfig((prevConfig) => ({
@@ -189,34 +217,6 @@ const ListOrder = () => {
       autoWidth: true,
       zebraPattern: true,
     });
-  };
-
-  const getOrderTypeName = (orderTypeId) => {
-    const type = orderType.find((type) => type.id === orderTypeId);
-    return type ? type.name : "Unknown";
-  };
-
-  const getOrderStatusName = (orderStatusId) => {
-    const status = orderStatus.find((status) => status.id === orderStatusId);
-    return status ? status.name : "Unknown";
-  };
-
-  const getPartnerName = (partnerId) => {
-    const partner = partners.find((partner) => partner.id === partnerId);
-    return partner ? partner.name : "Unknown";
-  };
-
-  const getPaymentStatusColor = (order) => {
-    switch (order.orderStatusId) {
-      case 1:
-        return "bg-green-600 text-gray-100";
-      case 2:
-        return "bg-red-400 text-gray-100";
-      case 3:
-        return "bg-orange-400 text-gray-100";
-      default:
-        return "bg-gray-400 text-gray-100";
-    }
   };
 
   const handleAddClick = () => {

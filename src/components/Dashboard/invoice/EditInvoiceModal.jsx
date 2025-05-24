@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FaTimes } from "react-icons/fa";
-import { partnerApi } from "@/api/partnerApi";
+import { getAllPartners } from "@/api/partnerApi";
 import { getAllInvoiceTypes } from "@/api/invoiceTypeApi";
 import { getAllOrders, getOrderById } from "@/api/orderApi";
 import { getProductById } from "@/api/productApi";
@@ -39,7 +39,7 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
         try {
           const [partnersData, invoiceTypesData, ordersData] =
             await Promise.all([
-              partnerApi.getAllPartners(0, 100, "id", "asc"),
+              getAllPartners(0, 100, "id", "asc"),
               getAllInvoiceTypes(),
               getAllOrders(0, 100, "id", "asc"),
             ]);

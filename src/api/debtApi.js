@@ -1,4 +1,4 @@
-import { partnerApi } from "@/api/partnerApi";
+import { getAllPartners } from "@/api/partnerApi";
 import { getAllInvoices } from "@/api/invoiceApi";
 
 export const getMonthlyDebtReport = async (year, month) => {
@@ -6,12 +6,7 @@ export const getMonthlyDebtReport = async (year, month) => {
     if (!year || !month || month < 1 || month > 12) {
       throw new Error("Năm hoặc tháng không hợp lệ");
     }
-    const partnerResponse = await partnerApi.getAllPartners(
-      0,
-      100,
-      "id",
-      "asc"
-    );
+    const partnerResponse = await getAllPartners(0, 100, "id", "asc");
     const partners = partnerResponse.content;
 
     // Lấy dữ liệu hóa đơn

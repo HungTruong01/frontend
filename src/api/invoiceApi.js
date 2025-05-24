@@ -1,6 +1,6 @@
 import axios from "axios";
 import { getOrderById } from "./orderApi";
-import { partnerApi } from "./partnerApi";
+import { getPartnerById } from "./partnerApi";
 import { getProductById } from "./productApi";
 
 const axiosInstance = axios.create({
@@ -48,7 +48,7 @@ export const getInvoiceWithDetails = async (invoiceId) => {
     if (invoice.orderId) {
       const order = await getOrderById(invoice.orderId);
       if (order && order.partnerId) {
-        const partner = await partnerApi.getPartnerById(order.partnerId);
+        const partner = await getPartnerById(order.partnerId);
 
         const items = await Promise.all(
           order.orderDetails.map(async (detail) => {
@@ -126,7 +126,7 @@ export const getPartnerNameFromOrderId = async (orderId) => {
     if (!order || !order.partnerId) {
       throw new Error("Không tìm thấy đơn hàng hoặc thiếu partnerId");
     }
-    const partner = await partnerApi.getPartnerById(order.partnerId);
+    const partner = await getPartnerById(order.partnerId);
     return partner.name || "N/A";
   } catch (error) {
     console.error("Error fetching partner name from orderId:", error);

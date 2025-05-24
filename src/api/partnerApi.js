@@ -1,139 +1,59 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:3000/api";
-const axiosInstance = axios.create({
-  baseURL: API_URL,
-  timeout: 10000, // Timeout sau 10 giây
-  headers: {
-    "Content-Type": "application/json",
-    Accept: "application/json",
-  },
-  withCredentials: true, // Cho phép gửi cookies nếu cần
-});
+const BASE_REST_API_URL = "http://localhost:3000/api/partners";
 
-axiosInstance.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  (error) => {
-    if (error.response?.status === 403) {
-      console.error(
-        "Lỗi 403: Không có quyền truy cập. Vui lòng kiểm tra quyền của bạn."
-      );
-    }
-    if (error.response?.status === 415) {
-      console.error(
-        "Lỗi 415: Định dạng dữ liệu không được hỗ trợ. Vui lòng kiểm tra Content-Type và định dạng dữ liệu."
-      );
-    }
-    if (error.response?.status === 500) {
-      console.error("Lỗi 500: Lỗi server. Chi tiết:", error.response?.data);
-    }
-    console.error("API Error:", error.response?.data || error.message);
+axios.defaults.withCredentials = true;
+
+export const getAllPartners = async (pageNo, pageSize, sortBy, sortDir) => {
+  const url = `${BASE_REST_API_URL}?pageNo=${pageNo}&pageSize=${pageSize}&sortBy=${sortBy}&sortDir=${sortDir}`;
+  return axios.get(url);
+};
+
+export const getPartnerById = async (id) => {
+  try {
+    const response = await axios.get(`${BASE_REST_API_URL}/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error(
+      "Error getting partner by ID:",
+      error.response?.data || error.message
+    );
     throw error;
   }
-);
+};
 
-export const partnerApi = {
-  getAllPartners: async (pageNo, pageSize, sortBy, sortDir) => {
-    try {
-      const response = await axiosInstance.get(
-        `/partners?pageNo=${pageNo}&pageSize=${pageSize}&sortBy=${sortBy}&sortDir=${sortDir}`
-      );
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching partners:", error);
-    }
-  },
+export const addPartner = async (partnerData) => {
+  try {
+    const response = await axios.post(BASE_REST_API_URL, partnerData);
+    return response.data;
+  } catch (error) {
+    console.error("Error creating partner:", error);
+    throw error;
+  }
+};
 
-  addPartner: async (partnerData) => {
-    try {
-      let partnerTypeId;
-      switch (partnerData.type) {
-        case "Khách hàng":
-          partnerTypeId = 1;
-          break;
-        case "Nhà cung cấp":
-          partnerTypeId = 2;
-          break;
-        default:
-          throw new Error("Loại đối tác không hợp lệ");
-      }
+export const updatePartner = async (id, partnerData) => {
+  try {
+    const response = await axios.put(`${BASE_REST_API_URL}/${id}`, partnerData);
+    return response.data;
+  } catch (error) {
+    console.error(
+      "Error updating partner:",
+      error.response?.data || error.message
+    );
+    throw error;
+  }
+};
 
-      const formattedData = {
-        name: partnerData.name,
-        phone: partnerData.phone,
-        email: partnerData.email,
-        address: partnerData.address,
-        partnerTypeId: partnerTypeId,
-        debt: parseFloat(partnerData.debt) || 0,
-        organization: partnerData.organization,
-        taxCode: partnerData.taxCode,
-      };
-
-      const response = await axiosInstance.post("/partners", formattedData);
-      return response.data;
-    } catch (error) {
-      console.error(
-        "Error adding partner:",
-        error.response?.data || error.message
-      );
-      throw error;
-    }
-  },
-
-  // Cập nhật đối tác
-  updatePartner: async (id, partnerData) => {
-    try {
-      const formattedData = {
-        name: partnerData.name,
-        phone: partnerData.phone,
-        email: partnerData.email,
-        address: partnerData.address,
-        partnerTypeId: parseInt(partnerData.type),
-        debt: parseFloat(partnerData.debt) || 0,
-        organization: partnerData.organization,
-        taxCode: partnerData.taxCode,
-      };
-      const response = await axiosInstance.put(
-        `/partners/${id}`,
-        formattedData
-      );
-      return response.data;
-    } catch (error) {
-      console.error(
-        "Error updating partner:",
-        error.response?.data || error.message
-      );
-      throw error;
-    }
-  },
-
-  // Xóa đối tác
-  deletePartner: async (id) => {
-    try {
-      const response = await axiosInstance.delete(`/partners/${id}`);
-      return response.data;
-    } catch (error) {
-      console.error(
-        "Error deleting partner:",
-        error.response?.data || error.message
-      );
-      throw error;
-    }
-  },
-
-  // Lấy chi tiết đối tác
-  getPartnerById: async (id) => {
-    try {
-      const response = await axiosInstance.get(`/partners/${id}`);
-      return response.data;
-    } catch (error) {
-      console.error(
-        "Error fetching partner details:",
-        error.response?.data || error.message
-      );
-      throw error;
-    }
-  },
+export const deletePartner = async (id) => {
+  try {
+    const response = await axios.delete(`${BASE_REST_API_URL}/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error(
+      "Error deleting partner:",
+      error.response?.data || error.message
+    );
+    throw error;
+  }
 };
