@@ -1,7 +1,23 @@
-import React from "react";
+import React, { use, useEffect, useState } from "react";
 import { FaTimes } from "react-icons/fa";
+import { getAllPartnerTypes } from "@/api/partnerTypeApi";
+import { get } from "lodash";
 
 const PartnerDetailModal = ({ isOpen, onClose, partner }) => {
+  const [partnerTypes, setPartnerTypes] = useState([]);
+
+  useEffect(() => {
+    const fetchPartnersTypes = async () => {
+      try {
+        const response = await getAllPartnerTypes(0, 100, "id", "asc");
+        setPartnerTypes(response.data.content);
+      } catch (error) {
+        console.error("Error fetching partner types:", error);
+      }
+    };
+    fetchPartnersTypes();
+  }, []);
+
   if (!isOpen || !partner) return null;
 
   const formatCurrency = (amount) => {
@@ -9,6 +25,11 @@ const PartnerDetailModal = ({ isOpen, onClose, partner }) => {
       style: "currency",
       currency: "VND",
     }).format(amount);
+  };
+
+  const getPartnerTypeName = (partnerTypeId) => {
+    const type = partnerTypes.find((type) => type.id === partnerTypeId);
+    return type ? type.name : "Unknown";
   };
 
   return (
@@ -86,11 +107,8 @@ const PartnerDetailModal = ({ isOpen, onClose, partner }) => {
               Loại đối tác:
             </label>
             <p className="col-span-2 text-sm font-normal">
-              {partner.partnerTypeId === 1
-                ? "Khách hàng"
-                : partner.partnerTypeId === 2
-                ? "Nhà cung cấp"
-                : "Không xác định"}
+              {getPartnerTypeName(partner.partnerTypeId) ||
+                "Không có thông tin"}
             </p>
           </div>
           <div className="grid grid-cols-3 gap-2 items-start">

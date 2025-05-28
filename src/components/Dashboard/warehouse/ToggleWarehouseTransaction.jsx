@@ -59,7 +59,7 @@ const ToggleWarehouseTransaction = ({
           transactionRes,
         ] = await Promise.all([
           getAllOrders(0, 100, "id", "asc"),
-          getAllDeliveryStatus(),
+          getAllDeliveryStatus(0, 100, "id", "asc"),
           getAllWarehouseTransactionType(),
           getAllWarehouse(),
           getAllEmployees(0, 100, "id", "asc"),
@@ -68,7 +68,9 @@ const ToggleWarehouseTransaction = ({
 
         const usedOrderIds = transactionRes.content.map((tran) => tran.orderId);
         let filteredOrders = orderRes.content.filter((order) => {
-          const status = statusRes.content.find((s) => s.id === order.statusId);
+          const status = statusRes.data.content.find(
+            (s) => s.id === order.statusId
+          );
           const isCompleted = status?.name
             ?.toLowerCase()
             .includes("hoàn thành");
@@ -90,8 +92,8 @@ const ToggleWarehouseTransaction = ({
 
         // Lọc trạng thái: Loại bỏ "Không thành công" nếu ở chế độ thêm mới
         const filteredStatuses = isEdit
-          ? statusRes.content || []
-          : (statusRes.content || []).filter(
+          ? statusRes.data.content || []
+          : (statusRes.data.content || []).filter(
               (status) =>
                 !status.name?.toLowerCase().includes("không thành công")
             );

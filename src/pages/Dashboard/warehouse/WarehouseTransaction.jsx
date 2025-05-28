@@ -2,11 +2,7 @@ import React, { useEffect, useState } from "react";
 import { FaSearch, FaEye, FaEdit, FaFileExport } from "react-icons/fa";
 import { GoPlus } from "react-icons/go";
 import { useNavigate } from "react-router-dom";
-import {
-  getAllWarehouseTransaction,
-  deleteWarehouseTransaction,
-  getWarehouseTransactionById,
-} from "@/api/warehouseTransactionApi";
+import { getAllWarehouseTransaction } from "@/api/warehouseTransactionApi";
 import { getOrderById } from "@/api/orderApi";
 import { getDeliveryStatusById } from "@/api/deliveryStatusApi";
 import { getWarehouseById } from "@/api/warehouseApi";
@@ -41,7 +37,7 @@ const WarehouseTransaction = () => {
       const response = await getAllWarehouseTransaction(0, 100, "id", "desc");
       const transactions = response.content;
 
-      const enrichedTransactions = await Promise.all(
+      const detailsTransaction = await Promise.all(
         transactions.map(async (tran) => {
           try {
             const [warehouse, order, status, type] = await Promise.all([
@@ -71,8 +67,8 @@ const WarehouseTransaction = () => {
         })
       );
 
-      setWarehouseTransaction(enrichedTransactions);
-      setFilteredData(enrichedTransactions);
+      setWarehouseTransaction(detailsTransaction);
+      setFilteredData(detailsTransaction);
     } catch (error) {
       console.error("Lỗi khi lấy danh sách giao dịch kho:", error);
       toast.error("Không thể tải danh sách giao dịch kho");

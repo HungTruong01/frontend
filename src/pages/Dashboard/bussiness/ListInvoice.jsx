@@ -25,14 +25,14 @@ const ListInvoice = () => {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [allInvoices, setAllInvoices] = useState([]);
+  const [invoiceType, setInvoiceType] = useState([]);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [searchType, setSearchType] = useState("");
   const [searchPartner, setSearchPartner] = useState("");
   const [searchDate, setSearchDate] = useState("");
   const [itemsPerPage, setItemsPerPage] = useState(7);
   const [currentPage, setCurrentPage] = useState(1);
-  const [allInvoices, setAllInvoices] = useState([]);
-  const [invoiceType, setInvoiceType] = useState([]);
   const [totalElements, setTotalElements] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -45,11 +45,11 @@ const ListInvoice = () => {
     try {
       const [invoiceRes, invoiceTypeRes] = await Promise.all([
         getAllInvoicesWithPartnerName(0, 100, "id", "asc"),
-        getAllInvoiceTypes(),
+        getAllInvoiceTypes(0, 100, "id", "asc"),
       ]);
       setAllInvoices(invoiceRes.content);
       setTotalElements(invoiceRes.length);
-      setInvoiceType(invoiceTypeRes.content);
+      setInvoiceType(invoiceTypeRes.data.content);
       setIsLoading(false);
     } catch (error) {
       console.log("error", error);
@@ -185,6 +185,16 @@ const ListInvoice = () => {
     }
   };
 
+  const handleAddInvoice = async (newInvoice) => {
+    try {
+      setIsAddModalOpen(false);
+      await fetchData();
+    } catch (error) {
+      console.error("Lỗi khi thêm hóa đơn:", error);
+      toast.error("Đã xảy ra lỗi khi thêm hóa đơn!");
+    }
+  };
+
   const handleEditSubmit = async (updatedInvoice) => {
     try {
       await updateInvoice(updatedInvoice.id, updatedInvoice);
@@ -195,15 +205,6 @@ const ListInvoice = () => {
         prev.map((invoice) =>
           invoice.id === refreshedInvoice.id ? refreshedInvoice : invoice
         )
-      );
-
-      applyFilters(
-        allInvoices.map((invoice) =>
-          invoice.id === refreshedInvoice.id ? refreshedInvoice : invoice
-        ),
-        searchType,
-        searchPartner,
-        searchDate
       );
 
       setIsEditModalOpen(false);
@@ -223,10 +224,6 @@ const ListInvoice = () => {
       );
       setAllInvoices(updatedInvoices);
 
-      applyFilters(updatedInvoices, searchType, searchPartner, searchDate);
-
-      console.log("Xóa hóa đơn:", id);
-
       if (paginatedData.length === 1 && currentPage > 1) {
         setCurrentPage(currentPage - 1);
       }
@@ -235,19 +232,7 @@ const ListInvoice = () => {
     }
   };
 
-  const handleAddInvoice = async (newInvoice) => {
-    try {
-      setIsAddModalOpen(false);
-      await fetchInvoices();
-      toast.success("Thêm hóa đơn thành công!");
-    } catch (error) {
-      console.error("Lỗi khi thêm hóa đơn:", error);
-      toast.error("Đã xảy ra lỗi khi thêm hóa đơn!");
-    }
-  };
-
   const handleSearch = () => {
-    applyFilters(allInvoices, searchType, searchPartner, searchDate);
     setCurrentPage(1);
   };
 
@@ -300,6 +285,21 @@ const ListInvoice = () => {
           </div>
           <div className="flex items-center space-x-4">
             <div className="relative flex-1">
+              <input
+                type="text"
+                placeholder="Tìm theo tên đối tác..."
+                value={searchPartner}
+                onChange={(e) => setSearchPartner(e.target.value)}
+                className="w-full px-4 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              />
+              <button
+                onClick={handleSearch}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              >
+                <FaSearch className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="relative flex-1">
               <select
                 value={searchType}
                 onChange={(e) => setSearchType(e.target.value)}
@@ -320,21 +320,6 @@ const ListInvoice = () => {
                 onChange={(e) => setSearchDate(e.target.value)}
                 className="w-full px-4 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
               />
-            </div>
-            <div className="relative flex-1">
-              <input
-                type="text"
-                placeholder="Tìm theo tên đối tác..."
-                value={searchPartner}
-                onChange={(e) => setSearchPartner(e.target.value)}
-                className="w-full px-4 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-              />
-              <button
-                onClick={handleSearch}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-              >
-                <FaSearch className="h-4 w-4" />
-              </button>
             </div>
           </div>
         </div>

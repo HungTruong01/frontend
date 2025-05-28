@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { FaArrowLeft, FaPlus, FaTrash } from "react-icons/fa";
 import TogglePartnerModal from "@/components/Dashboard/partner/TogglePartnerModal";
 import ProductSelectionModal from "@/components/Dashboard/product/ProductSelectionModal";
-import { getAllPartners } from "@/api/partnerApi";
+import { getAllPartners, addPartner } from "@/api/partnerApi";
 import { getAllOrderTypes } from "@/api/orderTypeApi";
 import { createOrder, getOrderById, updateOrder } from "@/api/orderApi";
 import {
@@ -32,8 +32,8 @@ const OrderForm = ({ mode = "add" }) => {
   const [importBatches, setImportBatches] = useState([]);
 
   const isEdit = mode === "edit" && id;
-  const isPurchaseOrder = selectedOrderType === "1";
-  const isSalesOrder = selectedOrderType === "2";
+  const isPurchaseOrder = selectedOrderType === 1;
+  const isSalesOrder = selectedOrderType === 2;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -43,7 +43,7 @@ const OrderForm = ({ mode = "add" }) => {
             getAllPartners(0, 100, "id", "asc"),
             getAllOrderTypes(),
             getAllProducts(0, 100, "id", "asc"),
-            getAllImportBatches(0, 1000, "importDate", "desc"),
+            getAllImportBatches(0, 100, "importDate", "desc"),
           ]
         );
         setPartners(partnerRes.data.content || []);
@@ -68,6 +68,10 @@ const OrderForm = ({ mode = "add" }) => {
         setCurrentPaidMoney(res.paidMoney || 0);
         const items = res.orderDetails.map((detail) => {
           const product = products.find((p) => p.id === detail.productId);
+          const expireDate =
+            detail.expireDate && !isNaN(new Date(detail.expireDate).getTime())
+              ? new Date(detail.expireDate).toISOString().split("T")[0]
+              : "";
           return {
             detailId: detail.id,
             id: detail.productId,
@@ -75,9 +79,7 @@ const OrderForm = ({ mode = "add" }) => {
             quantity: detail.quantity,
             unit_price: detail.unit_price,
             exportPrice: detail.unit_price,
-            expireDate: detail.expireDate
-              ? new Date(detail.expireDate).toISOString().split("T")[0]
-              : "",
+            expireDate,
           };
         });
         setOrderItems(items);
@@ -94,7 +96,7 @@ const OrderForm = ({ mode = "add" }) => {
     if (orderItems.length > 0) {
       const updatedItems = orderItems.map((item) => ({
         ...item,
-        expireDate: isPurchaseOrder ? item.expireDate || "" : "",
+        expireDate: isPurchaseOrder ? item.expireDate || "" : undefined,
       }));
       setOrderItems(updatedItems);
     }
@@ -169,9 +171,10 @@ const OrderForm = ({ mode = "add" }) => {
             productId: i.id,
             quantity: i.quantity,
             unit_price: i.unit_price,
-            expireDate: i.expireDate
-              ? new Date(i.expireDate).toISOString()
-              : null,
+            expireDate:
+              isPurchaseOrder && i.expireDate
+                ? new Date(i.expireDate).toISOString()
+                : null,
           }))
         );
 
@@ -196,9 +199,10 @@ const OrderForm = ({ mode = "add" }) => {
             productId: i.id,
             quantity: i.quantity,
             unit_price: i.unit_price,
-            expireDate: i.expireDate
-              ? new Date(i.expireDate).toISOString()
-              : null,
+            expireDate:
+              isPurchaseOrder && i.expireDate
+                ? new Date(i.expireDate).toISOString()
+                : null,
           }))
         );
 
@@ -217,11 +221,20 @@ const OrderForm = ({ mode = "add" }) => {
 
   const handleAddPartner = async (newPartner) => {
     try {
-      await partnerApi.addPartner(newPartner);
+      const partnerData = {
+        name: newPartner.name,
+        phone: newPartner.phone,
+        email: newPartner.email,
+        address: newPartner.address,
+        partnerTypeId: parseInt(newPartner.type),
+        organization: newPartner.organization,
+        taxCode: newPartner.taxCode,
+      };
+      await addPartner(partnerData);
       setIsPartnerModalOpen(false);
       toast.success("Đã thêm đối tác");
-      const res = await partnerApi.getAllPartners(0, 100, "id", "asc");
-      setPartners(res.content);
+      const res = await getAllPartners(0, 100, "id", "asc");
+      setPartners(res.data.content);
     } catch {
       toast.error("Không thể thêm đối tác");
     }
@@ -244,7 +257,7 @@ const OrderForm = ({ mode = "add" }) => {
 
           const importPrice = latestBatch?.unitCost ?? 0;
           const exportPrice =
-            selectedOrderType === "1" ? importPrice : product.exportPrice ?? 0;
+            selectedOrderType === 1 ? importPrice : product.exportPrice ?? 0;
 
           return {
             id: product.id,
@@ -277,7 +290,7 @@ const OrderForm = ({ mode = "add" }) => {
 
       const importPrice = latestBatch?.unitCost ?? 0;
       const exportPrice =
-        selectedOrderType === "1" ? importPrice : product.exportPrice ?? 0;
+        selectedOrderType === 1 ? importPrice : product.exportPrice ?? 0;
 
       const newItem = {
         id: product.id,
@@ -302,7 +315,6 @@ const OrderForm = ({ mode = "add" }) => {
             ? {
                 ...item,
                 unit_price: price,
-                // exportPrice: price,
               }
             : item
         )
@@ -328,19 +340,16 @@ const OrderForm = ({ mode = "add" }) => {
   };
 
   const handleQuantityChange = (id, value) => {
-    const quantity = parseInt(value);
-    if (!isNaN(quantity) && quantity > 0) {
-      setOrderItems(
-        orderItems.map((item) =>
-          item.id === id
-            ? {
-                ...item,
-                quantity,
-              }
-            : item
-        )
-      );
-    }
+    setOrderItems(
+      orderItems.map((item) =>
+        item.id === id
+          ? {
+              ...item,
+              quantity: value === "" ? "" : parseInt(value),
+            }
+          : item
+      )
+    );
   };
 
   const handleAddItem = () => {
@@ -423,7 +432,7 @@ const OrderForm = ({ mode = "add" }) => {
               </label>
               <select
                 value={selectedOrderType}
-                onChange={(e) => setSelectedOrderType(e.target.value)}
+                onChange={(e) => setSelectedOrderType(parseInt(e.target.value))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Chọn loại đơn hàng</option>
@@ -464,7 +473,7 @@ const OrderForm = ({ mode = "add" }) => {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                         Đơn giá
                       </th>
-                      {isPurchaseOrder && ( // Only show for purchase orders
+                      {isPurchaseOrder && (
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                           Ngày hết hạn <span className="text-red-500">*</span>
                         </th>
@@ -495,21 +504,18 @@ const OrderForm = ({ mode = "add" }) => {
                           />
                         </td>
                         <td className="px-6 py-4 text-blue-600 text-sm">
-                          {isPurchaseOrder || isSalesOrder || isEdit ? (
-                            <input
-                              type="number"
-                              value={item.unit_price}
-                              onChange={(e) =>
-                                handlePriceChange(item.id, e.target.value)
-                              }
-                              min="0"
-                              className="w-32 px-2 py-1 border border-gray-300 rounded-md"
-                            />
-                          ) : (
-                            item.unit_price?.toLocaleString()
-                          )}
+                          <input
+                            type="number"
+                            value={item.unit_price}
+                            onChange={(e) =>
+                              handlePriceChange(item.id, e.target.value)
+                            }
+                            min="0"
+                            step="1000"
+                            className="w-32 px-2 py-1 border border-gray-300 rounded-md"
+                          />
                         </td>
-                        {isPurchaseOrder && ( // Only show for purchase orders
+                        {isPurchaseOrder && (
                           <td className="px-6 py-4">
                             <input
                               type="date"

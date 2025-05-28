@@ -38,12 +38,12 @@ const ToggleWarehouseTransfer = ({
       try {
         const [productsRes, statusesRes, warehousesRes] = await Promise.all([
           getAllProducts(0, 1000, "id", "asc"),
-          getAllDeliveryStatus(),
+          getAllDeliveryStatus(0, 100, "id", "asc"),
           getAllWarehouse(),
         ]);
 
         setProducts(productsRes.data?.content || productsRes.data || []);
-        setDeliveryStatuses(statusesRes.content || statusesRes || []);
+        setDeliveryStatuses(statusesRes.data.content || statusesRes || []);
         setWarehouses(warehousesRes.content || warehousesRes || []);
 
         if (isEdit && initialData?.productId) {

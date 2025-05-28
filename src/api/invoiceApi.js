@@ -23,7 +23,6 @@ export const getAllInvoices = async (
     const response = await axiosInstance.get(
       `/invoices?pageNo=${pageNo}&pageSize=${pageSize}&sortBy=${sortBy}&sortDir=${sortDir}`
     );
-    console.log("Fetched invoices:", response.data.content?.length || 0);
     return response.data;
   } catch (error) {
     console.error("Error fetching invoices:", error);
@@ -49,7 +48,6 @@ export const getInvoiceWithDetails = async (invoiceId) => {
       const order = await getOrderById(invoice.orderId);
       if (order && order.partnerId) {
         const partner = await getPartnerById(order.partnerId);
-
         const items = await Promise.all(
           order.orderDetails.map(async (detail) => {
             try {
@@ -58,8 +56,8 @@ export const getInvoiceWithDetails = async (invoiceId) => {
                 productId: detail.productId,
                 productName: product.name || `Sản phẩm ${detail.productId}`,
                 quantity: detail.quantity,
-                unitPrice: product.exportPrice || 0,
-                total: detail.quantity * (product.exportPrice || 0),
+                unitPrice: detail.unit_price || 0,
+                total: detail.quantity * (detail.unit_price || 0),
               };
             } catch (err) {
               console.error(`Lỗi lấy sản phẩm ${detail.productId}:`, err);

@@ -50,7 +50,7 @@ const ToggleInventoryAdjustment = ({
       try {
         const [productsRes, typesRes, warehousesRes] = await Promise.all([
           getAllProducts(0, 1000, "id", "asc"),
-          getAllInventoryAdjustmentType(),
+          getAllInventoryAdjustmentType(0, 1000, "id", "asc"),
           getAllWarehouse(),
         ]);
 

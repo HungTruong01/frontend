@@ -3,8 +3,8 @@ import { getAllInvoiceTypes } from "@/api/invoiceTypeApi";
 
 const determineInvoiceType = async () => {
   try {
-    const response = await getAllInvoiceTypes();
-    const types = response.content || [];
+    const response = await getAllInvoiceTypes(0, 1000, "id", "asc");
+    const types = response.data.content || [];
     const thuType = types.find((type) =>
       type.name.toLowerCase().includes("thu")
     );

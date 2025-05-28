@@ -24,8 +24,8 @@ const DeliveryStatus = () => {
 
   const fetchData = async () => {
     try {
-      const response = await getAllDeliveryStatus();
-      setDelivery(response.content);
+      const response = await getAllDeliveryStatus(0, 100, "id", "asc");
+      setDelivery(response.data.content);
     } catch (error) {
       console.error("Error fetching delivery status:", error);
     }

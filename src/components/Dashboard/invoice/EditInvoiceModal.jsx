@@ -40,12 +40,12 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
           const [partnersData, invoiceTypesData, ordersData] =
             await Promise.all([
               getAllPartners(0, 100, "id", "asc"),
-              getAllInvoiceTypes(),
+              getAllInvoiceTypes(0, 100, "id", "asc"),
               getAllOrders(0, 100, "id", "asc"),
             ]);
 
-          setPartners(partnersData.content || []);
-          setInvoiceTypes(invoiceTypesData.content || []);
+          setPartners(partnersData.data.content || []);
+          setInvoiceTypes(invoiceTypesData.data.content || []);
           setOrders(ordersData.content || []);
 
           const partnerId = invoice.order?.partnerId || "";
@@ -262,7 +262,7 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
   if (!isOpen || !invoice) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-gradient-to-b from-white to-gray-50 rounded-2xl shadow-2xl w-full max-w-5xl transform transition-all max-h-[90vh] flex flex-col overflow-hidden">
         <div className="px-8 py-6 border-b border-blue-100 bg-blue-500 text-white">
           <div className="flex justify-between items-center">

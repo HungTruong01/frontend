@@ -84,8 +84,8 @@ const ListOrder = () => {
 
   const fetchDeliveryStatuses = async () => {
     try {
-      const response = await getAllDeliveryStatus();
-      setDeliveryStatuses(response.content || []);
+      const response = await getAllDeliveryStatus(0, 1000, "id", "asc");
+      setDeliveryStatuses(response.data.content || []);
     } catch (error) {
       console.log("Error fetching delivery statuses: ", error);
       setDeliveryStatuses([]);

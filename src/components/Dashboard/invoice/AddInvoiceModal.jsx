@@ -90,10 +90,10 @@ const AddInvoiceModal = ({
       try {
         const [partnersData, invoiceTypesData] = await Promise.all([
           getAllPartners(0, 100, "id", "asc"),
-          getAllInvoiceTypes(),
+          getAllInvoiceTypes(0, 100, "id", "asc"),
         ]);
         setPartners(partnersData.data.content || []);
-        setInvoiceTypes(invoiceTypesData.content || []);
+        setInvoiceTypes(invoiceTypesData.data.content || []);
       } catch (err) {
         setError("Không thể tải dữ liệu từ server.");
         console.error(err);
@@ -138,7 +138,6 @@ const AddInvoiceModal = ({
 
         setOrderPaidAmount(orderData.paidMoney || 0);
         const details = orderData.orderDetails;
-        console.log(details);
         const detailedItems = await Promise.all(
           details.map(async (detail, index) => {
             try {
@@ -672,7 +671,7 @@ const AddInvoiceModal = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:outline-none cursor-pointer transition-colors duration-200"
+              className="px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg focus:outline-none cursor-pointer transition-colors duration-200"
             >
               Hủy
             </button>

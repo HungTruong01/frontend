@@ -1,17 +1,17 @@
 import React from "react";
 import { Route, Routes, Navigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
-import About from "./pages/LandingPage/About";
-import Home from "./pages/LandingPage/Home";
-import NewDetail from "./pages/LandingPage/NewDetail";
-import News from "./pages/LandingPage/News";
-import Products from "./pages/LandingPage/Products";
-import Service from "./pages/LandingPage/Service";
+import About from "@/pages/LandingPage/About";
+import Home from "@/pages/LandingPage/Home";
+import NewDetail from "@/pages/LandingPage/NewDetail";
+import News from "@/pages/LandingPage/News";
+import Products from "@/pages/LandingPage/Products";
+import Service from "@/pages/LandingPage/Service";
 
-import DashBoardHome from "./pages/Dashboard/DashBoardHome";
+import DashBoardHome from "@/pages/Dashboard/DashBoardHome";
 
-import AccountList from "./pages/Dashboard/system/AccountList";
-import RoleUser from "./pages/Dashboard/system/RoleUser";
+import AccountList from "@/pages/Dashboard/system/AccountList";
+import RoleUser from "@/pages/Dashboard/system/RoleUser";
 
 import ListPost from "@/pages/Dashboard/ListPost";
 import OrderStatus from "@/pages/Dashboard/categories/OrderStatus";
@@ -23,33 +23,33 @@ import TypeProduct from "@/pages/Dashboard/categories/TypeProduct";
 import TypeTransactionWareHouse from "@/pages/Dashboard/categories/TypeTransactionWareHouse";
 import ListProduct from "@/pages/Dashboard/warehouse/ListProduct";
 import UnitPage from "@/pages/Dashboard/categories/UnitPage";
-import ListEmployees from "./pages/Dashboard/categories/ListEmployees";
+import ListEmployees from "@/pages/Dashboard/categories/ListEmployees";
 
 import ListWarehouse from "@/pages/Dashboard/categories/ListWarehouse";
-import InventoryProduct from "./pages/Dashboard/warehouse/InventoryProduct";
-import WarehouseTransaction from "./pages/Dashboard/warehouse/WarehouseTransaction";
-import WarehouseTransactionDetail from "./pages/Dashboard/warehouse/WarehouseTransactionDetail";
-import WarehouseTransfer from "./pages/Dashboard/warehouse/WarehouseTransfer";
-import WarehouseTransferDetail from "./pages/Dashboard/warehouse/WarehouseTransferDetail";
-import AdjustInventory from "./pages/Dashboard/warehouse/AdjustInventory";
-import AdjustInventoryDetail from "./pages/Dashboard/warehouse/AdjustInventoryDetail";
-import ImportBatch from "./pages/Dashboard/warehouse/ImportBatch";
+import InventoryProduct from "@/pages/Dashboard/warehouse/InventoryProduct";
+import WarehouseTransaction from "@/pages/Dashboard/warehouse/WarehouseTransaction";
+import WarehouseTransactionDetail from "@/pages/Dashboard/warehouse/WarehouseTransactionDetail";
+import WarehouseTransfer from "@/pages/Dashboard/warehouse/WarehouseTransfer";
+import WarehouseTransferDetail from "@/pages/Dashboard/warehouse/WarehouseTransferDetail";
+import AdjustInventory from "@/pages/Dashboard/warehouse/AdjustInventory";
+import AdjustInventoryDetail from "@/pages/Dashboard/warehouse/AdjustInventoryDetail";
+import ImportBatch from "@/pages/Dashboard/warehouse/ImportBatch";
 
-import ListOrder from "./pages/Dashboard/bussiness/ListOrder";
-import ListPartner from "./pages/Dashboard/bussiness/ListPartner";
-import DebtReport from "./pages/Dashboard/reports/DebtReport";
-import IncomeReport from "./pages/Dashboard/reports/IncomeReport";
-import RevenueReport from "./pages/Dashboard/reports/RevenueReport";
+import ListOrder from "@/pages/Dashboard/bussiness/ListOrder";
+import ListPartner from "@/pages/Dashboard/bussiness/ListPartner";
+import DebtReport from "@/pages/Dashboard/reports/DebtReport";
+import IncomeReport from "@/pages/Dashboard/reports/IncomeReport";
+import RevenueReport from "@/pages/Dashboard/reports/RevenueReport";
 
-import LoginPage from "./pages/auth/LoginPage";
-import InvoiceType from "./pages/Dashboard/categories/InvoiceType";
-import DeliveryStatus from "./pages/Dashboard/categories/DeliveryStatus";
+import LoginPage from "@/pages/auth/LoginPage";
+import InvoiceType from "@/pages/Dashboard/categories/InvoiceType";
+import DeliveryStatus from "@/pages/Dashboard/categories/DeliveryStatus";
 
-import OrderForm from "./components/Dashboard/order/OrderForm";
-import ListInvoice from "./pages/Dashboard/bussiness/ListInvoice";
-import { isUserLoggedIn } from "./api/authService";
-import Config from "./pages/Dashboard/system/Config";
-import ConfigPage from "./pages/Dashboard/ConfigPage";
+import OrderForm from "@/components/Dashboard/order/OrderForm";
+import ListInvoice from "@/pages/Dashboard/bussiness/ListInvoice";
+import { isUserLoggedIn } from "@/api/authService";
+import Config from "@/pages/Dashboard/system/Config";
+import ConfigPage from "@/pages/Dashboard/ConfigPage";
 
 // Component để bảo vệ các route
 function AuthenticatedRoute({ children }) {

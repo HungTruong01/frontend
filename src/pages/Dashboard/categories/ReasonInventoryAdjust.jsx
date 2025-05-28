@@ -24,7 +24,7 @@ const ReasonInventoryAdjust = () => {
   ];
   const fetchData = async () => {
     try {
-      const response = await getAllInventoryAdjustmentType();
+      const response = await getAllInventoryAdjustmentType(0, 100, "id", "asc");
       setReason(response.content);
     } catch (error) {
       console.error("Error fetching data:", error);

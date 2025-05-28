@@ -4,26 +4,36 @@ import { getInvoiceWithDetails } from "@/api/invoiceApi";
 import { FaUser } from "react-icons/fa";
 import { FaInfoCircle } from "react-icons/fa";
 import { FaGift } from "react-icons/fa6";
+import { getAllInvoiceTypes } from "@/api/invoiceTypeApi";
 
 const InvoiceDetailModal = ({ isOpen, onClose, invoice }) => {
   const [invoiceDetails, setInvoiceDetails] = useState(null);
+  const [invoiceTypes, setInvoiceTypes] = useState([]);
+
+  const fetchInvoiceType = async () => {
+    try {
+      const response = await getAllInvoiceTypes(0, 100, "id", "asc");
+      setInvoiceTypes(response.data.content);
+    } catch (error) {
+      console.log("Error fetching invoice types:", error);
+    }
+  };
 
   const fetchInvoiceDetails = async () => {
     if (isOpen && invoice && invoice.id) {
       try {
         const data = await getInvoiceWithDetails(invoice.id);
-        console.log(data);
         setInvoiceDetails(data);
       } catch (err) {
         console.error("Lỗi khi lấy chi tiết hóa đơn:", err);
         setError("Không thể tải chi tiết hóa đơn. Vui lòng thử lại sau.");
-      } finally {
       }
     }
   };
 
   useEffect(() => {
     fetchInvoiceDetails();
+    fetchInvoiceType();
   }, [isOpen, invoice]);
 
   const formatDate = (dateString) => {
@@ -59,14 +69,8 @@ const InvoiceDetailModal = ({ isOpen, onClose, invoice }) => {
   };
 
   const getInvoiceTypeName = (typeId) => {
-    switch (typeId) {
-      case 1:
-        return "Hóa đơn thu";
-      case 2:
-        return "Hóa đơn chi";
-      default:
-        return "Không xác định";
-    }
+    const type = invoiceTypes.find((t) => t.id === typeId);
+    return type ? type.name : "Không xác định";
   };
 
   if (!isOpen || !invoice) return null;
@@ -196,35 +200,28 @@ const InvoiceDetailModal = ({ isOpen, onClose, invoice }) => {
                         </tr>
                       </thead>
                       <tbody>
-                        {invoiceDetails.order.orderDetails?.length > 0 ? (
-                          invoiceDetails.order.orderDetails.map(
-                            (item, index) => (
-                              <tr
-                                key={index}
-                                className={`border-t border-gray-200 ${
-                                  index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                                }`}
-                              >
-                                <td className="px-6 py-4">
-                                  {item.productName ||
-                                    `SP ${item.productId || index}`}
-                                </td>
-                                <td className="px-6 py-4 text-right">
-                                  {item.quantity || 0}
-                                </td>
-                                <td className="px-6 py-4 text-right">
-                                  {formatCurrency(item.unit_price || 0)}
-                                </td>
-                                <td className="px-6 py-4 text-right font-medium">
-                                  {formatCurrency(
-                                    item.total ||
-                                      item.quantity * item.unit_price ||
-                                      0
-                                  )}
-                                </td>
-                              </tr>
-                            )
-                          )
+                        {invoiceDetails.order.items?.length > 0 ? (
+                          invoiceDetails.order.items.map((item, index) => (
+                            <tr
+                              key={index}
+                              className={`border-t border-gray-200 ${
+                                index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                              }`}
+                            >
+                              <td className="px-6 py-4">
+                                {item.productName || `SP ${item.productId}`}
+                              </td>
+                              <td className="px-6 py-4 text-right">
+                                {item.quantity || 0}
+                              </td>
+                              <td className="px-6 py-4 text-right">
+                                {formatCurrency(item.unitPrice || 0)}
+                              </td>
+                              <td className="px-6 py-4 text-right font-medium">
+                                {formatCurrency(item.total || 0)}
+                              </td>
+                            </tr>
+                          ))
                         ) : (
                           <tr>
                             <td

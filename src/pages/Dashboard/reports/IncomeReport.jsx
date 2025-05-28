@@ -78,17 +78,15 @@ const IncomeReport = () => {
     }
   };
 
-  // Chỉ fetch dữ liệu khi các thông số báo cáo thay đổi và nếu có đủ dữ liệu
   useEffect(() => {
     if (reportType === "custom" && (!startDate || !endDate)) {
-      // Không fetch dữ liệu nếu thiếu ngày trong chế độ custom
       setLoading(false);
       return;
     }
 
     const timer = setTimeout(() => {
       fetchReportData();
-    }, 300); // Thêm debounce để tránh gọi API liên tục khi người dùng chọn ngày
+    }, 300);
 
     return () => clearTimeout(timer);
   }, [reportType, year, month, startDate, endDate]);

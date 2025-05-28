@@ -87,7 +87,6 @@ const ListPartner = () => {
         organization: newPartner.organization,
         taxCode: newPartner.taxCode,
       };
-      console.log(partnerData);
       await addPartner(partnerData);
       toast.success("Thêm đối tác thành công");
       await fetchPartners();

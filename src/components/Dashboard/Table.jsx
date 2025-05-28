@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { GoPlus } from "react-icons/go";
-import { FaSearch, FaEdit, FaRegTrashAlt } from "react-icons/fa";
+import { FaSearch, FaEdit } from "react-icons/fa";
 import AddModal from "./AddModal";
 import EditModal from "./EditModal";
 import DeleteModal from "./DeleteModal";
+import { Pagination } from "@/utils/pagination";
 
 const Table = ({
   title,
@@ -98,7 +99,7 @@ const Table = ({
             id: col.key,
             key: col.key,
             label: col.label,
-            required: col.required || false, // Sử dụng required từ columns
+            required: col.required || false,
             type: col.type || "text",
           }))}
           initialData={currentEditItem}
@@ -183,15 +184,13 @@ const Table = ({
               {paginatedData.length > 0 ? (
                 paginatedData.map((row, index) => (
                   <tr
-                    key={row.id || row["Mã người dùng"] || index}
+                    key={row.id}
                     className="border-b border-gray-300 hover:bg-gray-100 transition-colors"
                   >
                     {displayColumns.map((col, colIndex) => (
                       <td
-                        key={`${row.id || row["Mã người dùng"] || index}-${
-                          col.key
-                        }`}
-                        className={`py-3 px-4 text-sm  ${
+                        key={`${row.id}-${col.key}`}
+                        className={`py-3 px-4 text-sm ${
                           displayColumns.length <= 3 && colIndex === 1
                             ? "w-1/2"
                             : ""
@@ -204,34 +203,13 @@ const Table = ({
                       <div className="flex justify-center space-x-3">
                         <button
                           onClick={() => handleEditClick(row)}
-                          className={`text-blue-500 hover:text-blue-700 transition-colors ${
-                            title === "Sản phẩm tồn kho"
-                              ? "opacity-50 cursor-not-allowed"
-                              : ""
-                          }`}
+                          className={
+                            "text-blue-500 hover:text-blue-700 transition-colors"
+                          }
                           title="Chỉnh sửa"
-                          disabled={title === "Sản phẩm tồn kho"}
                         >
                           <FaEdit className="h-5 w-5" />
                         </button>
-
-                        {/* <button
-                          onClick={() => handleDeleteClick(row)}
-                          className={`text-red-500 hover:text-red-700 transition-colors ${
-                            title === "Sản phẩm tồn kho"
-                              ? "opacity-50 cursor-not-allowed"
-                              : ""
-                          }`}
-                          title="Xóa"
-                          disabled={
-                            row["Vai trò"] === "Admin" ||
-                            row["Tên vai trò"] === "Admin" ||
-                            row.name === "ADMIN" ||
-                            title === "Sản phẩm tồn kho"
-                          }
-                        >
-                          <FaRegTrashAlt className="h-5 w-5" />
-                        </button> */}
                       </div>
                     </td>
                   </tr>
@@ -257,109 +235,12 @@ const Table = ({
             đến {Math.min(currentPage * itemsPerPage, filteredData.length)} của{" "}
             {filteredData.length} bản ghi
           </p>
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="px-3 py-1 border border-gray-300 rounded-md text-xs sm:text-sm text-gray-600 hover:bg-gray-100 disabled:opacity-50 transition-all"
-            >
-              Trước
-            </button>
-            <div className="flex items-center space-x-1">
-              {totalPages <= 5 ? (
-                [...Array(totalPages)].map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setCurrentPage(i + 1)}
-                    className={`
-                      w-7 h-7 rounded-md text-xs sm:text-sm
-                      ${
-                        currentPage === i + 1
-                          ? "bg-blue-600 text-white"
-                          : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                      }
-                      transition-colors
-                    `}
-                  >
-                    {i + 1}
-                  </button>
-                ))
-              ) : (
-                <>
-                  {currentPage > 2 && (
-                    <button
-                      onClick={() => setCurrentPage(1)}
-                      className="w-7 h-7 rounded-md text-xs sm:text-sm bg-gray-200 text-gray-700 hover:bg-gray-300"
-                    >
-                      1
-                    </button>
-                  )}
-                  {currentPage > 3 && (
-                    <span className="text-gray-500">...</span>
-                  )}
 
-                  {[...Array(5)].map((_, i) => {
-                    const pageNum = Math.max(
-                      1,
-                      Math.min(currentPage - 2 + i, totalPages)
-                    );
-                    if (
-                      pageNum <= totalPages &&
-                      pageNum >= 1 &&
-                      (i === 0 ||
-                        i === 4 ||
-                        (pageNum >= currentPage - 1 &&
-                          pageNum <= currentPage + 1))
-                    ) {
-                      return (
-                        <button
-                          key={pageNum}
-                          onClick={() => setCurrentPage(pageNum)}
-                          className={`
-                            w-7 h-7 rounded-md text-xs sm:text-sm
-                            ${
-                              currentPage === pageNum
-                                ? "bg-blue-600 text-white"
-                                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                            }
-                            transition-colors
-                          `}
-                        >
-                          {pageNum}
-                        </button>
-                      );
-                    }
-                    return i === 2 ? (
-                      <span key={i} className="text-gray-500">
-                        ...
-                      </span>
-                    ) : null;
-                  })}
-
-                  {currentPage < totalPages - 2 && (
-                    <span className="text-gray-500">...</span>
-                  )}
-                  {currentPage < totalPages - 1 && (
-                    <button
-                      onClick={() => setCurrentPage(totalPages)}
-                      className="w-7 h-7 rounded-md text-xs sm:text-sm bg-gray-200 text-gray-700 hover:bg-gray-300"
-                    >
-                      {totalPages}
-                    </button>
-                  )}
-                </>
-              )}
-            </div>
-            <button
-              onClick={() =>
-                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-              }
-              disabled={currentPage === totalPages || totalPages === 0}
-              className="px-3 py-1 bg-blue-600 text-white rounded-md text-xs sm:text-sm hover:bg-blue-700 disabled:opacity-50 transition-all"
-            >
-              Tiếp
-            </button>
-          </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
         </div>
       </div>
     </div>
