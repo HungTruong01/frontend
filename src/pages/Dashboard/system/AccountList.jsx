@@ -26,9 +26,9 @@ const AccountList = () => {
   const [roles] = useState([
     { id: 1, name: "ADMIN", label: "ADMIN" },
     { id: 2, name: "ADMIN_KD", label: "Nhân viên kinh doanh" },
-    { id: 3, name: "ADMIN_BLD", label: "Ban lãnh đạo" },
+    { id: 3, name: "ADMIN_TCKT", label: "Nhân viên tài chính kế toán" },
     { id: 4, name: "ADMIN_K", label: "Nhân viên XNK & kho vận" },
-    { id: 5, name: "ADMIN_TCKT", label: "Nhân viên tài chính kế toán" },
+    { id: 5, name: "ADMIN_BLD", label: "Ban lãnh đạo" },
   ]);
   const columns = ["Mã", "Tên đăng nhập", "Ngày tạo", "Vai trò"];
 

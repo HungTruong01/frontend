@@ -39,6 +39,10 @@ export const isAdminUser = () => {
   return getCookie("role") === "ROLE_ADMIN";
 };
 
+export const getRole = () => {
+  return getCookie("role");
+}
+
 // Helper function to get a cookie by name
 const getCookie = (name) => {
   const value = `; ${document.cookie}`;

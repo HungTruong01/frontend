@@ -50,6 +50,7 @@ import ListInvoice from "@/pages/Dashboard/bussiness/ListInvoice";
 import { isUserLoggedIn } from "@/api/authService";
 import Config from "@/pages/Dashboard/system/Config";
 import ConfigPage from "@/pages/Dashboard/ConfigPage";
+import PrivateRoute from "./utils/PrivateRoute";
 
 // Component để bảo vệ các route
 function AuthenticatedRoute({ children }) {
@@ -84,62 +85,201 @@ const App = () => {
           }
         >
           <Route index element={<OverviewDashboard />} />
-          <Route path="system/account" element={<AccountList />} />
-          <Route path="system/role" element={<RoleUser />} />
-          <Route path="system/config" element={<ConfigPage />} />
-          <Route path="categories/list-employees" element={<ListEmployees />} />
-          <Route path="categories/type-products" element={<TypeProduct />} />
-          <Route path="categories/unit" element={<UnitPage />} />
-          <Route path="categories/partner" element={<TypePartner />} />
-          <Route path="categories/order" element={<TypeOrder />} />
-          <Route path="categories/order-status" element={<OrderStatus />} />
-          <Route path="categories/invoice-type" element={<InvoiceType />} />
+          <Route
+            path="system/account"
+            element={
+              <PrivateRoute menuName="Hệ thống">
+                <AccountList />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="system/role"
+            element={
+              <PrivateRoute menuName="Hệ thống">
+                <RoleUser />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="system/config"
+            element={
+              <PrivateRoute menuName="Hệ thống">
+                <ConfigPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="categories/list-employees"
+            element={
+              <PrivateRoute menuName="Danh mục">
+                <ListEmployees />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="categories/type-products"
+            element={
+              <PrivateRoute menuName="Danh mục">
+                <TypeProduct />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="categories/unit"
+            element={
+              <PrivateRoute menuName="Danh mục">
+                <UnitPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="categories/partner"
+            element={
+              <PrivateRoute menuName="Danh mục">
+                <TypePartner />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="categories/order"
+            element={
+              <PrivateRoute menuName="Danh mục">
+                <TypeOrder />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="categories/order-status"
+            element={
+              <PrivateRoute menuName="Danh mục">
+                <OrderStatus />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="categories/invoice-type"
+            element={
+              <PrivateRoute menuName="Danh mục">
+                <InvoiceType />
+              </PrivateRoute>
+            }
+          />
           <Route
             path="categories/reason-for-inventory-adjustment"
-            element={<ReasonInventoryAdjust />}
+            element={
+              <PrivateRoute menuName="Danh mục">
+                <ReasonInventoryAdjust />
+              </PrivateRoute>
+            }
           />
           <Route path="categories/warehouse" element={<ListWarehouse />} />
           <Route
             path="categories/warehouse-transaction-type"
-            element={<TypeTransactionWareHouse />}
+            element={
+              <PrivateRoute menuName="Danh mục">
+                <TypeTransactionWareHouse />
+              </PrivateRoute>
+            }
           />
           <Route
             path="categories/delivery-status"
-            element={<DeliveryStatus />}
+            element={
+              <PrivateRoute menuName="Danh mục">
+                <DeliveryStatus />
+              </PrivateRoute>
+            }
           />
-          <Route path="posts/post-list" element={<ListPost />} />
-          <Route path="business/partner-list" element={<ListPartner />} />
-          <Route path="business/order-management" element={<ListOrder />} />
+          <Route
+            path="posts/post-list"
+            element={
+              <PrivateRoute menuName="Quảng bá">
+                <ListPost />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="business/partner-list"
+            element={
+              <PrivateRoute menuName="Kinh doanh">
+                <ListPartner />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="business/order-management"
+            element={
+              <PrivateRoute menuName="Kinh doanh">
+                <ListOrder />
+              </PrivateRoute>
+            }
+          />
 
           <Route
             path="/dashboard/business/order-management/create"
-            element={<OrderForm mode="add" />}
+            element={
+              <PrivateRoute menuName="Kinh doanh">
+                <OrderForm mode="add" />
+              </PrivateRoute>
+            }
           />
           <Route
             path="/dashboard/business/order-management/edit/:id"
-            element={<OrderForm mode="edit" />}
+            element={
+              <PrivateRoute menuName="Kinh doanh">
+                <OrderForm mode="edit" />
+              </PrivateRoute>
+            }
           />
-          <Route path="business/invoice-management" element={<ListInvoice />} />
+          <Route
+            path="business/invoice-management"
+            element={
+              <PrivateRoute menuName="Kinh doanh">
+                <ListInvoice />
+              </PrivateRoute>
+            }
+          />
           <Route
             path="warehouse/product-management"
-            element={<ListProduct />}
+            element={
+              <PrivateRoute menuName="Kho">
+                <ListProduct />
+              </PrivateRoute>
+            }
           />
           <Route path="warehouse/import-products" element={<ImportBatch />} />
           <Route
             path="warehouse/warehouse-transaction"
-            element={<WarehouseTransaction />}
+            element={
+              <PrivateRoute menuName="Kho">
+                <WarehouseTransaction />
+              </PrivateRoute>
+            }
           />
           <Route
             path="warehouse/warehouse-transaction-detail/:transactionId"
-            element={<WarehouseTransactionDetail />}
+            element={
+              <PrivateRoute menuName="Kho">
+                <WarehouseTransactionDetail />
+              </PrivateRoute>
+            }
           />
           <Route
             path="warehouse/inventory-products"
-            element={<InventoryProduct />}
+            element={
+              <PrivateRoute menuName="Kho">
+                <InventoryProduct />
+              </PrivateRoute>
+            }
           />
           <Route
             path="warehouse/adjust-inventory"
-            element={<AdjustInventory />}
+            element={
+              <PrivateRoute menuName="Kho">
+                <AdjustInventory />
+              </PrivateRoute>
+            }
           />
           {/* <Route
             path="warehouse/adjust-inventory-detail/:id"
@@ -148,30 +288,68 @@ const App = () => {
 
           <Route
             path="warehouse/warehouse-transfer"
-            element={<WarehouseTransfer />}
+            element={
+              <PrivateRoute menuName="Kho">
+                <WarehouseTransfer />
+              </PrivateRoute>
+            }
           />
           <Route
             path="warehouse/warehouse-transfer/:transferId"
-            element={<WarehouseTransferDetail />}
+            element={
+              <PrivateRoute menuName="Kho">
+                <WarehouseTransferDetail />
+              </PrivateRoute>
+            }
           />
           <Route
             path="warehouse/inventory-products"
-            element={<InventoryProduct />}
+            element={
+              <PrivateRoute menuName="Kho">
+                <InventoryProduct />
+              </PrivateRoute>
+            }
           />
           <Route
             path="warehouse/adjust-inventory"
-            element={<AdjustInventory />}
+            element={
+              <PrivateRoute menuName="Kho">
+                <AdjustInventory />
+              </PrivateRoute>
+            }
           />
           <Route
             path="warehouse/adjust-inventory/:adjustmentId"
-            element={<AdjustInventoryDetail />}
+            element={
+              <PrivateRoute menuName="Kho">
+                <AdjustInventoryDetail />
+              </PrivateRoute>
+            }
           />
-          <Route path="reports/revenue-report" element={<RevenueReport />} />
+          <Route
+            path="reports/revenue-report"
+            element={
+              <PrivateRoute menuName="Báo cáo">
+                <RevenueReport />
+              </PrivateRoute>
+            }
+          />
           <Route
             path="reports/income-and-expenditure-report"
-            element={<IncomeReport />}
+            element={
+              <PrivateRoute menuName="Báo cáo">
+                <IncomeReport />
+              </PrivateRoute>
+            }
           />
-          <Route path="reports/debt-report" element={<DebtReport />} />
+          <Route
+            path="reports/debt-report"
+            element={
+              <PrivateRoute menuName="Báo cáo">
+                <DebtReport />
+              </PrivateRoute>
+            }
+          />
         </Route>
       </Routes>
     </>

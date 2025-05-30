@@ -33,9 +33,11 @@ import {
   MdSettings,
 } from "react-icons/md";
 import { TbPackageImport } from "react-icons/tb";
+
 const iconStyles = {
   className: "w-5 h-5 text-inherit",
 };
+
 const menuItem = [
   {
     icon: <MdHome {...iconStyles} />,
