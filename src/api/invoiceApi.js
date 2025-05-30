@@ -40,47 +40,12 @@ export const getInvoiceById = async (invoiceId) => {
   }
 };
 
-export const getInvoiceWithDetails = async (invoiceId) => {
+export const getInvoiceDetail = async (invoiceId) => {
   try {
-    const invoice = await getInvoiceById(invoiceId);
-
-    if (invoice.orderId) {
-      const order = await getOrderById(invoice.orderId);
-      if (order && order.partnerId) {
-        const partner = await getPartnerById(order.partnerId);
-        const items = await Promise.all(
-          order.orderDetails.map(async (detail) => {
-            try {
-              const product = await getProductById(detail.productId);
-              return {
-                productId: detail.productId,
-                productName: product.name || `Sản phẩm ${detail.productId}`,
-                quantity: detail.quantity,
-                unitPrice: detail.unit_price || 0,
-                total: detail.quantity * (detail.unit_price || 0),
-              };
-            } catch (err) {
-              console.error(`Lỗi lấy sản phẩm ${detail.productId}:`, err);
-              return {
-                productId: detail.productId,
-                productName: `Sản phẩm ${detail.productId}`,
-                quantity: detail.quantity,
-                unitPrice: 0,
-                total: 0,
-              };
-            }
-          })
-        );
-
-        return { ...invoice, order: { ...order, items }, partner };
-      }
-
-      return { ...invoice, order };
-    }
-
-    return invoice;
+    const response = await axiosInstance.get(`/invoices/${invoiceId}/details`);
+    return response.data;
   } catch (error) {
-    console.error("Error fetching invoice with details:", error);
+    console.error("Error fetching invoice details:", error);
     throw error;
   }
 };

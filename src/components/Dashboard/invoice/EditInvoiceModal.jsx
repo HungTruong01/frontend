@@ -12,7 +12,7 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
   const [formData, setFormData] = useState({
     id: "",
     partnerId: "",
-    invoiceTypeId: 1,
+    invoiceTypeId: "",
     orderId: "",
     totalAmount: "",
     paidAmount: "",
@@ -39,9 +39,9 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
         try {
           const [partnersData, invoiceTypesData, ordersData] =
             await Promise.all([
-              getAllPartners(0, 100, "id", "asc"),
+              getAllPartners(0, 1000, "id", "asc"),
               getAllInvoiceTypes(0, 100, "id", "asc"),
-              getAllOrders(0, 100, "id", "asc"),
+              getAllOrders(0, 1000, "id", "asc"),
             ]);
 
           setPartners(partnersData.data.content || []);
@@ -52,7 +52,7 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
           setFormData({
             id: invoice.id || "",
             partnerId: partnerId.toString(),
-            invoiceTypeId: invoice.invoiceTypeId || 1,
+            invoiceTypeId: invoice.invoiceTypeId || "",
             orderId: invoice.orderId?.toString() || "",
             totalAmount: invoice.order?.totalMoney || 0,
             paidAmount:

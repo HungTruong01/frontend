@@ -83,11 +83,11 @@ const OverviewDashboard = () => {
         const revenueResponse = await analyzeWithCondition(currentYear);
         const monthlyData = revenueResponse.content || [];
 
-        const ordersResponse = await getAllOrders(0, 100, "id", "desc");
+        const ordersResponse = await getAllOrders(0, 1000, "id", "desc");
         const orders = ordersResponse.content || [];
 
-        const partnersResponse = await getAllPartners(0, 100, "id", "asc");
-        const partners = partnersResponse.content || [];
+        const partnersResponse = await getAllPartners(0, 1000, "id", "asc");
+        const partners = partnersResponse.data.content || [];
 
         const transactionsResponse = await getAllWarehouseTransaction(
           0,
@@ -197,7 +197,7 @@ const OverviewDashboard = () => {
         setFilteredTransactions(warehouseTransactionsData);
 
         // Cập nhật danh sách đơn hàng gần đây
-        const recentOrdersData = orders.slice(0, 3).map((order) => {
+        const recentOrdersData = orders.slice(0, 10).map((order) => {
           const partner = partners.find((p) => p.id === order.partnerId);
           return {
             id: order.id,

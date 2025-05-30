@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FaTimes } from "react-icons/fa";
-import { getInvoiceWithDetails } from "@/api/invoiceApi";
+import { getInvoiceDetail } from "@/api/invoiceApi";
 import { FaUser } from "react-icons/fa";
 import { FaInfoCircle } from "react-icons/fa";
 import { FaGift } from "react-icons/fa6";
@@ -22,7 +22,7 @@ const InvoiceDetailModal = ({ isOpen, onClose, invoice }) => {
   const fetchInvoiceDetails = async () => {
     if (isOpen && invoice && invoice.id) {
       try {
-        const data = await getInvoiceWithDetails(invoice.id);
+        const data = await getInvoiceDetail(invoice.id);
         setInvoiceDetails(data);
       } catch (err) {
         console.error("Lỗi khi lấy chi tiết hóa đơn:", err);
@@ -68,11 +68,6 @@ const InvoiceDetailModal = ({ isOpen, onClose, invoice }) => {
     return Math.max(total - paid, 0);
   };
 
-  const getInvoiceTypeName = (typeId) => {
-    const type = invoiceTypes.find((t) => t.id === typeId);
-    return type ? type.name : "Không xác định";
-  };
-
   if (!isOpen || !invoice) return null;
 
   return (
@@ -104,8 +99,8 @@ const InvoiceDetailModal = ({ isOpen, onClose, invoice }) => {
                   <FaInfoCircle className="h-5 w-5 mr-2 text-blue-600" />
                   Thông tin chung
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
                     <label className="block text-sm font-medium text-gray-600 mb-1">
                       Mã hóa đơn
                     </label>
@@ -113,20 +108,28 @@ const InvoiceDetailModal = ({ isOpen, onClose, invoice }) => {
                       {invoiceDetails.id || "N/A"}
                     </p>
                   </div>
-                  <div>
+                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
                     <label className="block text-sm font-medium text-gray-600 mb-1">
                       Loại hóa đơn
                     </label>
                     <p className="font-medium text-gray-800">
-                      {getInvoiceTypeName(invoiceDetails.invoiceTypeId)}
+                      {invoiceDetails.invoiceType.name}
                     </p>
                   </div>
-                  <div>
+                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
                     <label className="block text-sm font-medium text-gray-600 mb-1">
                       Ngày lập
                     </label>
                     <p className="font-medium text-gray-800">
                       {formatDate(invoiceDetails.createdAt)}
+                    </p>
+                  </div>
+                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                    <label className="block text-sm font-medium text-gray-600 mb-1">
+                      Hình thức thanh toán
+                    </label>
+                    <p className="font-medium text-gray-800">
+                      {invoiceDetails.paymentType}
                     </p>
                   </div>
                 </div>
@@ -200,8 +203,8 @@ const InvoiceDetailModal = ({ isOpen, onClose, invoice }) => {
                         </tr>
                       </thead>
                       <tbody>
-                        {invoiceDetails.order.items?.length > 0 ? (
-                          invoiceDetails.order.items.map((item, index) => (
+                        {invoiceDetails.items?.length > 0 ? (
+                          invoiceDetails.items.map((item, index) => (
                             <tr
                               key={index}
                               className={`border-t border-gray-200 ${

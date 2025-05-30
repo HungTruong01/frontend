@@ -14,7 +14,7 @@ import {
   getAllInvoicesWithPartnerName,
   deleteInvoice,
   updateInvoice,
-  getInvoiceWithDetails,
+  getInvoiceDetail,
 } from "@/api/invoiceApi";
 import { getAllInvoiceTypes } from "@/api/invoiceTypeApi";
 import { toast } from "react-toastify";
@@ -44,7 +44,7 @@ const ListInvoice = () => {
   const fetchData = async () => {
     try {
       const [invoiceRes, invoiceTypeRes] = await Promise.all([
-        getAllInvoicesWithPartnerName(0, 100, "id", "asc"),
+        getAllInvoicesWithPartnerName(0, 1000, "id", "asc"),
         getAllInvoiceTypes(0, 100, "id", "asc"),
       ]);
       setAllInvoices(invoiceRes.content);
@@ -177,7 +177,7 @@ const ListInvoice = () => {
 
   const handleEditClick = async (invoice) => {
     try {
-      const fullInvoice = await getInvoiceWithDetails(invoice.id);
+      const fullInvoice = await getInvoiceDetail(invoice.id);
       setSelectedInvoice(fullInvoice);
       setIsEditModalOpen(true);
     } catch (error) {
@@ -198,7 +198,7 @@ const ListInvoice = () => {
   const handleEditSubmit = async (updatedInvoice) => {
     try {
       await updateInvoice(updatedInvoice.id, updatedInvoice);
-      const refreshedInvoice = await getInvoiceWithDetails(updatedInvoice.id);
+      const refreshedInvoice = await getInvoiceDetail(updatedInvoice.id);
       refreshedInvoice.partnerName = refreshedInvoice.partner?.name || "N/A";
 
       setAllInvoices((prev) =>
