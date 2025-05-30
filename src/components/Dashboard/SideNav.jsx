@@ -69,8 +69,9 @@ const SideNav = ({ menuItems, onToggle }) => {
         return false; // Chỉ ROLE_ADMIN và ROLE_ADMIN_BGD mới có quyền
       case "Danh mục":
       case "Quảng bá":
-      case "Kinh doanh":
         return role === "ROLE_ADMIN_KD";
+      case "Kinh doanh":
+        return role === "ROLE_ADMIN_KD" || role === "ROLE_ADMIN_TCKT";
       case "Kho":
         return role === "ROLE_ADMIN_K";
       case "Tổng quan":
@@ -79,6 +80,28 @@ const SideNav = ({ menuItems, onToggle }) => {
       default:
         return true;
     }
+  };
+
+  const canAccessSubmenu = (menuName, submenuName) => {
+    // Cho phép ROLE_ADMIN và ROLE_ADMIN_BGD truy cập tất cả
+    if (role === "ROLE_ADMIN" || role === "ROLE_ADMIN_BLD") {
+        return true;
+    }
+
+    if (menuName === "Kinh doanh") {
+        if (role === "ROLE_ADMIN_KD") {
+            return ["Đối tác", "Đơn hàng"].includes(submenuName);
+        }
+        if (role === "ROLE_ADMIN_TCKT") {
+            // Sửa lại để so sánh với "Hoá đơn" thay vì "Hóa đơn"
+            const result = submenuName === "Hoá đơn";
+            console.log('TCKT checking:', {submenuName, result});
+            return result;
+        }
+        return false;
+    }
+
+    return true; // Cho phép các menu khác hiện tất cả submenu
   };
 
   return (
@@ -146,22 +169,25 @@ const SideNav = ({ menuItems, onToggle }) => {
                       {openSubmenu[item.name] && !isCollapsed && (
                         <ul className="mt-1 space-y-1">
                           {item.subpages.map((subItem) => (
-                            <li key={subItem.name}>
-                              <NavLink
-                                end
-                                to={subItem.path}
-                                className={({ isActive }) =>
-                                  `flex items-center gap-4 px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md transition-colors text-sm ml-4 ${
-                                    isActive
-                                      ? "bg-blue-50 text-blue-600 font-semibold"
-                                      : "hover:text-gray-800"
-                                  }`
-                                }
-                              >
-                                {subItem.icon}
-                                <span>{subItem.name}</span>
-                              </NavLink>
-                            </li>
+                            // Chỉ render submenu nếu có quyền truy cập
+                            canAccessSubmenu(item.name, subItem.name) && (
+                              <li key={subItem.name}>
+                                <NavLink
+                                  end
+                                  to={subItem.path}
+                                  className={({ isActive }) =>
+                                    `flex items-center gap-4 px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md transition-colors text-sm ml-4 ${
+                                      isActive
+                                        ? "bg-blue-50 text-blue-600 font-semibold"
+                                        : "hover:text-gray-800"
+                                    }`
+                                  }
+                                >
+                                  {subItem.icon}
+                                  <span>{subItem.name}</span>
+                                </NavLink>
+                              </li>
+                            )
                           ))}
                         </ul>
                       )}

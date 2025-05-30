@@ -235,7 +235,7 @@ const App = () => {
           <Route
             path="business/invoice-management"
             element={
-              <PrivateRoute menuName="Kinh doanh">
+              <PrivateRoute menuName="Kinh doanh" subMenuName="Hóa đơn">
                 <ListInvoice />
               </PrivateRoute>
             }
