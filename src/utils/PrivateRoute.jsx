@@ -4,15 +4,15 @@ import { getRole } from '@/api/authService';
 const PrivateRoute = ({ children, menuName, subMenuName }) => {
   const role = getRole();
 
-  // Cho phép ROLE_ADMIN và ROLE_ADMIN_BGD truy cập tất cả
-  if (role === "ROLE_ADMIN" || role === "ROLE_ADMIN_BLD") {
+  // Chỉ ROLE_ADMIN mới có quyền truy cập tất cả
+  if (role === "ROLE_ADMIN") {
     return children;
   }
 
   const canAccess = () => {
     switch (menuName) {
       case "Hệ thống":
-        return false;
+        return role === "ROLE_ADMIN_QTV";
       case "Kinh doanh":
         // Kiểm tra submenu Hóa đơn
         if (subMenuName === "Hóa đơn") {
@@ -26,9 +26,9 @@ const PrivateRoute = ({ children, menuName, subMenuName }) => {
         return role === "ROLE_ADMIN_K";
       case "Tổng quan":
       case "Báo cáo":
-        return role === "ROLE_ADMIN_TCKT";
+        return role === "ROLE_ADMIN_BLD" || role === "ROLE_ADMIN_TCKT";
       default:
-        return true;
+        return false;
     }
   };
 

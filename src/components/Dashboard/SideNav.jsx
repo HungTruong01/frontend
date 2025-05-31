@@ -58,15 +58,15 @@ const SideNav = ({ menuItems, onToggle }) => {
   };
 
   const canAccessMenu = (menuName) => {
-    // Cho phép ROLE_ADMIN và ROLE_ADMIN_BGD truy cập tất cả
-    if (role === "ROLE_ADMIN" || role === "ROLE_ADMIN_BLD") {
+    // Chỉ ROLE_ADMIN mới có quyền truy cập tất cả
+    if (role === "ROLE_ADMIN") {
       return true;
     }
 
     // Kiểm tra quyền cho các role khác
     switch (menuName) {
       case "Hệ thống":
-        return false; // Chỉ ROLE_ADMIN và ROLE_ADMIN_BGD mới có quyền
+        return role === "ROLE_ADMIN_QTV";
       case "Danh mục":
       case "Quảng bá":
         return role === "ROLE_ADMIN_KD";
@@ -76,15 +76,15 @@ const SideNav = ({ menuItems, onToggle }) => {
         return role === "ROLE_ADMIN_K";
       case "Tổng quan":
       case "Báo cáo":
-        return role === "ROLE_ADMIN_TCKT";
+        return role === "ROLE_ADMIN_BLD" || role === "ROLE_ADMIN_TCKT";
       default:
-        return true;
+        return false;
     }
   };
 
   const canAccessSubmenu = (menuName, submenuName) => {
-    // Cho phép ROLE_ADMIN và ROLE_ADMIN_BGD truy cập tất cả
-    if (role === "ROLE_ADMIN" || role === "ROLE_ADMIN_BLD") {
+    // Chỉ ROLE_ADMIN mới có quyền truy cập tất cả submenu
+    if (role === "ROLE_ADMIN") {
         return true;
     }
 
@@ -93,10 +93,7 @@ const SideNav = ({ menuItems, onToggle }) => {
             return ["Đối tác", "Đơn hàng"].includes(submenuName);
         }
         if (role === "ROLE_ADMIN_TCKT") {
-            // Sửa lại để so sánh với "Hoá đơn" thay vì "Hóa đơn"
-            const result = submenuName === "Hoá đơn";
-            console.log('TCKT checking:', {submenuName, result});
-            return result;
+            return submenuName === "Hoá đơn";
         }
         return false;
     }

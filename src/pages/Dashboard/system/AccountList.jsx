@@ -29,6 +29,7 @@ const AccountList = () => {
     { id: 3, name: "ADMIN_TCKT", label: "Nhân viên tài chính kế toán" },
     { id: 4, name: "ADMIN_K", label: "Nhân viên XNK & kho vận" },
     { id: 5, name: "ADMIN_BLD", label: "Ban lãnh đạo" },
+    { id: 6, name: "ADMIN_QTV", label: "Quản trị viên" },
   ]);
   const columns = ["Mã", "Tên đăng nhập", "Ngày tạo", "Vai trò"];
 
