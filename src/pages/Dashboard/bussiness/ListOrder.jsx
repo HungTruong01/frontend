@@ -10,6 +10,7 @@ import { getAllDeliveryStatus } from "@/api/deliveryStatusApi";
 import { getAllPartners } from "@/api/partnerApi";
 import { exportExcel } from "@/utils/exportExcel";
 import { Pagination } from "@/utils/pagination";
+import { toast } from "react-toastify";
 
 const ListOrder = () => {
   const navigate = useNavigate();
@@ -32,80 +33,38 @@ const ListOrder = () => {
     direction: "desc",
   });
 
-  const fetchOrders = async () => {
+  const fetchAllData = async () => {
+    setIsLoading(true);
     try {
-      const response = await getAllOrders(0, 100, "id", "asc");
-      setOrders(response.content);
+      const [
+        order,
+        orderType,
+        orderStatus,
+        partners,
+        warehouseTransactions,
+        deliveryStatuses,
+      ] = await Promise.all([
+        getAllOrders(0, 100, "id", "asc"),
+        getAllOrderTypes(0, 100, "id", "asc"),
+        getAllOrderStatus(0, 100, "id", "asc"),
+        getAllPartners(0, 100, "id", "asc"),
+        getAllWarehouseTransaction(0, 100, "id", "asc"),
+        getAllDeliveryStatus(0, 100, "id", "asc"),
+      ]);
+      setOrders(order.content || []);
+      setOrderType(orderType.data.content || []);
+      setOrderStatus(orderStatus.data.content || []);
+      setPartners(partners.data.content || []);
+      setWarehouseTransactions(warehouseTransactions.content || []);
+      setDeliveryStatuses(deliveryStatuses.data.content || []);
+      setIsLoading(false);
     } catch (error) {
-      console.log("Error fetching orders", error);
-      setOrders([]);
-    }
-  };
-
-  const fetchOrderTypes = async () => {
-    try {
-      const response = await getAllOrderTypes();
-      setOrderType(response.content);
-    } catch (error) {
-      console.log("Error fetching order types", error);
-      setOrderType([]);
-    }
-  };
-
-  const fetchOrderStatus = async () => {
-    try {
-      const response = await getAllOrderStatus();
-      setOrderStatus(response.content);
-    } catch (error) {
-      console.log("Error fetching order status", error);
-      setOrderStatus([]);
-    }
-  };
-
-  const fetchPartners = async () => {
-    try {
-      const response = await getAllPartners(0, 100, "id", "asc");
-      setPartners(response.data.content);
-    } catch (error) {
-      console.log("Error fetching partners: ", error);
-      setPartners([]);
-    }
-  };
-
-  const fetchWarehouseTransactions = async () => {
-    try {
-      const response = await getAllWarehouseTransaction(0, 1000, "id", "asc");
-      setWarehouseTransactions(response.content);
-    } catch (error) {
-      console.log("Error fetching warehouse transactions: ", error);
-      setWarehouseTransactions([]);
-    }
-  };
-
-  const fetchDeliveryStatuses = async () => {
-    try {
-      const response = await getAllDeliveryStatus(0, 1000, "id", "asc");
-      setDeliveryStatuses(response.data.content || []);
-    } catch (error) {
-      console.log("Error fetching delivery statuses: ", error);
-      setDeliveryStatuses([]);
+      toast.error("Lỗi khi tải dữ liệu. Vui lòng thử lại sau!");
+      console.error("Error fetching data", error);
     }
   };
 
   useEffect(() => {
-    const fetchAllData = async () => {
-      setIsLoading(true);
-      await Promise.all([
-        fetchOrders(),
-        fetchOrderTypes(),
-        fetchOrderStatus(),
-        fetchPartners(),
-        fetchWarehouseTransactions(),
-        fetchDeliveryStatuses(),
-      ]);
-      setIsLoading(false);
-    };
-
     fetchAllData();
   }, []);
 

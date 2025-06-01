@@ -1,6 +1,7 @@
 import Table from "@/components/Dashboard/Table";
 import React, { useState, useEffect } from "react";
 import { getAllRoles, createRole, updateRole, deleteRole } from "@/api/roleApi";
+import { toast } from "react-toastify";
 
 const RoleUser = () => {
   const [roles, setRoles] = useState([]);
@@ -29,9 +30,14 @@ const RoleUser = () => {
     }
   };
 
+  useEffect(() => {
+    fetchRoles();
+  }, []);
+
   const handleAddRole = async (newRole) => {
     try {
       await createRole(newRole);
+      toast.success("Thêm vai trò thành công");
       fetchRoles();
     } catch (error) {
       console.error("Lỗi khi thêm vai trò:", error);
@@ -41,6 +47,7 @@ const RoleUser = () => {
   const handleEditRole = async (editedRole) => {
     try {
       await updateRole(editedRole.id, editedRole);
+      toast.success("Cập nhật vai trò thành công");
       fetchRoles();
     } catch (error) {
       console.error("Lỗi khi cập nhật vai trò:", error);
@@ -50,15 +57,12 @@ const RoleUser = () => {
   const handleDeleteRole = async (roleToDelete) => {
     try {
       await deleteRole(roleToDelete.id);
+      toast.success("Xóa vai trò thành công");
       fetchRoles();
     } catch (error) {
       console.error("Lỗi khi xóa vai trò:", error);
     }
   };
-
-  useEffect(() => {
-    fetchRoles();
-  }, []);
 
   return (
     <div>

@@ -5,6 +5,7 @@ import { getAllOrderStatus } from "@/api/orderStatusApi";
 import { getAllPartners } from "@/api/partnerApi";
 import { getAllProducts } from "@/api/productApi";
 import AddInvoiceModal from "../invoice/AddInvoiceModal";
+import { toast } from "react-toastify";
 
 const OrderDetailModal = ({ isOpen, onClose, orderData, onOrderUpdated }) => {
   const [paymentAmount, setPaymentAmount] = useState("");
@@ -17,41 +18,34 @@ const OrderDetailModal = ({ isOpen, onClose, orderData, onOrderUpdated }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
 
-  const fetchOrderTypes = async () => {
+  const fetchAllData = async () => {
+    setIsLoading(true);
     try {
-      const response = await getAllOrderTypes();
-      setOrderType(response.content);
+      const [
+        orderTypesResponse,
+        orderStatusResponse,
+        productsResponse,
+        partnersResponse,
+      ] = await Promise.all([
+        getAllOrderTypes(0, 100, "id", "asc"),
+        getAllOrderStatus(0, 100, "id", "asc"),
+        getAllProducts(0, 100, "id", "asc"),
+        getAllPartners(0, 100, "id", "asc"),
+      ]);
+      setOrderType(orderTypesResponse.data.content);
+      setOrderStatus(orderStatusResponse.data.content);
+      setProducts(productsResponse.data?.content || []);
+      setPartners(partnersResponse.data.content || []);
     } catch (error) {
-      console.error("Lỗi tải loại đơn hàng:", error);
+      toast.error("Lỗi tải dữ liệu: " + error.message);
+      console.error("Lỗi tải dữ liệu:", error);
     }
+    setIsLoading(false);
   };
 
-  const fetchOrderStatus = async () => {
-    try {
-      const response = await getAllOrderStatus();
-      setOrderStatus(response.content);
-    } catch (error) {
-      console.error("Lỗi tải trạng thái đơn hàng:", error);
-    }
-  };
-
-  const fetchProducts = async () => {
-    try {
-      const response = await getAllProducts(0, 100, "id", "asc");
-      setProducts(response.data?.content);
-    } catch (error) {
-      console.error("Lỗi tải sản phẩm:", error);
-    }
-  };
-
-  const fetchPartners = async () => {
-    try {
-      const response = await getAllPartners(0, 100, "id", "asc");
-      setPartners(response.data.content);
-    } catch (error) {
-      console.error("Lỗi tải đối tác:", error);
-    }
-  };
+  useEffect(() => {
+    fetchAllData();
+  }, []);
 
   useEffect(() => {
     if (orderData?.orderDetails && products.length > 0) {
@@ -67,20 +61,6 @@ const OrderDetailModal = ({ isOpen, onClose, orderData, onOrderUpdated }) => {
       setOrderItems(enhancedItems);
     }
   }, [orderData, products]);
-
-  useEffect(() => {
-    const fetchAllData = async () => {
-      setIsLoading(true);
-      await Promise.all([
-        fetchOrderStatus(),
-        fetchOrderTypes(),
-        fetchPartners(),
-        fetchProducts(),
-      ]);
-      setIsLoading(false);
-    };
-    fetchAllData();
-  }, []);
 
   useEffect(() => {
     if (orderData) {

@@ -2,9 +2,8 @@ import axios from "axios";
 
 const BASE_REST_API_URL = "http://localhost:3000/api/posts";
 
-axios.defaults.withCredentials = true; // Đảm bảo axios gửi cookies cùng yêu cầu
+axios.defaults.withCredentials = true;
 
-// Thêm interceptors để debug
 axios.interceptors.request.use((request) => {
   return request;
 });
