@@ -443,8 +443,8 @@ const AddInvoiceModal = ({
                     required
                   >
                     <option value="">Chọn hình thức</option>
-                    <option value="Tiền mặt">Tiền mặt</option>
-                    <option value="Chuyển khoản">Chuyển khoản</option>
+                    <option value="CASH">Tiền mặt</option>
+                    <option value="TRANSFER">Chuyển khoản</option>
                   </select>
                 </div>
               </div>

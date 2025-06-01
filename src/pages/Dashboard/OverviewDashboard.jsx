@@ -10,6 +10,7 @@ import { analyzeWithCondition, getAllOrders } from "@/api/orderApi";
 import { getAllPartners } from "@/api/partnerApi";
 import { getAllWarehouseTransaction } from "@/api/warehouseTransactionApi";
 import { getAllWarehouseTransactionType } from "@/api/warehouseTransactionTypeApi";
+import { getAllWarehouse } from "@/api/warehouseApi";
 import { Pie, Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -41,6 +42,7 @@ const OverviewDashboard = () => {
   });
 
   const [warehouseTransactions, setWarehouseTransactions] = useState([]);
+  const [warehouses, setWarehouses] = useState([]);
   const [filteredTransactions, setFilteredTransactions] = useState([]);
   const [recentOrders, setRecentOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -73,32 +75,37 @@ const OverviewDashboard = () => {
     ],
   });
 
+  const getWarehouseName = (warehouseId) => {
+    const warehouse = warehouses.find((w) => w.id === warehouseId);
+    return warehouse ? warehouse.name : "Không xác định";
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         const currentYear = new Date().getFullYear();
-
-        // Lấy dữ liệu doanh thu theo tháng
-        const revenueResponse = await analyzeWithCondition(currentYear);
+        const [
+          revenueResponse,
+          ordersResponse,
+          partnersResponse,
+          transactionsResponse,
+          transactionTypesResponse,
+          warehousesResponse,
+        ] = await Promise.all([
+          analyzeWithCondition(currentYear),
+          getAllOrders(0, 100, "id", "desc"),
+          getAllPartners(0, 100, "id", "asc"),
+          getAllWarehouseTransaction(0, 100, "id", "desc"),
+          getAllWarehouseTransactionType(0, 100, "id", "asc"),
+          getAllWarehouse(0, 100, "id", "asc"),
+        ]);
+        setWarehouses(warehousesResponse.content);
         const monthlyData = revenueResponse.content || [];
-
-        const ordersResponse = await getAllOrders(0, 1000, "id", "desc");
         const orders = ordersResponse.content || [];
-
-        const partnersResponse = await getAllPartners(0, 1000, "id", "asc");
         const partners = partnersResponse.data.content || [];
-
-        const transactionsResponse = await getAllWarehouseTransaction(
-          0,
-          1000,
-          "id",
-          "desc"
-        );
-        const transactions = transactionsResponse.content;
-
-        const typesResponse = await getAllWarehouseTransactionType();
-        const transactionTypes = typesResponse.content;
+        const transactions = transactionsResponse.content || [];
+        const transactionTypes = transactionTypesResponse.content || [];
 
         // Tính toán tổng doanh thu và lợi nhuận
         const totalRevenue = monthlyData.reduce(
@@ -169,32 +176,28 @@ const OverviewDashboard = () => {
         });
 
         // Cập nhật danh sách giao dịch kho
-        const warehouseTransactionsData = transactions.map((transaction) => {
-          const type = transactionTypes.find(
-            (t) => t.id === transaction.transactionTypeId
-          );
-          return {
-            id: transaction.id,
-            orderCode: `DH${transaction.orderId}`,
-            type: type?.name || "Không xác định",
-            date: new Date(transaction.createdAt).toLocaleDateString("vi-VN"),
-            status:
-              transaction.statusId === 1
-                ? "Hoàn thành"
-                : transaction.statusId === 2
-                ? "Đang xử lý"
-                : "Không thành công",
-            warehouse:
-              transaction.warehouseId === 1
-                ? "Kho An Lão"
-                : transaction.warehouseId === 2
-                ? "Kho Cát Hải"
-                : "Không xác định",
-            participant: transaction.participant || "Không xác định",
-          };
-        });
+        const warehouseTransactionsData = transactions
+          .slice(0, 10)
+          .map((transaction) => {
+            const type = transactionTypes.find(
+              (t) => t.id === transaction.transactionTypeId
+            );
+            return {
+              id: transaction.id,
+              orderCode: `DH${transaction.orderId}`,
+              type: type?.name || "Không xác định",
+              date: new Date(transaction.createdAt).toLocaleDateString("vi-VN"),
+              status:
+                transaction.statusId === 1
+                  ? "Hoàn thành"
+                  : transaction.statusId === 2
+                  ? "Đang xử lý"
+                  : "Không thành công",
+              warehouseId: transaction.warehouseId,
+              participant: transaction.participant || "Không xác định",
+            };
+          });
         setWarehouseTransactions(warehouseTransactionsData);
-        setFilteredTransactions(warehouseTransactionsData);
 
         // Cập nhật danh sách đơn hàng gần đây
         const recentOrdersData = orders.slice(0, 10).map((order) => {
@@ -242,7 +245,7 @@ const OverviewDashboard = () => {
     // Lọc theo kho
     if (filters.warehouse !== "all") {
       filtered = filtered.filter(
-        (transaction) => transaction.warehouse === filters.warehouse
+        (transaction) => transaction.warehouseId === Number(filters.warehouse)
       );
     }
 
@@ -390,8 +393,11 @@ const OverviewDashboard = () => {
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="all">Tất cả kho</option>
-                <option value="Kho An Lão">Kho An Lão</option>
-                <option value="Kho Cát Hải">Kho Cát Hải</option>
+                {warehouses.map((warehouse) => (
+                  <option key={warehouse.id} value={warehouse.id}>
+                    {warehouse.name}
+                  </option>
+                ))}
               </select>
               <select
                 value={filters.type}
@@ -440,7 +446,7 @@ const OverviewDashboard = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredTransactions.slice(0, 5).map((transaction) => (
+              {warehouseTransactions.map((transaction) => (
                 <tr
                   key={transaction.id}
                   className="border-b border-gray-100 hover:bg-gray-50 transition"
@@ -452,7 +458,7 @@ const OverviewDashboard = () => {
                     {transaction.type}
                   </td>
                   <td className="py-3 px-4 text-sm text-gray-600">
-                    {transaction.warehouse}
+                    {getWarehouseName(transaction.warehouseId)}
                   </td>
                   <td className="py-3 px-4 text-sm text-gray-600">
                     {transaction.participant}
@@ -497,7 +503,7 @@ const OverviewDashboard = () => {
                 <th className="py-3 px-4 text-sm font-semibold text-gray-700 text-right">
                   Tổng tiền (VND)
                 </th>
-                <th className="py-3 px-4 text-sm font-semibold text-gray-700 text-left">
+                <th className="py-3 px-4 text-sm font-semibold text-gray-700 text-center">
                   Trạng thái
                 </th>
               </tr>
@@ -517,7 +523,7 @@ const OverviewDashboard = () => {
                   <td className="py-3 px-4 text-sm text-gray-600 text-right">
                     {order.total.toLocaleString("vi-VN")}
                   </td>
-                  <td className="py-3 px-4 text-sm">
+                  <td className="py-3 px-4 text-sm text-center">
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-semibold ${
                         order.status === "Đã thanh toán"

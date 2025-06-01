@@ -1,7 +1,6 @@
 import axios from "axios";
 import { getOrderById } from "./orderApi";
 import { getPartnerById } from "./partnerApi";
-import { getProductById } from "./productApi";
 
 const axiosInstance = axios.create({
   baseURL: "http://localhost:3000/api",
@@ -13,12 +12,7 @@ const axiosInstance = axios.create({
   withCredentials: true,
 });
 
-export const getAllInvoices = async (
-  pageNo = 0,
-  pageSize = 1000,
-  sortBy = "id",
-  sortDir = "asc"
-) => {
+export const getAllInvoices = async (pageNo, pageSize, sortBy, sortDir) => {
   try {
     const response = await axiosInstance.get(
       `/invoices?pageNo=${pageNo}&pageSize=${pageSize}&sortBy=${sortBy}&sortDir=${sortDir}`

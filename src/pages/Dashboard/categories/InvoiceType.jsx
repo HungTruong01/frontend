@@ -23,9 +23,9 @@ const InvoiceType = () => {
   ];
   const fetchInvoiceType = async () => {
     try {
-      const response = await getAllInvoiceTypes();
+      const response = await getAllInvoiceTypes(0, 100, "id", "asc");
       // console.log("API response:", response);
-      setInvoiceType(response.content);
+      setInvoiceType(response.data.content);
     } catch (error) {
       console.error("Lỗi khi lấy danh sách loại hoá đơn:", error);
     }

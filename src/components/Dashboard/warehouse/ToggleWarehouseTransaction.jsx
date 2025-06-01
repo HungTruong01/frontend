@@ -60,10 +60,10 @@ const ToggleWarehouseTransaction = ({
         ] = await Promise.all([
           getAllOrders(0, 100, "id", "asc"),
           getAllDeliveryStatus(0, 100, "id", "asc"),
-          getAllWarehouseTransactionType(),
-          getAllWarehouse(),
+          getAllWarehouseTransactionType(0, 100, "id", "asc"),
+          getAllWarehouse(0, 100, "id", "asc"),
           getAllEmployees(0, 100, "id", "asc"),
-          getAllWarehouseTransaction(0, 1000, "id", "asc"),
+          getAllWarehouseTransaction(0, 100, "id", "asc"),
         ]);
 
         const usedOrderIds = transactionRes.content.map((tran) => tran.orderId);

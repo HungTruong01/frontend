@@ -37,9 +37,9 @@ const ToggleWarehouseTransfer = ({
     const fetchData = async () => {
       try {
         const [productsRes, statusesRes, warehousesRes] = await Promise.all([
-          getAllProducts(0, 1000, "id", "asc"),
+          getAllProducts(0, 100, "id", "asc"),
           getAllDeliveryStatus(0, 100, "id", "asc"),
-          getAllWarehouse(),
+          getAllWarehouse(0, 100, "id", "asc"),
         ]);
 
         setProducts(productsRes.data?.content || productsRes.data || []);

@@ -5,7 +5,6 @@ import { getAllOrderStatus } from "@/api/orderStatusApi";
 import { getAllPartners } from "@/api/partnerApi";
 import { getAllProducts } from "@/api/productApi";
 import AddInvoiceModal from "../invoice/AddInvoiceModal";
-import { toast } from "react-toastify";
 
 const OrderDetailModal = ({ isOpen, onClose, orderData, onOrderUpdated }) => {
   const [paymentAmount, setPaymentAmount] = useState("");

@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { FaTimes } from "react-icons/fa";
-import { getAllPartners } from "@/api/partnerApi";
+import { FaTimes, FaInfoCircle, FaUser } from "react-icons/fa";
 import { getAllInvoiceTypes } from "@/api/invoiceTypeApi";
-import { getAllOrders, getOrderById } from "@/api/orderApi";
-import { getProductById } from "@/api/productApi";
 import { BsBoxSeam } from "react-icons/bs";
-import { FaUser } from "react-icons/fa";
-import { FaInfoCircle } from "react-icons/fa";
 import { FaGift } from "react-icons/fa6";
+import { IoInformationCircleSharp } from "react-icons/io5";
+import { toast } from "react-toastify";
+
 const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
   const [formData, setFormData] = useState({
     id: "",
@@ -18,11 +16,6 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
     paidAmount: "",
     paymentType: "",
   });
-
-  const [partners, setPartners] = useState([]);
-  const [invoiceTypes, setInvoiceTypes] = useState([]);
-  const [orders, setOrders] = useState([]);
-  const [filteredOrders, setFilteredOrders] = useState([]);
   const [partnerDetails, setPartnerDetails] = useState({
     name: "",
     phone: "",
@@ -30,173 +23,65 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
     address: "",
   });
   const [orderDetails, setOrderDetails] = useState([]);
+  const [invoiceTypes, setInvoiceTypes] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  const fetchInvoiceTypes = async () => {
+    try {
+      const types = await getAllInvoiceTypes(0, 100, "id", "asc");
+      setInvoiceTypes(types.data.content || []);
+    } catch (error) {
+      console.error("Error fetching invoice types:", error);
+      toast.error("Không thể tải loại hóa đơn.");
+    }
+  };
+
   useEffect(() => {
-    const fetchInitialData = async () => {
-      if (isOpen && invoice) {
-        setLoading(true);
-        try {
-          const [partnersData, invoiceTypesData, ordersData] =
-            await Promise.all([
-              getAllPartners(0, 1000, "id", "asc"),
-              getAllInvoiceTypes(0, 100, "id", "asc"),
-              getAllOrders(0, 1000, "id", "asc"),
-            ]);
+    fetchInvoiceTypes();
+  }, []);
 
-          setPartners(partnersData.data.content || []);
-          setInvoiceTypes(invoiceTypesData.data.content || []);
-          setOrders(ordersData.content || []);
+  const fetchInitialData = async () => {
+    if (isOpen && invoice && invoice.id) {
+      setLoading(true);
+      console.log(invoice);
+      try {
+        const paymentTypeMap = {
+          "Tiền mặt": "CASH",
+          "Chuyển khoản": "TRANSFER",
+        };
 
-          const partnerId = invoice.order?.partnerId || "";
-          setFormData({
-            id: invoice.id || "",
-            partnerId: partnerId.toString(),
-            invoiceTypeId: invoice.invoiceTypeId || "",
-            orderId: invoice.orderId?.toString() || "",
-            totalAmount: invoice.order?.totalMoney || 0,
-            paidAmount:
-              invoice.moneyAmount
-                ?.toString()
-                .replace(/\B(?=(\d{3})+(?!\d))/g, ".") || "",
-            paymentType: invoice.paymentType || "CASH",
-          });
+        setFormData({
+          id: invoice.id || "",
+          partnerId: invoice.partner.id.toString() || "",
+          invoiceTypeId: invoice.invoiceType.id || "",
+          orderId: invoice.order?.id?.toString() || "",
+          totalAmount: invoice.order?.totalMoney || 0,
+          paidAmount:
+            invoice.moneyAmount
+              ?.toString()
+              .replace(/\B(?=(\d{3})+(?!\d))/g, ".") || "",
+          paymentType: paymentTypeMap[invoice.paymentType] || "",
+        });
 
-          if (invoice.partner) {
-            setPartnerDetails({
-              name: invoice.partner.name || "",
-              phone: invoice.partner.phone || "",
-              email: invoice.partner.email || "",
-              address: invoice.partner.address || "",
-            });
-          }
-
-          if (partnerId) {
-            const filtered = ordersData.content.filter(
-              (order) => order.partnerId === parseInt(partnerId)
-            );
-            setFilteredOrders(filtered);
-          } else {
-            setFilteredOrders(ordersData.content || []);
-          }
-        } catch (err) {
-          setError("Không thể tải dữ liệu từ server.");
-          console.error(err);
-        } finally {
-          setLoading(false);
-        }
+        setPartnerDetails({
+          name: invoice.partner.name || "",
+          phone: invoice.partner.phone || "",
+          email: invoice.partner.email || "",
+          address: invoice.partner.address || "",
+        });
+        setOrderDetails(invoice.items || []);
+      } catch (err) {
+        console.error(err);
+        toast.error("Không thể tải dữ liệu hóa đơn.");
+      } finally {
+        setLoading(false);
       }
-    };
+    }
+  };
 
+  useEffect(() => {
     fetchInitialData();
   }, [isOpen, invoice]);
-
-  useEffect(() => {
-    if (formData.partnerId) {
-      const filtered = orders.filter(
-        (order) => order.partnerId === parseInt(formData.partnerId)
-      );
-      setFilteredOrders(filtered);
-
-      const orderExists = filtered.some(
-        (order) => order.id === parseInt(formData.orderId)
-      );
-      if (!orderExists) {
-        setFormData((prev) => ({ ...prev, orderId: "", totalAmount: 0 }));
-        setOrderDetails([]);
-      }
-
-      const selectedPartner = partners.find(
-        (p) => p.id === parseInt(formData.partnerId)
-      );
-      if (selectedPartner) {
-        setPartnerDetails({
-          name: selectedPartner.name || "",
-          phone: selectedPartner.phone || "",
-          email: selectedPartner.email || "",
-          address: selectedPartner.address || "",
-        });
-      }
-    } else {
-      setFilteredOrders(orders);
-      setPartnerDetails({
-        name: "",
-        phone: "",
-        email: "",
-        address: "",
-      });
-      setOrderDetails([]);
-    }
-  }, [formData.partnerId, orders, partners]);
-
-  useEffect(() => {
-    const fetchOrderDetails = async () => {
-      const selectedOrderId = parseInt(formData.orderId, 10) || null;
-      if (selectedOrderId) {
-        setLoading(true);
-        try {
-          const orderData = await getOrderById(selectedOrderId);
-
-          if (!orderData || !orderData.orderDetails?.length) {
-            setError(
-              `Không tìm thấy chi tiết đơn hàng cho orderId ${selectedOrderId}`
-            );
-            setOrderDetails([]);
-            setFormData((prev) => ({ ...prev, totalAmount: 0 }));
-            setLoading(false);
-            return;
-          }
-
-          const details = orderData.orderDetails;
-          const detailedItems = await Promise.all(
-            details.map(async (detail, index) => {
-              try {
-                const product = await getProductById(detail.productId);
-                return {
-                  id: index + 1,
-                  productId: detail.productId,
-                  productName: product?.name || `Sản phẩm ${detail.productId}`,
-                  quantity: detail.quantity || 0,
-                  unitPrice: detail?.unit_price || 0,
-                  total: (detail.quantity || 0) * (detail?.unit_price || 0),
-                };
-              } catch (err) {
-                console.error(`Lỗi lấy sản phẩm ${detail.productId}:`, err);
-                return {
-                  id: index + 1,
-                  productId: detail.productId,
-                  productName: `Sản phẩm ${detail.productId}`,
-                  quantity: detail.quantity || 0,
-                  unitPrice: detail.unit_price || 0,
-                  total: (detail.quantity || 0) * (detail.unit_price || 0),
-                };
-              }
-            })
-          );
-
-          setOrderDetails(detailedItems);
-          setFormData((prev) => ({
-            ...prev,
-            totalAmount: orderData.totalMoney || 0,
-          }));
-        } catch (err) {
-          setError("Không thể tải chi tiết đơn hàng.");
-          console.error(err);
-          setOrderDetails([]);
-          setFormData((prev) => ({ ...prev, totalAmount: 0 }));
-        } finally {
-          setLoading(false);
-        }
-      } else {
-        setOrderDetails([]);
-        setFormData((prev) => ({ ...prev, totalAmount: 0 }));
-      }
-    };
-
-    if (formData.orderId) {
-      fetchOrderDetails();
-    }
-  }, [formData.orderId]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -228,36 +113,18 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
       moneyAmount: paidAmount,
       paymentType: formData.paymentType || null,
     };
-    if (!updatedInvoice.invoiceTypeId) {
-      setError("Vui lòng chọn loại hóa đơn");
-      return;
-    }
-    if (!updatedInvoice.orderId) {
-      setError("Vui lòng chọn đơn hàng");
-      return;
-    }
-    if (!updatedInvoice.paymentType) {
-      setError("Vui lòng chọn hình thức thanh toán");
-      return;
-    }
-    // console.log("submit", updatedInvoice);
     onSubmit(updatedInvoice);
     onClose();
   };
 
-  const calculateRemainingAmount = () => {
-    const paidAmount = parseFloat(formData.paidAmount?.replace(/\./g, "")) || 0;
-    const totalAmount = parseFloat(formData.totalAmount) || 0;
-    const order = orders.find((o) => o.id === parseInt(formData.orderId));
-    const otherPaidMoney = (order?.paidMoney || 0) - (invoice.moneyAmount || 0);
-    return Math.max(totalAmount - otherPaidMoney - paidAmount, 0);
-  };
-
-  const calculateTotalPaidForOrder = () => {
-    const order = orders.find((o) => o.id === parseInt(formData.orderId));
-    const otherPaidMoney = (order?.paidMoney || 0) - (invoice.moneyAmount || 0);
-    return otherPaidMoney;
-  };
+  const totalPaidForOrder =
+    (invoice?.order?.paidMoney || 0) - (invoice?.moneyAmount || 0);
+  const remainingAmount = Math.max(
+    (invoice?.order?.totalMoney || 0) -
+      totalPaidForOrder -
+      (parseFloat(formData.paidAmount.replace(/\./g, "")) || 0),
+    0
+  );
 
   if (!isOpen || !invoice) return null;
 
@@ -373,29 +240,15 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
                         : "bg-white border-gray-300 hover:border-blue-300"
                     }`}
                     required
-                    disabled={!formData.partnerId}
+                    disabled
                   >
-                    <option value="">Chọn mã đơn hàng</option>
-                    {filteredOrders.map((order) => (
-                      <option key={order.id} value={order.id}>
-                        {order.code || `DH${order.id}`}
-                      </option>
-                    ))}
+                    <option value={invoice.order.id}>
+                      {`DH${invoice.order.id}`}
+                    </option>
                   </select>
                   {!formData.partnerId && (
                     <p className="text-xs text-blue-600 mt-2 flex items-center">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-4 w-4 mr-1"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9a1 1 0 00-1-1z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
+                      <IoInformationCircleSharp className="h-4 w-4 mr-1" />
                       Vui lòng chọn đối tác trước
                     </p>
                   )}
@@ -474,19 +327,17 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
                       orderDetails.map((item, index) => (
                         <tr
                           key={index}
-                          className={`border-t border-gray-200 ${
-                            index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                          }`}
+                          className="border-t border-gray-200 bg-white"
                         >
                           <td className="px-6 py-4">{item.productName}</td>
                           <td className="px-6 py-4 text-right">
                             {item.quantity}
                           </td>
                           <td className="px-6 py-4 text-right">
-                            {item.unitPrice?.toLocaleString()} VNĐ
+                            {item.unitPrice.toLocaleString()} VNĐ
                           </td>
                           <td className="px-6 py-4 text-right font-medium">
-                            {item.total?.toLocaleString()} VNĐ
+                            {item.total.toLocaleString()} VNĐ
                           </td>
                         </tr>
                       ))
@@ -525,7 +376,7 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
                         Tổng tiền đã thanh toán (khác):
                       </td>
                       <td className="px-6 py-2 text-right font-bold text-gray-600 text-lg">
-                        {calculateTotalPaidForOrder().toLocaleString()} VNĐ
+                        {totalPaidForOrder.toLocaleString()} VNĐ
                       </td>
                     </tr>
                     <tr className="bg-blue-50">
@@ -554,7 +405,7 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
                         Số tiền còn lại:
                       </td>
                       <td className="px-6 py-2 text-right font-bold text-green-600 text-lg">
-                        {calculateRemainingAmount().toLocaleString()} VNĐ
+                        {remainingAmount.toLocaleString()} VNĐ
                       </td>
                     </tr>
                   </tfoot>
@@ -569,14 +420,14 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors duration-200"
+              className="px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:outline-none transition-colors duration-200"
             >
               Hủy
             </button>
             <button
               type="submit"
               onClick={handleSubmit}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 shadow-md hover:shadow-lg"
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none transition-colors duration-200 shadow-md hover:shadow-lg"
               disabled={loading}
             >
               {loading ? "Đang xử lý..." : "Lưu thay đổi"}

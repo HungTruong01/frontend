@@ -5,14 +5,17 @@ import {
   deleteAccount,
   updateAccount,
 } from "@/api/accountApj";
+import { getAllRoles } from "@/api/roleApi";
 import { FaSearch, FaEdit, FaRegTrashAlt } from "react-icons/fa";
 import { GoPlus } from "react-icons/go";
 import AddModal from "@/components/Dashboard/AddModal";
 import EditModal from "@/components/Dashboard/EditModal";
 import { toast } from "react-toastify";
+import { Pagination } from "@/utils/pagination";
 
 const AccountList = () => {
   const [accounts, setAccounts] = useState([]);
+  const [roles, setRoles] = useState([]);
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -21,16 +24,37 @@ const AccountList = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedRole, setSelectedRole] = useState("");
-
-  const [roles] = useState([
-    { id: 1, name: "ADMIN", label: "ADMIN" },
-    { id: 2, name: "ADMIN_KD", label: "Nhân viên kinh doanh" },
-    { id: 3, name: "ADMIN_BLD", label: "Ban lãnh đạo" },
-    { id: 4, name: "ADMIN_K", label: "Nhân viên XNK & kho vận" },
-    { id: 5, name: "ADMIN_TCKT", label: "Nhân viên tài chính kế toán" },
-  ]);
   const columns = ["Mã", "Tên đăng nhập", "Ngày tạo", "Vai trò"];
+
+  const fetchData = async () => {
+    try {
+      const [account, role] = await Promise.all([
+        getAllUsers(0, 100, "id", "asc"),
+        getAllRoles(0, 100, "id", "asc"),
+      ]);
+      setAccounts(account.data.content || []);
+      setRoles(role.content || []);
+      setTotalPages(account.data.totalPages || 0);
+      setTotalElements(account.data.totalElements || 0);
+    } catch (error) {
+      console.error("Lỗi khi tải dữ liệu:", error);
+      toast.error("Không thể tải dữ liệu!");
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const filteredAccounts = accounts.filter((acc) => {
+    const keyword = searchTerm.toLowerCase();
+    const usernameMatch = acc.username.toLowerCase().includes(keyword);
+    const roleLabel =
+      roles.find((r) => r.id === acc.roleId)?.label?.toLowerCase() ?? "";
+    const roleMatch = roleLabel.includes(keyword);
+
+    return usernameMatch || roleMatch;
+  });
 
   const formatDate = (dateString) => {
     if (!dateString) return "Invalid Date";
@@ -44,80 +68,10 @@ const AccountList = () => {
     return `${day}/${month}/${year}`;
   };
 
-  const fetchAccounts = async (page = 1) => {
-    try {
-      const response = await getAllUsers(page - 1, 100, "id", "asc");
-      setAccounts(response.data.content);
-      setTotalPages(response.data.totalPages);
-      setTotalElements(response.data.totalElements);
-    } catch (error) {
-      console.error("Error fetching accounts:", error);
-      setAccounts([]);
-      setTotalPages(0);
-      setTotalElements(0);
-    }
+  const getRoleName = (roleId) => {
+    const role = roles.find((r) => r.id === roleId);
+    return role ? role.name : "Không xác định";
   };
-
-  const filteredAccounts = accounts.filter((acc) => {
-    const keyword = searchTerm.toLowerCase();
-    const usernameMatch = acc.username.toLowerCase().includes(keyword);
-    const roleLabel =
-      roles.find((r) => r.id === acc.roleId)?.label?.toLowerCase() ?? "";
-    const roleMatch = roleLabel.includes(keyword);
-
-    return usernameMatch || roleMatch;
-  });
-
-  const handleAddAccount = async (formData) => {
-    try {
-      const accountData = {
-        username: formData.username,
-        password: formData.password,
-        roleId: parseInt(formData.roleId, 10),
-      };
-      await createAccount(accountData);
-      toast.success("Thêm tài khoản thành công!");
-      fetchAccounts();
-    } catch (error) {
-      toast.error(error.response?.data || "Thêm tài khoản thất bại!");
-    }
-  };
-
-  const handleEditAccount = async (accountId, formData) => {
-    try {
-      const roleId = parseInt(formData.roleId, 10);
-      const accountData = {
-        username: formData.username,
-        password: formData.password || undefined,
-        roleId: roleId,
-      };
-      await updateAccount(accountId, accountData);
-      toast.success("Cập nhật tài khoản thành công!");
-      fetchAccounts();
-    } catch (error) {
-      toast.error(error?.response?.data || "Cập nhật tài khoản thất bại!");
-    }
-  };
-
-  const handleDeleteAccount = async (accountId) => {
-    const confirmDelete = window.confirm(
-      "Bạn có chắc chắn muốn xoá tài khoản này?"
-    );
-    if (!confirmDelete) return;
-
-    try {
-      await deleteAccount(accountId);
-      toast.success("Xoá tài khoản thành công!");
-      fetchAccounts();
-    } catch (error) {
-      console.error("Lỗi khi xoá tài khoản:", error);
-      toast.error("Xoá tài khoản thất bại!");
-    }
-  };
-
-  useEffect(() => {
-    fetchAccounts(currentPage);
-  }, [currentPage]);
 
   const addAccountFields = [
     {
@@ -140,10 +94,10 @@ const AccountList = () => {
       type: "select",
       required: true,
       options: roles
-        .filter((role) => role.label !== "ADMIN")
+        .filter((role) => role.name !== "ROLE_ADMIN")
         .map((role) => ({
           value: role.id.toString(),
-          label: role.label,
+          label: role.name,
         })),
     },
   ];
@@ -154,6 +108,7 @@ const AccountList = () => {
       label: "Tên đăng nhập",
       type: "text",
       required: true,
+      disabled: true,
     },
     {
       key: "roleId",
@@ -161,13 +116,62 @@ const AccountList = () => {
       type: "select",
       required: true,
       options: roles
-        .filter((role) => role.label !== "ADMIN")
+        .filter((role) => role.name !== "ROLE_ADMIN")
         .map((role) => ({
           value: role.id.toString(),
-          label: role.label,
+          label: role.name,
         })),
     },
   ];
+
+  const handleAddAccount = async (formData) => {
+    try {
+      const accountData = {
+        username: formData.username,
+        password: formData.password,
+        roleId: parseInt(formData.roleId, 10),
+      };
+      await createAccount(accountData);
+      toast.success("Thêm tài khoản thành công!");
+      fetchData();
+    } catch (error) {
+      console.log(error);
+      toast.error("Thêm tài khoản thất bại!");
+    }
+  };
+
+  const handleEditAccount = async (accountId, formData) => {
+    try {
+      const roleId = parseInt(formData.roleId, 10);
+      const accountData = {
+        username: formData.username,
+        password: formData.password || undefined,
+        roleId: roleId,
+      };
+      await updateAccount(accountId, accountData);
+      toast.success("Cập nhật tài khoản thành công!");
+      fetchData();
+    } catch (error) {
+      console.log(error);
+      toast.error("Cập nhật tài khoản thất bại!");
+    }
+  };
+
+  const handleDeleteAccount = async (accountId) => {
+    const confirmDelete = window.confirm(
+      "Bạn có chắc chắn muốn xoá tài khoản này?"
+    );
+    if (!confirmDelete) return;
+
+    try {
+      await deleteAccount(accountId);
+      toast.success("Xoá tài khoản thành công!");
+      fetchData();
+    } catch (error) {
+      console.error("Lỗi khi xoá tài khoản:", error);
+      toast.error("Xoá tài khoản thất bại!");
+    }
+  };
 
   return (
     <div className="w-full bg-white shadow-lg rounded-lg overflow-hidden">
@@ -252,31 +256,31 @@ const AccountList = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredAccounts.map((row) => (
+              {filteredAccounts.map((account) => (
                 <tr
-                  key={row.id}
+                  key={account.id}
                   className="border-b border-gray-300 hover:bg-gray-100 transition-colors"
                 >
-                  <td className="py-3 px-4 text-sm text-left">{row.id}</td>
+                  <td className="py-3 px-4 text-sm text-left">{account.id}</td>
                   <td className="py-3 px-4 text-sm text-left">
-                    {row.username}
+                    {account.username}
                   </td>
                   <td className="py-3 px-4 text-sm text-left">
-                    {formatDate(row.createdAt)}
+                    {formatDate(account.createdAt)}
                   </td>
                   <td className="py-3 px-4 text-sm text-left">
-                    {roles.find((role) => role.id === row.roleId)?.label ||
-                      row.roleId}
+                    {getRoleName(account.roleId)}
                   </td>
                   <td className="py-3 px-4 text-center">
                     <div className="flex justify-center space-x-3">
                       <button
                         onClick={() => {
-                          setSelectedAccount(row);
+                          setSelectedAccount(account);
                           setIsEditModalOpen(true);
                         }}
                         className={`text-blue-500 hover:text-blue-700 transition-colors ${
-                          row.roleId === 1 && "cursor-not-allowed opacity-50"
+                          account.roleId === 1 &&
+                          "cursor-not-allowed opacity-50"
                         }`}
                         title="Sửa"
                       >
@@ -285,10 +289,10 @@ const AccountList = () => {
                       <button
                         onClick={() => handleDeleteAccount(row.id)}
                         className={`text-red-500 hover:text-red-700 transition-colors ${
-                          row.roleId === 1 && "cursor-not-allowed opacity-50"
+                          account.roleId === 1 &&
+                          "cursor-not-allowed opacity-50"
                         }`}
                         title="Xóa"
-                        disabled={row.roleId === "ADMIN"}
                       >
                         <FaRegTrashAlt className="h-5 w-5" />
                       </button>
@@ -305,39 +309,12 @@ const AccountList = () => {
             {Math.min(currentPage * itemsPerPage, totalElements)} của{" "}
             {totalElements} bản ghi
           </p>
-          <div className="flex space-x-2">
-            <button
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-600 hover:bg-gray-100 disabled:opacity-50 transition-all"
-            >
-              Trước
-            </button>
-            <div className="flex items-center space-x-1">
-              {Array.from({ length: totalPages }, (_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setCurrentPage(i + 1)}
-                  className={`w-8 h-8 rounded-md text-sm ${
-                    currentPage === i + 1
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                  } transition-colors`}
-                >
-                  {i + 1}
-                </button>
-              ))}
-            </div>
-            <button
-              onClick={() =>
-                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-              }
-              disabled={currentPage === totalPages}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 disabled:opacity-50 transition-all"
-            >
-              Tiếp
-            </button>
-          </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            maxPagesToShow={3}
+          />
         </div>
       </div>
     </div>

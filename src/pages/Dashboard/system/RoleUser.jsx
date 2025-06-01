@@ -22,8 +22,7 @@ const RoleUser = () => {
 
   const fetchRoles = async () => {
     try {
-      const response = await getAllRoles();
-      // console.log("API response:", response);
+      const response = await getAllRoles(0, 100, "id", "asc");
       setRoles(response.content);
     } catch (error) {
       console.error("Lỗi khi lấy danh sách vai trò:", error);

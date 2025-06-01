@@ -4,9 +4,11 @@ const BASE_REST_API_URL = "http://localhost:3000/api/warehouses";
 
 axios.defaults.withCredentials = true;
 
-export const getAllWarehouse = async () => {
+export const getAllWarehouse = async (pageNo, pageSize, sortBy, sortDir) => {
   try {
-    const response = await axios.get(BASE_REST_API_URL);
+    const response = await axios.get(
+      `${BASE_REST_API_URL}?pageNo=${pageNo}&pageSize=${pageSize}&sortBy=${sortBy}&sortDir=${sortDir}`
+    );
     return response.data;
   } catch (error) {
     console.error("Error fetching warehouse:", error);

@@ -12,7 +12,7 @@ import AddInvoiceModal from "@/components/Dashboard/invoice/AddInvoiceModal";
 import EditInvoiceModal from "@/components/Dashboard/invoice/EditInvoiceModal";
 import {
   getAllInvoicesWithPartnerName,
-  deleteInvoice,
+  getAllInvoices,
   updateInvoice,
   getInvoiceDetail,
 } from "@/api/invoiceApi";
@@ -41,23 +41,22 @@ const ListInvoice = () => {
     direction: "desc",
   });
 
-  const fetchData = async () => {
-    try {
-      const [invoiceRes, invoiceTypeRes] = await Promise.all([
-        getAllInvoicesWithPartnerName(0, 1000, "id", "asc"),
-        getAllInvoiceTypes(0, 100, "id", "asc"),
-      ]);
-      setAllInvoices(invoiceRes.content);
-      setTotalElements(invoiceRes.length);
-      setInvoiceType(invoiceTypeRes.data.content);
-      setIsLoading(false);
-    } catch (error) {
-      console.log("error", error);
-      toast.error("Lỗi tải dữ liệu hoá đơn");
-    }
-  };
-
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [invoiceRes, invoiceTypeRes] = await Promise.all([
+          getAllInvoicesWithPartnerName(0, 100, "id", "asc"),
+          getAllInvoiceTypes(0, 100, "id", "asc"),
+        ]);
+        setAllInvoices(invoiceRes.content);
+        setTotalElements(invoiceRes.length);
+        setInvoiceType(invoiceTypeRes.data.content);
+        setIsLoading(false);
+      } catch (error) {
+        console.log("error", error);
+        toast.error("Lỗi tải dữ liệu hoá đơn");
+      }
+    };
     fetchData();
   }, []);
 
@@ -198,37 +197,13 @@ const ListInvoice = () => {
   const handleEditSubmit = async (updatedInvoice) => {
     try {
       await updateInvoice(updatedInvoice.id, updatedInvoice);
-      const refreshedInvoice = await getInvoiceDetail(updatedInvoice.id);
-      refreshedInvoice.partnerName = refreshedInvoice.partner?.name || "N/A";
-
-      setAllInvoices((prev) =>
-        prev.map((invoice) =>
-          invoice.id === refreshedInvoice.id ? refreshedInvoice : invoice
-        )
-      );
-
+      await fetchData();
       setIsEditModalOpen(false);
       setSelectedInvoice(null);
       toast.success("Cập nhật hóa đơn thành công!");
     } catch (err) {
       console.error("Lỗi khi cập nhật hóa đơn:", err);
       toast.error("Đã xảy ra lỗi khi cập nhật hóa đơn.");
-    }
-  };
-
-  const handleDeleteInvoice = async (id) => {
-    try {
-      await deleteInvoice(id);
-      const updatedInvoices = allInvoices.filter(
-        (invoice) => invoice.id !== id
-      );
-      setAllInvoices(updatedInvoices);
-
-      if (paginatedData.length === 1 && currentPage > 1) {
-        setCurrentPage(currentPage - 1);
-      }
-    } catch (error) {
-      console.error("Lỗi khi xóa hóa đơn:", error);
     }
   };
 
