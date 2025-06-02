@@ -1,23 +1,12 @@
-import React, { use, useEffect, useState } from "react";
+import React from "react";
 import { FaTimes } from "react-icons/fa";
-import { getAllPartnerTypes } from "@/api/partnerTypeApi";
-import { get } from "lodash";
 
-const PartnerDetailModal = ({ isOpen, onClose, partner }) => {
-  const [partnerTypes, setPartnerTypes] = useState([]);
-
-  useEffect(() => {
-    const fetchPartnersTypes = async () => {
-      try {
-        const response = await getAllPartnerTypes(0, 100, "id", "asc");
-        setPartnerTypes(response.data.content);
-      } catch (error) {
-        console.error("Error fetching partner types:", error);
-      }
-    };
-    fetchPartnersTypes();
-  }, []);
-
+const PartnerDetailModal = ({
+  isOpen,
+  onClose,
+  partner,
+  partnerTypes = [],
+}) => {
   if (!isOpen || !partner) return null;
 
   const formatCurrency = (amount) => {
@@ -28,13 +17,19 @@ const PartnerDetailModal = ({ isOpen, onClose, partner }) => {
   };
 
   const getPartnerTypeName = (partnerTypeId) => {
-    const type = partnerTypes.find((type) => type.id === partnerTypeId);
-    return type ? type.name : "Unknown";
+    const type = partnerTypes.find((type) => type.id === Number(partnerTypeId));
+    return type ? type.name : "Không có thông tin";
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-2xl">
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-xl p-6 w-full max-w-md shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex justify-between items-center mb-6 border-b pb-3">
           <h2 className="text-xl font-semibold text-gray-800">
             Chi tiết đối tác
@@ -116,7 +111,7 @@ const PartnerDetailModal = ({ isOpen, onClose, partner }) => {
               Công nợ:
             </label>
             <p className="col-span-2 text-sm font-normal text-green-600">
-              {formatCurrency(partner.debt)}
+              {formatCurrency(partner.debt || 0)}
             </p>
           </div>
         </div>

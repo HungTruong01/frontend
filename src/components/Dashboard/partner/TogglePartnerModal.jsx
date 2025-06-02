@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FaTimes } from "react-icons/fa";
 import { toast } from "react-toastify";
-import { getAllPartnerTypes } from "@/api/partnerTypeApi";
 
 const TogglePartnerModal = ({
   isOpen,
@@ -9,42 +8,42 @@ const TogglePartnerModal = ({
   onSubmit,
   partner = null,
   mode = "add",
+  partnerTypes = [],
 }) => {
-  const [formData, setFormData] = useState({
+  const initData = {
     name: "",
     phone: "",
     address: "",
     email: "",
     type: "",
-    //debt: "",
     organization: "",
     taxCode: "",
-  });
-  const [partnerTypes, setPartnerTypes] = useState([]);
+  };
+  const [formData, setFormData] = useState(initData);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
-  const fetchTypePartner = async () => {
-    try {
-      const response = await getAllPartnerTypes(0, 100, "id", "asc");
-      setPartnerTypes(response.data.content);
-      if (mode === "add" && response.data.content.length > 0) {
-        setFormData((prev) => ({
-          ...prev,
-          type: response.data.content[0].id.toString(),
-        }));
-      }
-    } catch (error) {
-      console.error("Lỗi khi lấy danh sách loại đối tác:", error);
-      setPartnerTypes([]);
-    }
-  };
-
   useEffect(() => {
-    if (isOpen) {
-      fetchTypePartner();
+    if (mode === "edit" && partner) {
+      setFormData({
+        name: partner?.name || "",
+        phone: partner?.phone || "",
+        email: partner?.email || "",
+        address: partner?.address || "",
+        type: partner?.partnerTypeId || "",
+        organization: partner?.organization || "",
+        taxCode: partner?.taxCode || "",
+      });
+    } else if (mode === "add" && partnerTypes.length > 0) {
+      setFormData({
+        ...initData,
+        type: partnerTypes[0].id,
+      });
+    } else {
+      setFormData(initData);
     }
-  }, [isOpen]);
+    setErrors({});
+  }, [isOpen, mode, partner, partnerTypes]);
 
   const normalizeString = (str) => {
     return str.trim().replace(/\s+/g, " ");
@@ -76,31 +75,6 @@ const TogglePartnerModal = ({
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-
-  useEffect(() => {
-    if (mode === "edit" && partner) {
-      setFormData({
-        name: partner?.name || "",
-        phone: partner?.phone || "",
-        email: partner?.email || "",
-        address: partner?.address || "",
-        type: partner?.partnerTypeId || "",
-        organization: partner?.organization || "",
-        taxCode: partner?.taxCode || "",
-      });
-    } else {
-      setFormData({
-        name: "",
-        phone: "",
-        address: "",
-        email: "",
-        type: "",
-        organization: "",
-        taxCode: "",
-      });
-    }
-    setErrors({});
-  }, [mode, partner, isOpen]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -138,42 +112,19 @@ const TogglePartnerModal = ({
 
     try {
       setLoading(true);
-      if (mode === "add") {
-        const submittedData = {
-          name: normalizedData.name,
-          phone: formData.phone,
-          email: normalizedData.email,
-          address: normalizedData.address,
-          type: parseInt(formData.type),
-          organization: normalizedData.organization,
-          taxCode: formData.taxCode,
-        };
-        await onSubmit(submittedData);
-        setFormData({
-          name: "",
-          phone: "",
-          address: "",
-          email: "",
-          type: "",
-          organization: "",
-          taxCode: "",
-        });
-      } else {
-        const updatedData = {
-          id: partner.id,
-          name: normalizedData.name,
-          phone: formData.phone,
-          email: formData.email,
-          address: normalizedData.address,
-          type: parseInt(formData.type),
-          organization: normalizedData.organization,
-          taxCode: formData.taxCode,
-        };
-        await onSubmit(updatedData);
-      }
+      const dataToSubmit = {
+        ...normalizedData,
+        phone: formData.phone,
+        email: formData.email,
+        type: parseInt(formData.type),
+        taxCode: formData.taxCode,
+      };
+      if (mode === "edit") dataToSubmit.id = partner.id;
+      await onSubmit(dataToSubmit);
+      setFormData(initData);
     } catch (error) {
       toast.error("Lỗi khi xử lý dữ liệu");
-      console.log("Submit error: ", error);
+      console.error(error);
     } finally {
       setLoading(false);
     }

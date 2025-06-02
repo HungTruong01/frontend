@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { FaSearch, FaEye, FaEdit, FaPlus } from "react-icons/fa";
+import { FaEye, FaEdit, FaPlus } from "react-icons/fa";
 import {
   getAllPartners,
   addPartner,
   updatePartner,
-  getPartnerById,
+  deletePartner,
 } from "@/api/partnerApi";
 import PartnerDetailModal from "@/components/Dashboard/partner/PartnerDetailModal";
 import TogglePartnerModal from "@/components/Dashboard/partner/TogglePartnerModal";
@@ -62,10 +62,6 @@ const ListPartner = () => {
     });
   };
 
-  const handleSearch = () => {
-    setCurrentPage(1);
-  };
-
   const handleSearchNameChange = (e) => {
     setSearchName(e.target.value);
     setCurrentPage(1);
@@ -74,6 +70,18 @@ const ListPartner = () => {
   const handleSearchTypeChange = (e) => {
     setSearchType(e.target.value);
     setCurrentPage(1);
+  };
+
+  const openModal = (mode, partner = null) => {
+    if (mode === "add") {
+      setIsAddModalOpen(true);
+    } else if (mode === "edit") {
+      setCurrentPartner(partner);
+      setIsEditModalOpen(true);
+    } else if (mode === "view") {
+      setCurrentPartner(partner);
+      setIsDetailModalOpen(true);
+    }
   };
 
   const handleAddNew = async (newPartner) => {
@@ -95,11 +103,6 @@ const ListPartner = () => {
       toast.error("Không thể thêm đối tác");
       console.error("Error adding partner:", error);
     }
-  };
-
-  const handleEditClick = (partner) => {
-    setCurrentPartner(partner);
-    setIsEditModalOpen(true);
   };
 
   const handleEditSubmit = async (updatedPartner) => {
@@ -124,17 +127,12 @@ const ListPartner = () => {
     }
   };
 
-  const handleViewDetail = (partner) => {
-    setCurrentPartner(partner);
-    setIsDetailModalOpen(true);
-  };
-
   const handleDelete = async (partner) => {
     if (
       window.confirm(`Bạn có chắc chắn muốn xóa đối tác "${partner.name}"?`)
     ) {
       try {
-        await partnerApi.deletePartner(partner.id);
+        await deletePartner(partner.id);
         toast.success("Xóa đối tác thành công");
         fetchPartners();
       } catch (error) {
@@ -144,12 +142,6 @@ const ListPartner = () => {
     }
   };
 
-  const filteredData = filterPartners();
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-  const paginatedData = filteredData.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
   const getPartnerTypeName = (partnerTypeId) => {
     const type = partnerTypes.find((type) => type.id === partnerTypeId);
     return type ? type.name : "Unknown";
@@ -158,6 +150,13 @@ const ListPartner = () => {
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat("vi-VN").format(amount);
   };
+
+  const filteredData = filterPartners();
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const paginatedData = filteredData.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   return (
     <div className="w-full bg-white shadow-lg rounded-lg overflow-hidden">
@@ -171,6 +170,7 @@ const ListPartner = () => {
         onSubmit={isAddModalOpen ? handleAddNew : handleEditSubmit}
         mode={isAddModalOpen ? "add" : "edit"}
         partner={currentPartner}
+        partnerTypes={partnerTypes}
       />
       {currentPartner && (
         <PartnerDetailModal
@@ -180,6 +180,7 @@ const ListPartner = () => {
             setCurrentPartner(null);
           }}
           partner={currentPartner}
+          partnerTypes={partnerTypes}
         />
       )}
 
@@ -198,12 +199,6 @@ const ListPartner = () => {
                   onChange={handleSearchNameChange}
                   className="w-64 px-4 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                 />
-                <button
-                  onClick={handleSearch}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                >
-                  <FaSearch className="h-4 w-4" />
-                </button>
               </div>
               <div className="relative">
                 <select
@@ -221,7 +216,7 @@ const ListPartner = () => {
               </div>
             </div>
             <button
-              onClick={() => setIsAddModalOpen(true)}
+              onClick={() => openModal("add")}
               className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
             >
               <FaPlus className="h-5 w-5 mr-2" />
@@ -259,7 +254,7 @@ const ListPartner = () => {
                       className="py-3 px-4 text-sm text-gray-600 text-left truncate max-w-[200px]"
                     >
                       {col.key === "debt" ? (
-                        <span>{formatCurrency(partner[col.key])}</span>
+                        <span>{formatCurrency(partner[col.key]) || 0}</span>
                       ) : col.key === "partnerTypeId" ? (
                         <span>{getPartnerTypeName(partner[col.key])}</span>
                       ) : (
@@ -273,27 +268,19 @@ const ListPartner = () => {
                   <td className="py-3 px-4 text-center">
                     <div className="flex justify-center space-x-3">
                       <button
-                        onClick={() => handleViewDetail(partner)}
+                        onClick={() => openModal("view", partner)}
                         className="text-blue-500 hover:text-blue-700 transition-colors"
                         title="Xem chi tiết"
                       >
                         <FaEye className="h-5 w-5" />
                       </button>
                       <button
-                        onClick={() => handleEditClick(partner)}
+                        onClick={() => openModal("edit", partner)}
                         className="text-blue-500 hover:text-blue-700 transition-colors"
                         title="Sửa"
                       >
                         <FaEdit className="h-5 w-5" />
                       </button>
-                      {/* <button
-                        onClick={() => handleDelete(partner)}
-                        className="text-red-500 hover:text-red-700 transition-colors"
-                        disabled
-                        title="Xóa"
-                      >
-                        <FaRegTrashAlt className="h-5 w-5" />
-                      </button> */}
                     </div>
                   </td>
                 </tr>
