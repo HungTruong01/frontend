@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { FaTimes, FaInfoCircle, FaUser } from "react-icons/fa";
-import { getAllInvoiceTypes } from "@/api/invoiceTypeApi";
+import { useSelector } from "react-redux";
+import { FaTimes, FaInfoCircle, FaUser, FaSpinner } from "react-icons/fa";
 import { BsBoxSeam } from "react-icons/bs";
 import { FaGift } from "react-icons/fa6";
 import { IoInformationCircleSharp } from "react-icons/io5";
 import { toast } from "react-toastify";
 
 const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
-  const [formData, setFormData] = useState({
+  const initialFormData = {
     id: "",
     partnerId: "",
     invoiceTypeId: "",
@@ -15,7 +15,8 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
     totalAmount: "",
     paidAmount: "",
     paymentType: "",
-  });
+  };
+  const [formData, setFormData] = useState(initialFormData);
   const [partnerDetails, setPartnerDetails] = useState({
     name: "",
     phone: "",
@@ -23,27 +24,13 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
     address: "",
   });
   const [orderDetails, setOrderDetails] = useState([]);
-  const [invoiceTypes, setInvoiceTypes] = useState([]);
+  const { list: invoiceTypes } = useSelector((state) => state.invoiceTypes);
   const [loading, setLoading] = useState(false);
-
-  const fetchInvoiceTypes = async () => {
-    try {
-      const types = await getAllInvoiceTypes(0, 100, "id", "asc");
-      setInvoiceTypes(types.data.content || []);
-    } catch (error) {
-      console.error("Error fetching invoice types:", error);
-      toast.error("Không thể tải loại hóa đơn.");
-    }
-  };
-
-  useEffect(() => {
-    fetchInvoiceTypes();
-  }, []);
+  const [error, setError] = useState(null);
 
   const fetchInitialData = async () => {
     if (isOpen && invoice && invoice.id) {
       setLoading(true);
-      console.log(invoice);
       try {
         const paymentTypeMap = {
           "Tiền mặt": "CASH",
@@ -152,22 +139,7 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
         <form onSubmit={handleSubmit} className="p-8 flex-1 overflow-y-auto">
           {loading && (
             <div className="mb-4 py-2 px-4 bg-blue-50 text-blue-700 rounded-lg flex items-center">
-              <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                  fill="none"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                />
-              </svg>
+              <FaSpinner className="animate-spin h-5 w-5 mr-2" />
               Đang xử lý...
             </div>
           )}
@@ -234,16 +206,12 @@ const EditInvoiceModal = ({ isOpen, onClose, onSubmit, invoice }) => {
                     name="orderId"
                     value={formData.orderId}
                     onChange={handleChange}
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                      !formData.partnerId
-                        ? "bg-gray-100 border-gray-200 text-gray-500 cursor-not-allowed"
-                        : "bg-white border-gray-300 hover:border-blue-300"
-                    }`}
+                    className="w-full px-4 py-3 border rounded-lg bg-gray-100 border-gray-200 cursor-not-allowed"
                     required
                     disabled
                   >
-                    <option value={invoice.order.id}>
-                      {`DH${invoice.order.id}`}
+                    <option value={invoice?.order?.id}>
+                      {`DH${invoice?.order?.id}`}
                     </option>
                   </select>
                   {!formData.partnerId && (

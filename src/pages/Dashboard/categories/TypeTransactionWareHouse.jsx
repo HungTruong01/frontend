@@ -23,7 +23,12 @@ const TypeTransactionWareHouse = () => {
   ];
   const fetchData = async () => {
     try {
-      const response = await getAllWarehouseTransactionType();
+      const response = await getAllWarehouseTransactionType(
+        0,
+        100,
+        "id",
+        "asc"
+      );
       setWarehouseTransactionType(response.content);
     } catch (error) {
       console.error("Lỗi khi lấy danh sách loại giao dịch kho:", error);

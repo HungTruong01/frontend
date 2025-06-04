@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FaTimes } from "react-icons/fa";
+import { BiLoaderAlt } from "react-icons/bi";
 import { toast } from "react-toastify";
 import { getAllOrders, getOrderById } from "@/api/orderApi";
 import { getAllDeliveryStatus } from "@/api/deliveryStatusApi";
@@ -22,8 +23,7 @@ const ToggleWarehouseTransaction = ({
   mode = "add",
 }) => {
   const isEdit = mode === "edit";
-
-  const [transactionData, setTransactionData] = useState({
+  const initData = {
     id: "",
     orderId: "",
     statusId: "",
@@ -33,7 +33,8 @@ const ToggleWarehouseTransaction = ({
     storekeeper: "",
     createdBy: "",
     participant: "",
-  });
+  };
+  const [transactionData, setTransactionData] = useState(initData);
 
   const [orders, setOrders] = useState([]);
   const [statuses, setStatuses] = useState([]);
@@ -48,6 +49,7 @@ const ToggleWarehouseTransaction = ({
   const [displayTransactionType, setDisplayTransactionType] = useState("");
 
   useEffect(() => {
+    if (!isOpen) return;
     const fetchData = async () => {
       try {
         const [
@@ -74,13 +76,12 @@ const ToggleWarehouseTransaction = ({
           const isCompleted = status?.name
             ?.toLowerCase()
             .includes("hoàn thành");
-          const hasTransaction = usedOrderIds.includes(order.id);
-          return !hasTransaction && !isCompleted;
+          return !usedOrderIds.includes(order.id) && !isCompleted;
         });
 
-        if (isEdit && initialData && initialData.orderId) {
-          const currentOrder = (orderRes.content || []).find(
-            (order) => order.id === parseInt(initialData.orderId)
+        if (isEdit && initialData?.orderId) {
+          const currentOrder = orderRes.content.find(
+            (o) => o.id === parseInt(initialData.orderId)
           );
           if (
             currentOrder &&
@@ -90,12 +91,10 @@ const ToggleWarehouseTransaction = ({
           }
         }
 
-        // Lọc trạng thái: Loại bỏ "Không thành công" nếu ở chế độ thêm mới
         const filteredStatuses = isEdit
-          ? statusRes.data.content || []
-          : (statusRes.data.content || []).filter(
-              (status) =>
-                !status.name?.toLowerCase().includes("không thành công")
+          ? statusRes.data.content
+          : statusRes.data.content.filter(
+              (s) => !s.name?.toLowerCase().includes("không thành công")
             );
 
         setOrders(filteredOrders);
@@ -108,59 +107,39 @@ const ToggleWarehouseTransaction = ({
       }
     };
 
-    if (isOpen) {
-      fetchData();
-      if (isEdit && initialData) {
-        setTransactionData({
-          id: initialData.id || "",
-          orderId: initialData.orderId || "",
-          statusId: initialData.statusId || "",
-          transactionTypeId: initialData.transactionTypeId || "",
-          warehouseId: initialData.warehouseId || "",
-          accountant: initialData.accountant || "",
-          storekeeper: initialData.storekeeper || "",
-          createdBy: initialData.createdBy || "",
-          participant: initialData.participant || "",
-        });
+    fetchData();
+  }, [isOpen]);
 
-        const type = transactionTypes.find(
-          (t) => t.id === parseInt(initialData.transactionTypeId)
-        );
-        setIsInbound(type?.code === "IMPORT" || type?.name?.includes("Nhập"));
-        setDisplayTransactionType(type?.name || "");
-      } else {
-        setTransactionData({
-          id: "",
-          orderId: "",
-          statusId: "",
-          transactionTypeId: "",
-          warehouseId: "",
-          accountant: "",
-          storekeeper: "",
-          createdBy: "",
-          participant: "",
-        });
-        setIsInbound(false);
-        setDisplayTransactionType("");
-      }
-    }
-  }, [isOpen, isEdit, initialData]);
+  useEffect(() => {
+    if (!isEdit || !initialData || transactionTypes.length === 0) return;
+
+    setTransactionData({
+      id: initialData.id || "",
+      orderId: initialData.orderId || "",
+      statusId: initialData.statusId || "",
+      transactionTypeId: initialData.transactionTypeId || "",
+      warehouseId: initialData.warehouseId || "",
+      accountant: initialData.accountant || "",
+      storekeeper: initialData.storekeeper || "",
+      createdBy: initialData.createdBy || "",
+      participant: initialData.participant || "",
+    });
+
+    const type = transactionTypes.find(
+      (t) => t.id === parseInt(initialData.transactionTypeId)
+    );
+    setIsInbound(type?.code === "IMPORT" || type?.name?.includes("Nhập"));
+    setDisplayTransactionType(type?.name || "");
+  }, [isEdit, initialData, transactionTypes]);
 
   useEffect(() => {
     const fetchOrderDetails = async () => {
       if (!transactionData.orderId) {
         setOrderProducts([]);
         setPartner("");
-        setTransactionData((prev) => ({
-          ...prev,
-          transactionTypeId: "",
-          participant: "",
-        }));
-        setIsInbound(false);
-        setDisplayTransactionType("");
+        resetTransactionDetails();
         return;
       }
-
       try {
         setLoadingProducts(true);
         const orderDetails = await getOrderById(transactionData.orderId);
@@ -196,35 +175,25 @@ const ToggleWarehouseTransaction = ({
         setPartner(orderPartner);
 
         const selectedOrder = orders.find(
-          (order) => order.id === parseInt(transactionData.orderId)
+          (o) => o.id === parseInt(transactionData.orderId)
         );
-        let newTransactionTypeId = "";
         let newIsInbound = false;
+        let newTransactionTypeId = "";
         let newDisplayTransactionType = "";
 
-        if (selectedOrder && transactionTypes.length > 0) {
-          if (selectedOrder.orderTypeId === 1) {
-            const importType = transactionTypes.find(
-              (type) => type.code === "IMPORT" || type.name?.includes("Nhập")
-            );
-            if (importType) {
-              newTransactionTypeId = importType.id;
-              newIsInbound = true;
-              newDisplayTransactionType = importType.name || "Nhập kho";
-            } else {
-              newDisplayTransactionType = "Nhập kho (không tìm thấy loại)";
-            }
-          } else if (selectedOrder.orderTypeId === 2) {
-            const exportType = transactionTypes.find(
-              (type) => type.code === "EXPORT" || type.name?.includes("Xuất")
-            );
-            if (exportType) {
-              newTransactionTypeId = exportType.id;
-              newIsInbound = false;
-              newDisplayTransactionType = exportType.name || "Xuất kho";
-            } else {
-              newDisplayTransactionType = "Xuất kho (không tìm thấy loại)";
-            }
+        if (selectedOrder) {
+          const matchedType = getTransactionTypeByOrder(
+            selectedOrder.orderTypeId
+          );
+          if (matchedType) {
+            newIsInbound = matchedType.code === "IMPORT";
+            newTransactionTypeId = matchedType.id;
+            newDisplayTransactionType = matchedType.name;
+          } else {
+            newDisplayTransactionType =
+              selectedOrder.orderTypeId === 1
+                ? "Nhập kho (không tìm thấy loại)"
+                : "Xuất kho (không tìm thấy loại)";
           }
         }
 
@@ -259,23 +228,44 @@ const ToggleWarehouseTransaction = ({
     setTransactionData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const resetTransactionDetails = () => {
+    setTransactionData((prev) => ({
+      ...prev,
+      transactionTypeId: "",
+      participant: "",
+    }));
+    setIsInbound(false);
+    setDisplayTransactionType("");
+  };
+
+  const getTransactionTypeByOrder = (orderTypeId) => {
+    return transactionTypes.find((type) =>
+      orderTypeId === 1
+        ? type.code === "IMPORT" || type.name?.includes("Nhập")
+        : type.code === "EXPORT" || type.name?.includes("Xuất")
+    );
+  };
+
+  const isValidForm = (data) => {
+    const requiredFields = [
+      "orderId",
+      "statusId",
+      "transactionTypeId",
+      "warehouseId",
+      "accountant",
+      "storekeeper",
+      "createdBy",
+      "participant",
+    ];
+    return requiredFields.every((field) => data[field]?.toString().trim());
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (
-      !transactionData.orderId ||
-      !transactionData.statusId ||
-      !transactionData.transactionTypeId ||
-      !transactionData.warehouseId ||
-      !transactionData.accountant ||
-      !transactionData.createdBy ||
-      !transactionData.participant ||
-      !transactionData.storekeeper
-    ) {
+    if (!isValidForm(transactionData)) {
       toast.error("Vui lòng điền đầy đủ các trường bắt buộc");
       return;
     }
-
     if (
       !transactionData.participant ||
       transactionData.participant.trim() === ""
@@ -521,26 +511,7 @@ const ToggleWarehouseTransaction = ({
               </h3>
               {loadingProducts ? (
                 <div className="text-center text-gray-500 py-4">
-                  <svg
-                    className="inline-block animate-spin h-5 w-5 mr-2"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
+                  <BiLoaderAlt className="inline-block animate-spin h-5 w-5 mr-2" />
                   Đang tải thông tin sản phẩm...
                 </div>
               ) : orderProducts.length > 0 ? (

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { FaArrowLeft } from "react-icons/fa";
 import { getWarehouseTransactionById } from "@/api/warehouseTransactionApi";
 import { getOrderById } from "@/api/orderApi";
@@ -8,11 +8,24 @@ import { getWarehouseById } from "@/api/warehouseApi";
 import { getWarehouseTransactionTypeById } from "@/api/warehouseTransactionTypeApi";
 import { getProductById } from "@/api/productApi";
 import { toast } from "react-toastify";
+import { formatDate } from "@/utils/formatter";
+
+const getTypeColor = (type) => {
+  if (!type) return "bg-gray-100 text-gray-800";
+  const typeLower = String(type).toLowerCase();
+  if (typeLower.includes("nhập")) return "bg-green-100 text-green-800";
+  if (typeLower.includes("xuất")) return "bg-orange-100 text-orange-800";
+  return "bg-gray-100 text-gray-800";
+};
 
 const WarehouseTransactionDetail = () => {
   const { transactionId } = useParams();
-  const navigate = useNavigate();
   const [transaction, setTransaction] = useState(null);
+  const [warehouse, setWarehouse] = useState(null);
+  const [order, setOrder] = useState(null);
+  const [status, setStatus] = useState(null);
+  const [type, setType] = useState(null);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [relatedDataLoading, setRelatedDataLoading] = useState(false);
@@ -24,39 +37,28 @@ const WarehouseTransactionDetail = () => {
         setLoading(false);
         return;
       }
-
       try {
         setLoading(true);
         const transactionData = await getWarehouseTransactionById(
           transactionId
         );
-
         if (!transactionData) {
           throw new Error("Không tìm thấy dữ liệu giao dịch");
         }
-
         setTransaction(transactionData);
         setLoading(false);
-
         setRelatedDataLoading(true);
-
         try {
           const [warehouse, order, status, type] = await Promise.all([
-            transactionData.warehouseId
-              ? getWarehouseById(transactionData.warehouseId)
-              : Promise.resolve(null),
-            transactionData.orderId
-              ? getOrderById(transactionData.orderId)
-              : Promise.resolve(null),
-            transactionData.statusId
-              ? getDeliveryStatusById(transactionData.statusId)
-              : Promise.resolve(null),
-            transactionData.transactionTypeId
-              ? getWarehouseTransactionTypeById(
-                  transactionData.transactionTypeId
-                )
-              : Promise.resolve(null),
+            getWarehouseById(transactionData.warehouseId),
+            getOrderById(transactionData.orderId),
+            getDeliveryStatusById(transactionData.statusId),
+            getWarehouseTransactionTypeById(transactionData.transactionTypeId),
           ]);
+          setWarehouse(warehouse);
+          setOrder(order);
+          setStatus(status);
+          setType(type);
 
           let items =
             transactionData.items || transactionData.transactionItems || [];
@@ -123,69 +125,18 @@ const WarehouseTransactionDetail = () => {
     fetchTransactionDetails();
   }, [transactionId]);
 
-  const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
-    try {
-      return new Date(dateString).toLocaleString("vi-VN", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    } catch (error) {
-      console.error("Lỗi khi định dạng ngày:", error);
-      return dateString || "N/A";
-    }
-  };
-
-  const getTypeColor = (type) => {
-    if (!type) return "bg-gray-100 text-gray-800";
-    const typeLower = String(type).toLowerCase();
-    if (typeLower.includes("nhập")) return "bg-green-100 text-green-800";
-    if (typeLower.includes("xuất")) return "bg-orange-100 text-orange-800";
-    return "bg-gray-100 text-gray-800";
-  };
-
   if (loading) {
     return (
-      <div className="w-full h-64 flex items-center justify-center">
-        <div className="text-gray-500">Đang tải dữ liệu giao dịch...</div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="w-full h-64 flex flex-col items-center justify-center">
-        <div className="text-red-500 mb-4">{error}</div>
-        <button
-          onClick={() => navigate("/dashboard/warehouse/warehouse-transaction")}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md"
-        >
-          Quay lại danh sách
-        </button>
-      </div>
-    );
-  }
-
-  if (!transaction) {
-    return (
-      <div className="w-full h-64 flex flex-col items-center justify-center">
-        <div className="text-red-500 mb-4">
-          Không tìm thấy dữ liệu giao dịch
+      <div className="bg-gray-50 min-h-screen w-auto p-6">
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
         </div>
-        <button
-          onClick={() => navigate("/dashboard/warehouse/warehouse-transaction")}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md"
-        >
-          Quay lại danh sách
-        </button>
       </div>
     );
   }
 
   const items = transaction.items || transaction.transactionItems || [];
+  console.log(items);
   const totalQuantity = items.reduce(
     (sum, item) => sum + (Number(item.quantity) || 0),
     0

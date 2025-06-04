@@ -14,6 +14,8 @@ import {
 import { getAllProductTypes } from "@/api/productTypeApi";
 import { getAllProductUnits } from "@/api/productUnitApi";
 import { toast } from "react-toastify";
+import { Pagination } from "@/utils/pagination";
+import { formatCurrency } from "@/utils/formatter";
 
 const ListProduct = () => {
   const [itemsPerPage] = useState(7);
@@ -39,7 +41,7 @@ const ListProduct = () => {
 
   const fetchProductTypes = async () => {
     try {
-      const response = await getAllProductTypes(0, 1000, "id", "asc");
+      const response = await getAllProductTypes(0, 100, "id", "asc");
       if (response && response.data) {
         setProductTypes(response.data.content || []);
       }
@@ -51,14 +53,13 @@ const ListProduct = () => {
 
   const fetchProductUnits = async () => {
     try {
-      // Đảm bảo truyền đầy đủ các tham số theo yêu cầu của API
-      const response = await getAllProductUnits(0, 1000, "id", "asc");
+      const response = await getAllProductUnits(0, 100, "id", "asc");
       if (response && response.data) {
         setProductUnits(response.data.content || []);
       }
     } catch (error) {
       console.error("Lỗi khi lấy đơn vị tính:", error);
-      setProductUnits([]); // Fallback về mảng rỗng khi có lỗi
+      setProductUnits([]);
     }
   };
 
@@ -77,7 +78,6 @@ const ListProduct = () => {
         const response = await getAllProducts(0, 100, "id", "asc");
         setProducts(response.data.content);
       }
-      // Reset image errors sau khi lấy sản phẩm mới
       setImageErrors({});
     } catch (error) {
       toast.error("Không thể lấy dữ liệu sản phẩm. Vui lòng thử lại.");
@@ -166,7 +166,9 @@ const ListProduct = () => {
       await fetchProducts();
       setIsAddModalOpen(false);
     } catch (error) {
-      toast.error(error?.response?.data || "Không thể thêm sản phẩm. Vui lòng thử lại.");
+      toast.error(
+        error?.response?.data || "Không thể thêm sản phẩm. Vui lòng thử lại."
+      );
     }
   };
 
@@ -217,7 +219,10 @@ const ListProduct = () => {
       await fetchProducts();
       setIsEditModalOpen(false);
     } catch (error) {
-      toast.error(error?.response?.data || "Không thể cập nhật sản phẩm. Vui lòng thử lại.");
+      toast.error(
+        error?.response?.data ||
+          "Không thể cập nhật sản phẩm. Vui lòng thử lại."
+      );
     }
   };
 
@@ -237,10 +242,6 @@ const ListProduct = () => {
         toast.error("Không thể xóa sản phẩm. Vui lòng thử lại.");
       }
     }
-  };
-
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("vi-VN").format(amount);
   };
 
   const handleImageError = (productId) => {
@@ -500,39 +501,12 @@ const ListProduct = () => {
             {Math.min(currentPage * itemsPerPage, filteredProducts.length)} của{" "}
             {filteredProducts.length} bản ghi
           </p>
-          <div className="flex space-x-2">
-            <button
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-600 hover:bg-gray-100 disabled:opacity-50 transition-all"
-            >
-              Trước
-            </button>
-            <div className="flex items-center space-x-2">
-              {[...Array(totalPages)].map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setCurrentPage(i + 1)}
-                  className={`w-8 h-8 rounded-md text-sm ${
-                    currentPage === i + 1
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                  } transition-colors`}
-                >
-                  {i + 1}
-                </button>
-              ))}
-            </div>
-            <button
-              onClick={() =>
-                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-              }
-              disabled={currentPage === totalPages}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 disabled:opacity-50 transition-all"
-            >
-              Tiếp
-            </button>
-          </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            maxPagesToShow={3}
+          />
         </div>
       </div>
     </div>

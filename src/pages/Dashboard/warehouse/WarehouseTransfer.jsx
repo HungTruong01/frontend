@@ -9,19 +9,14 @@ import {
   getAllDeliveryStatus,
   getDeliveryStatusById,
 } from "@/api/deliveryStatusApi";
-import {
-  FaSearch,
-  FaRegTrashAlt,
-  FaEye,
-  FaEdit,
-  FaFileExport,
-} from "react-icons/fa";
+import { FaSearch, FaEye, FaEdit, FaFileExport } from "react-icons/fa";
 import { GoPlus } from "react-icons/go";
 import { toast } from "react-toastify";
 import ToggleWarehouseTransfer from "@/components/Dashboard/warehouse/ToggleWarehouseTransfer";
 import { useNavigate } from "react-router-dom";
 import { exportExcel } from "@/utils/exportExcel";
 import { Pagination } from "@/utils/pagination";
+import { formatDate } from "@/utils/formatter";
 
 const WarehouseTransfer = () => {
   const [warehouseTransfer, setWarehouseTransfer] = useState([]);
@@ -94,16 +89,6 @@ const WarehouseTransfer = () => {
   useEffect(() => {
     fetchData();
   }, []);
-
-  const formatDate = (dateString) => {
-    if (!dateString) return "Invalid Date";
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) return "Invalid Date";
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
-  };
 
   const handleSearch = () => {
     const filtered = warehouseTransfer.filter((item) =>
@@ -294,13 +279,6 @@ const WarehouseTransfer = () => {
                         >
                           <FaEdit className="h-5 w-5" />
                         </button>
-                        {/* <button
-                          onClick={() => handleDelete(row)}
-                          className="text-red-500 hover:text-red-700 transition-colors"
-                          title="Xóa"
-                        >
-                          <FaRegTrashAlt className="h-5 w-5" />
-                        </button> */}
                       </div>
                     </td>
                   </tr>

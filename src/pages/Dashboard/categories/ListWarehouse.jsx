@@ -32,7 +32,7 @@ const ListWarehouse = () => {
 
   const fetchData = async () => {
     try {
-      const response = await getAllWarehouse();
+      const response = await getAllWarehouse(0, 100, "id", "asc");
       setWarehouse(response.content);
     } catch (error) {
       console.error("Lỗi khi lấy danh sách kho bãi:", error);

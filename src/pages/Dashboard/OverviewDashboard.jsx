@@ -446,7 +446,7 @@ const OverviewDashboard = () => {
               </tr>
             </thead>
             <tbody>
-              {warehouseTransactions.map((transaction) => (
+              {filteredTransactions.map((transaction) => (
                 <tr
                   key={transaction.id}
                   className="border-b border-gray-100 hover:bg-gray-50 transition"

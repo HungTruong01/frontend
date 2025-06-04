@@ -9,6 +9,7 @@ import {
 import { toast } from "react-toastify";
 import { exportExcel } from "@/utils/exportExcel";
 import { FaFilter, FaDownload } from "react-icons/fa";
+import { formatCurrency } from "@/utils/formatter";
 
 ChartJS.register(Title, Tooltip, Legend, ArcElement);
 
@@ -75,10 +76,6 @@ const DebtReport = () => {
   useEffect(() => {
     fetchReportData();
   }, [reportType, year, month, startDate, endDate]);
-
-  const formatCurrency = (amount) => {
-    return `${new Intl.NumberFormat("vi-VN").format(amount)}`;
-  };
 
   const pieChartData = {
     labels: ["Công nợ", "Đã thanh toán (Hóa đơn)"],

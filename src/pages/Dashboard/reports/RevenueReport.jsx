@@ -7,6 +7,7 @@ import { exportExcel } from "@/utils/exportExcel";
 import React, { useEffect, useState } from "react";
 import { FaDownload, FaFilter } from "react-icons/fa";
 import { toast } from "react-toastify";
+import { formatCurrency } from "@/utils/formatter";
 
 const RevenueReport = () => {
   const [filter, setFilter] = useState("monthly");
@@ -120,7 +121,7 @@ const RevenueReport = () => {
               Tổng doanh thu
             </h3>
             <p className="text-2xl font-semibold text-green-600">
-              {revenueData.toLocaleString()} VND
+              {formatCurrency(revenueData)}
             </p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow-md">
@@ -128,7 +129,7 @@ const RevenueReport = () => {
               Tổng lợi nhuận
             </h3>
             <p className="text-2xl font-semibold text-blue-600">
-              {profitData.toLocaleString()} VND
+              {formatCurrency(profitData)}
             </p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow-md">
@@ -170,10 +171,10 @@ const RevenueReport = () => {
                     {item?.label}
                   </td>
                   <td className="py-3 px-4 text-sm text-gray-600 text-right">
-                    {Number.parseInt(item?.revenue).toLocaleString()}
+                    {formatCurrency(item?.revenue)}
                   </td>
                   <td className="py-3 px-4 text-sm text-gray-600 text-right">
-                    {Number.parseInt(item?.profit).toLocaleString()}
+                    {formatCurrency(item?.profit)}
                   </td>
                   <td className="py-3 px-4 text-sm text-gray-600 text-right">
                     {((item.profit / item?.revenue) * 100).toFixed(2)}%

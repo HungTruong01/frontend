@@ -17,6 +17,7 @@ import {
 import { toast } from "react-toastify";
 import { exportExcel } from "@/utils/exportExcel";
 import { FaFilter, FaDownload } from "react-icons/fa";
+import { formatCurrency } from "@/utils/formatter";
 
 ChartJS.register(
   CategoryScale,
@@ -90,13 +91,6 @@ const IncomeReport = () => {
 
     return () => clearTimeout(timer);
   }, [reportType, year, month, startDate, endDate]);
-
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(amount);
-  };
 
   const chartData = {
     labels: reportData?.labels || [],

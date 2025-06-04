@@ -8,6 +8,7 @@ import {
   createWarehouseTransfer,
   updateWarehouseTransfer,
 } from "@/api/warehouseTransferApi";
+import { formatCurrency } from "@/utils/formatter";
 
 const ToggleWarehouseTransfer = ({
   isOpen,
@@ -42,9 +43,9 @@ const ToggleWarehouseTransfer = ({
           getAllWarehouse(0, 100, "id", "asc"),
         ]);
 
-        setProducts(productsRes.data?.content || productsRes.data || []);
-        setDeliveryStatuses(statusesRes.data.content || statusesRes || []);
-        setWarehouses(warehousesRes.content || warehousesRes || []);
+        setProducts(productsRes.data?.content || []);
+        setDeliveryStatuses(statusesRes.data?.content || []);
+        setWarehouses(warehousesRes?.content || []);
 
         if (isEdit && initialData?.productId) {
           const initialProduct =
@@ -216,13 +217,6 @@ const ToggleWarehouseTransfer = ({
     }
   };
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(amount);
-  };
-
   if (!isOpen) return null;
 
   return (
@@ -278,11 +272,13 @@ const ToggleWarehouseTransfer = ({
               } rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
             >
               <option value="">Chọn trạng thái</option>
-              {deliveryStatuses.map((status) => (
-                <option key={status.id} value={status.id}>
-                  {status.name || `Trạng thái ${status.id}`}
-                </option>
-              ))}
+              {deliveryStatuses
+                .filter((status) => status.name !== "Không thành công")
+                .map((status) => (
+                  <option key={status.id} value={status.id}>
+                    {status.name || `Trạng thái ${status.id}`}
+                  </option>
+                ))}
             </select>
             {errors.statusId && (
               <p className="mt-1 text-sm text-red-500">{errors.statusId}</p>

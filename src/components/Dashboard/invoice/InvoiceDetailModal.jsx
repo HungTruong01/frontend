@@ -1,23 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { FaTimes } from "react-icons/fa";
+import { useSelector } from "react-redux";
+import { FaTimes, FaInfoCircle, FaUser } from "react-icons/fa";
 import { getInvoiceDetail } from "@/api/invoiceApi";
-import { FaUser } from "react-icons/fa";
-import { FaInfoCircle } from "react-icons/fa";
 import { FaGift } from "react-icons/fa6";
-import { getAllInvoiceTypes } from "@/api/invoiceTypeApi";
+import { BsBoxSeam } from "react-icons/bs";
+import { formatCurrency, formatDate } from "@/utils/formatter";
 
 const InvoiceDetailModal = ({ isOpen, onClose, invoice }) => {
   const [invoiceDetails, setInvoiceDetails] = useState(null);
-  const [invoiceTypes, setInvoiceTypes] = useState([]);
-
-  const fetchInvoiceType = async () => {
-    try {
-      const response = await getAllInvoiceTypes(0, 100, "id", "asc");
-      setInvoiceTypes(response.data.content);
-    } catch (error) {
-      console.log("Error fetching invoice types:", error);
-    }
-  };
+  const { list: invoiceTypes } = useSelector((state) => state.invoiceTypes);
+  const [error, setError] = useState(null);
 
   const fetchInvoiceDetails = async () => {
     if (isOpen && invoice && invoice.id) {
@@ -32,23 +24,10 @@ const InvoiceDetailModal = ({ isOpen, onClose, invoice }) => {
   };
 
   useEffect(() => {
-    fetchInvoiceDetails();
-    fetchInvoiceType();
+    if (isOpen && invoice?.id) {
+      fetchInvoiceDetails();
+    }
   }, [isOpen, invoice]);
-
-  const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) return "N/A";
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
-  };
-
-  const formatCurrency = (amount) => {
-    return `${new Intl.NumberFormat("vi-VN").format(amount || 0)}`;
-  };
 
   const calculateTotalAmount = () => {
     return invoiceDetails?.order?.totalMoney || 0;
@@ -232,20 +211,7 @@ const InvoiceDetailModal = ({ isOpen, onClose, invoice }) => {
                               className="px-6 py-12 text-center text-gray-500"
                             >
                               <div className="flex flex-col items-center">
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  className="h-12 w-12 text-gray-400 mb-3"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                  stroke="currentColor"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={1}
-                                    d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
-                                  />
-                                </svg>
+                                <BsBoxSeam className="h-12 w-12 text-gray-400 mb-3" />
                                 Không có chi tiết sản phẩm nào
                               </div>
                             </td>
@@ -261,7 +227,7 @@ const InvoiceDetailModal = ({ isOpen, onClose, invoice }) => {
                             Tổng cộng:
                           </td>
                           <td className="px-6 pt-6 text-right font-bold text-blue-700 text-lg">
-                            {formatCurrency(calculateTotalAmount())} VNĐ
+                            {formatCurrency(calculateTotalAmount())}
                           </td>
                         </tr>
                         <tr className="bg-blue-50">
@@ -272,8 +238,7 @@ const InvoiceDetailModal = ({ isOpen, onClose, invoice }) => {
                             Số tiền thanh toán (hóa đơn này):
                           </td>
                           <td className="px-6 py-2 text-right font-bold text-gray-600 text-lg">
-                            {formatCurrency(calculatePaidAmountThisInvoice())}{" "}
-                            VNĐ
+                            {formatCurrency(calculatePaidAmountThisInvoice())}
                           </td>
                         </tr>
                         <tr className="bg-blue-50">
@@ -284,7 +249,7 @@ const InvoiceDetailModal = ({ isOpen, onClose, invoice }) => {
                             Tổng tiền đã thanh toán (đơn hàng):
                           </td>
                           <td className="px-6 py-2 text-right font-bold text-gray-600 text-lg">
-                            {formatCurrency(calculateTotalPaidAmount())} VNĐ
+                            {formatCurrency(calculateTotalPaidAmount())}
                           </td>
                         </tr>
                         <tr className="bg-blue-50">
@@ -295,7 +260,7 @@ const InvoiceDetailModal = ({ isOpen, onClose, invoice }) => {
                             Số tiền còn lại (đơn hàng):
                           </td>
                           <td className="px-6 py-2 text-right font-bold text-green-600 text-lg">
-                            {formatCurrency(calculateRemainingAmount())} VNĐ
+                            {formatCurrency(calculateRemainingAmount())}
                           </td>
                         </tr>
                       </tfoot>

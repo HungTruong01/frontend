@@ -1,6 +1,6 @@
 import React from "react";
 import { FaTimes } from "react-icons/fa";
-
+import { formatCurrency } from "@/utils/formatter";
 const ProductDetailModal = ({
   isOpen,
   onClose,
@@ -10,21 +10,14 @@ const ProductDetailModal = ({
 }) => {
   if (!isOpen || !product) return null;
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(amount);
-  };
-
   const getProductTypeName = (productTypeId) => {
     const type = productTypes.find((type) => type.id === productTypeId);
-    return type ? type.name : "Unknown";
+    return type ? type.name : "Không xác định";
   };
 
   const getProductUnitName = (productUnitId) => {
     const unit = productUnits.find((unit) => unit.id === productUnitId);
-    return unit ? unit.name : "Unknown";
+    return unit ? unit.name : "Không xác định";
   };
 
   return (
@@ -91,15 +84,6 @@ const ProductDetailModal = ({
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              {/* <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">
-                  Giá vốn
-                </label>
-                <p className="font-medium text-blue-600">
-                  {formatCurrency(product.exportPrice)}
-                </p>
-              </div> */}
-
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">
                   Giá bán

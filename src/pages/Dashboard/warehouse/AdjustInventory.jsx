@@ -6,19 +6,14 @@ import {
 import { getWarehouseById } from "@/api/warehouseApi";
 import { getProductById } from "@/api/productApi";
 import { getInventoryAdjustmentTypeById } from "@/api/inventoryAdjustmentTypesApi";
-import {
-  FaSearch,
-  FaRegTrashAlt,
-  FaEye,
-  FaEdit,
-  FaFileExport,
-} from "react-icons/fa";
+import { FaSearch, FaEye, FaEdit, FaFileExport } from "react-icons/fa";
 import { GoPlus } from "react-icons/go";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import ToggleInventoryAdjustment from "@/components/Dashboard/warehouse/ToggleInventoryAdjustment";
 import { exportExcel } from "@/utils/exportExcel";
 import { Pagination } from "@/utils/pagination";
+import { formatDate } from "@/utils/formatter";
 
 const AdjustInventory = () => {
   const [adjustments, setAdjustments] = useState([]);
@@ -139,16 +134,6 @@ const AdjustInventory = () => {
   useEffect(() => {
     fetchData();
   }, []);
-
-  const formatDate = (dateString) => {
-    if (!dateString) return "Invalid Date";
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) return "Invalid Date";
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
-  };
 
   const handleSearch = () => {
     const filtered = adjustments.filter((item) =>

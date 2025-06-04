@@ -1,11 +1,17 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { getAllPartners } from "@/api/partnerApi";
-import { getAllInvoiceTypes } from "@/api/invoiceTypeApi";
+import { useSelector } from "react-redux";
 import { getProductById } from "@/api/productApi";
 import { createInvoice } from "@/api/invoiceApi";
 import { getOrdersByPartnerId, getOrderById } from "@/api/orderApi";
 import { BsBoxSeam } from "react-icons/bs";
-import { FaUser, FaTimes, FaInfoCircle } from "react-icons/fa";
+import {
+  FaUser,
+  FaTimes,
+  FaInfoCircle,
+  FaClipboardList,
+  FaSpinner,
+} from "react-icons/fa";
+import { IoInformationCircle } from "react-icons/io5";
 import { FaGift } from "react-icons/fa6";
 import { toast } from "react-toastify";
 import debounce from "lodash/debounce";
@@ -15,17 +21,19 @@ const AddInvoiceModal = ({
   onClose,
   onSubmit,
   preselectedOrderData,
+  defaultInvoiceTypeId = "",
 }) => {
-  const [formData, setFormData] = useState({
+  const initialFormData = {
     partnerId: "",
     invoiceTypeId: "",
     totalAmount: "",
     paidAmount: "",
     invoiceDetails: [{ orderId: "", amount: "" }],
     paymentType: "",
-  });
-  const [partners, setPartners] = useState([]);
-  const [invoiceTypes, setInvoiceTypes] = useState([]);
+  };
+  const [formData, setFormData] = useState(initialFormData);
+  const { partners } = useSelector((state) => state.partner);
+  const { list: invoiceTypes } = useSelector((state) => state.invoiceTypes);
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [selectedOrderDetails, setSelectedOrderDetails] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -59,7 +67,7 @@ const AddInvoiceModal = ({
     if (isOpen && preselectedOrderData) {
       setFormData({
         partnerId: preselectedOrderData.partnerId.toString() || "",
-        invoiceTypeId: "",
+        invoiceTypeId: defaultInvoiceTypeId || "",
         totalAmount: preselectedOrderData.totalMoney.toString() || "",
         paidAmount: "",
         invoiceDetails: [
@@ -83,28 +91,6 @@ const AddInvoiceModal = ({
       setOrderPaidAmount(0);
     }
   }, [isOpen, preselectedOrderData]);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const [partnersData, invoiceTypesData] = await Promise.all([
-          getAllPartners(0, 100, "id", "asc"),
-          getAllInvoiceTypes(0, 100, "id", "asc"),
-        ]);
-        setPartners(partnersData.data.content || []);
-        setInvoiceTypes(invoiceTypesData.data.content || []);
-      } catch (err) {
-        setError("Không thể tải dữ liệu từ server.");
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    if (isOpen) {
-      fetchData();
-    }
-  }, [isOpen]);
 
   useEffect(() => {
     const partnerId = parseInt(formData.partnerId, 10);
@@ -245,7 +231,7 @@ const AddInvoiceModal = ({
         return;
       }
 
-      const remainingAmount = calculateRemainingAmount;
+      const remainingAmount = calculateRemainingAmount();
       if (submitData.moneyAmount > remainingAmount) {
         toast.error("Số tiền thanh toán không được vượt quá số tiền còn lại");
         setLoading(false);
@@ -255,6 +241,10 @@ const AddInvoiceModal = ({
       const response = await createInvoice(submitData);
       onSubmit(response);
       toast.success("Lập hoá đơn thành công");
+      setFormData(initialFormData);
+      setSelectedOrderDetails([]);
+      setFilteredOrders([]);
+      setOrderPaidAmount(0);
       onClose();
     } catch (err) {
       toast.error("Lỗi khi tạo hóa đơn: " + err.message);
@@ -264,10 +254,10 @@ const AddInvoiceModal = ({
     }
   };
 
-  const calculateRemainingAmount = useMemo(() => {
+  const calculateRemainingAmount = () => {
     const total = parseFloat(formData.totalAmount) || 0;
     return Math.max(total - orderPaidAmount, 0);
-  }, [formData.totalAmount, orderPaidAmount]);
+  };
 
   const calculateTotalWithNewPayment = useMemo(() => {
     const paid = parseFloat(formData.paidAmount?.replace(/\./g, "")) || 0;
@@ -280,7 +270,6 @@ const AddInvoiceModal = ({
     return Math.max(total - paidWithNew, 0);
   }, [formData.totalAmount, calculateTotalWithNewPayment]);
 
-  // Memoize partner and order options
   const partnerOptions = useMemo(
     () =>
       partners.map((partner) => (
@@ -327,22 +316,7 @@ const AddInvoiceModal = ({
         <form onSubmit={handleSubmit} className="p-8 flex-1 overflow-y-auto">
           {loading && (
             <div className="mb-4 py-2 px-4 bg-blue-50 text-blue-700 rounded-lg flex items-center">
-              <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                  fill="none"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                />
-              </svg>
+              <FaSpinner className="animate-spin h-5 w-5 mr-2" />
               Đang xử lý...
             </div>
           )}
@@ -415,18 +389,7 @@ const AddInvoiceModal = ({
                   </select>
                   {!formData.partnerId && (
                     <p className="text-xs text-blue-600 mt-2 flex items-center">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-4 w-4 mr-1"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9a1 1 0 00-1-1z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
+                      <IoInformationCircle className="h-4 w-4 mr-1" />
                       Vui lòng chọn đối tác trước
                     </p>
                   )}
@@ -554,20 +517,7 @@ const AddInvoiceModal = ({
                           {formData.partnerId &&
                           !formData.invoiceDetails[0]?.orderId ? (
                             <div className="flex flex-col items-center">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="h-12 w-12 text-gray-400 mb-3"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={1}
-                                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                                />
-                              </svg>
+                              <FaClipboardList className="h-12 w-12 text-gray-400 mb-3" />
                               Vui lòng chọn đơn hàng
                             </div>
                           ) : (
@@ -612,7 +562,7 @@ const AddInvoiceModal = ({
                         Tổng tiền còn lại:
                       </td>
                       <td className="px-6 py-2 text-right font-bold text-green-600 text-lg">
-                        {calculateRemainingAmount.toLocaleString()} VNĐ
+                        {calculateRemainingAmount().toLocaleString()} VNĐ
                       </td>
                     </tr>
                     <tr className="bg-white">
@@ -690,4 +640,4 @@ const AddInvoiceModal = ({
   );
 };
 
-export default React.memo(AddInvoiceModal);
+export default AddInvoiceModal;

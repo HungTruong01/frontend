@@ -23,8 +23,8 @@ const OrderStatus = () => {
   ];
   const fetchOrderStatus = async () => {
     try {
-      const response = await getAllOrderStatus();
-      setOrderStatus(response.content);
+      const response = await getAllOrderStatus(0, 100, "id", "asc");
+      setOrderStatus(response.data.content);
     } catch (error) {
       console.error("Lỗi khi lấy danh sách trạng thái đơn hàng:", error);
     }

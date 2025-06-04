@@ -1,64 +1,47 @@
 import React, { useEffect, useState } from "react";
-import {
-  FaEye,
-  FaEdit,
-  FaPlus,
-  FaSearch,
-  FaFileExport,
-  FaSort,
-} from "react-icons/fa";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchInvoices, fetchInvoiceDetail } from "@/redux/slices/invoiceSlice";
+import { fetchInvoiceTypes } from "@/redux/slices/invoiceTypeSlice";
+import { updateInvoice } from "@/api/invoiceApi";
+import { FaEye, FaEdit, FaPlus, FaFileExport, FaSort } from "react-icons/fa";
 import InvoiceDetailModal from "@/components/Dashboard/invoice/InvoiceDetailModal";
 import AddInvoiceModal from "@/components/Dashboard/invoice/AddInvoiceModal";
 import EditInvoiceModal from "@/components/Dashboard/invoice/EditInvoiceModal";
-import {
-  getAllInvoicesWithPartnerName,
-  getAllInvoices,
-  updateInvoice,
-  getInvoiceDetail,
-} from "@/api/invoiceApi";
-import { getAllInvoiceTypes } from "@/api/invoiceTypeApi";
 import { toast } from "react-toastify";
 import { exportExcel } from "@/utils/exportExcel";
 import { Pagination } from "@/utils/pagination";
+import { fetchPartners } from "@/redux/slices/partnerSlice";
+import { formatCurrency, formatDate } from "@/utils/formatter";
 
 const ListInvoice = () => {
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [allInvoices, setAllInvoices] = useState([]);
-  const [invoiceType, setInvoiceType] = useState([]);
+  const dispatch = useDispatch();
+  const { list: invoices, loading: isLoading } = useSelector(
+    (state) => state.invoices
+  );
+  const { list: invoiceType } = useSelector((state) => state.invoiceTypes);
+  const { partners } = useSelector((state) => state.partner);
+
+  const [modals, setModals] = useState({
+    detail: false,
+    add: false,
+    edit: false,
+  });
   const [selectedInvoice, setSelectedInvoice] = useState(null);
-  const [searchType, setSearchType] = useState("");
-  const [searchPartner, setSearchPartner] = useState("");
-  const [searchDate, setSearchDate] = useState("");
   const [itemsPerPage, setItemsPerPage] = useState(7);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalElements, setTotalElements] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
   const [sortConfig, setSortConfig] = useState({
     key: "createdAt",
     direction: "desc",
   });
+  const [filters, setFilters] = useState({ type: "", partner: "", date: "" });
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [invoiceRes, invoiceTypeRes] = await Promise.all([
-          getAllInvoicesWithPartnerName(0, 100, "id", "asc"),
-          getAllInvoiceTypes(0, 100, "id", "asc"),
-        ]);
-        setAllInvoices(invoiceRes.content);
-        setTotalElements(invoiceRes.length);
-        setInvoiceType(invoiceTypeRes.data.content);
-        setIsLoading(false);
-      } catch (error) {
-        console.log("error", error);
-        toast.error("Lỗi tải dữ liệu hoá đơn");
-      }
-    };
-    fetchData();
-  }, []);
+    dispatch(fetchInvoices());
+    dispatch(fetchInvoiceTypes());
+    dispatch(fetchPartners());
+  }, [dispatch]);
 
   const handleSort = (key) => {
     setSortConfig((prevConfig) => ({
@@ -73,35 +56,21 @@ const ListInvoice = () => {
   const formatForFilter = (dateString) => {
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return "";
-    return date.toISOString().split("T")[0]; // yyyy-MM-dd
+    return date.toISOString().split("T")[0];
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) return "N/A";
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
-  };
-
-  const formatCurrency = (amount) => {
-    return `${new Intl.NumberFormat("vi-VN").format(amount)}`;
-  };
-
-  const filteredInvoices = allInvoices
+  const filteredInvoices = invoices
     .filter((invoice) => {
       const matchesType =
-        searchType === "" || invoice.invoiceTypeId === parseInt(searchType);
+        filters.type === "" || invoice.invoiceTypeId === parseInt(filters.type);
       const matchesPartner =
-        searchPartner === "" ||
+        filters.partner === "" ||
         invoice.partnerName
           ?.toLowerCase()
-          .includes(searchPartner.toLowerCase());
+          .includes(filters.partner.toLowerCase());
       const matchesDate =
-        searchDate === "" || formatForFilter(invoice.createdAt) === searchDate;
-
+        filters.date === "" ||
+        formatForFilter(invoice.createdAt) === filters.date;
       return matchesType && matchesPartner && matchesDate;
     })
     .sort((a, b) => {
@@ -110,13 +79,11 @@ const ListInvoice = () => {
           ? new Date(a[sortConfig.key]) - new Date(b[sortConfig.key])
           : new Date(b[sortConfig.key]) - new Date(a[sortConfig.key]);
       }
-
       if (sortConfig.key === "moneyAmount") {
         return sortConfig.direction === "asc"
           ? a[sortConfig.key] - b[sortConfig.key]
           : b[sortConfig.key] - a[sortConfig.key];
       }
-
       return sortConfig.direction === "asc"
         ? a[sortConfig.key] - b[sortConfig.key]
         : b[sortConfig.key] - a[sortConfig.key];
@@ -126,14 +93,7 @@ const ListInvoice = () => {
     setTotalElements(filteredInvoices.length);
     setTotalPages(Math.ceil(filteredInvoices.length / itemsPerPage));
     setCurrentPage(1);
-  }, [
-    searchType,
-    searchPartner,
-    searchDate,
-    allInvoices,
-    itemsPerPage,
-    filteredInvoices.length,
-  ]);
+  }, [filters, invoices, itemsPerPage, filteredInvoices.length]);
 
   const handleExportExcel = () => {
     const exportData = filteredInvoices.map((invoice, index) => ({
@@ -166,39 +126,36 @@ const ListInvoice = () => {
   };
 
   const handleAddClick = () => {
-    setIsAddModalOpen(true);
+    setModals((prev) => ({ ...prev, add: true }));
   };
 
   const handleViewDetail = (invoice) => {
     setSelectedInvoice(invoice);
-    setIsDetailModalOpen(true);
+    setModals((prev) => ({ ...prev, detail: true }));
   };
 
   const handleEditClick = async (invoice) => {
     try {
-      const fullInvoice = await getInvoiceDetail(invoice.id);
-      setSelectedInvoice(fullInvoice);
-      setIsEditModalOpen(true);
+      const res = await dispatch(fetchInvoiceDetail(invoice.id));
+      if (res.payload) {
+        setSelectedInvoice(res.payload);
+        setModals((prev) => ({ ...prev, edit: true }));
+      }
     } catch (error) {
       console.error("Lỗi khi lấy chi tiết hóa đơn để sửa:", error);
     }
   };
 
-  const handleAddInvoice = async (newInvoice) => {
-    try {
-      setIsAddModalOpen(false);
-      await fetchData();
-    } catch (error) {
-      console.error("Lỗi khi thêm hóa đơn:", error);
-      toast.error("Đã xảy ra lỗi khi thêm hóa đơn!");
-    }
+  const handleAddInvoice = () => {
+    setModals((prev) => ({ ...prev, add: false }));
+    dispatch(fetchInvoices());
   };
 
   const handleEditSubmit = async (updatedInvoice) => {
     try {
       await updateInvoice(updatedInvoice.id, updatedInvoice);
-      await fetchData();
-      setIsEditModalOpen(false);
+      dispatch(fetchInvoices());
+      setModals((prev) => ({ ...prev, edit: false }));
       setSelectedInvoice(null);
       toast.success("Cập nhật hóa đơn thành công!");
     } catch (err) {
@@ -207,29 +164,25 @@ const ListInvoice = () => {
     }
   };
 
-  const handleSearch = () => {
-    setCurrentPage(1);
-  };
-
   return (
     <div className="w-full bg-white shadow-lg rounded-lg overflow-hidden">
       <InvoiceDetailModal
-        isOpen={isDetailModalOpen}
+        isOpen={modals.detail}
         onClose={() => {
-          setIsDetailModalOpen(false);
+          setModals((prev) => ({ ...prev, detail: false }));
           setSelectedInvoice(null);
         }}
         invoice={selectedInvoice}
       />
       <AddInvoiceModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
+        isOpen={modals.add}
+        onClose={() => setModals((prev) => ({ ...prev, add: false }))}
         onSubmit={handleAddInvoice}
       />
       <EditInvoiceModal
-        isOpen={isEditModalOpen}
+        isOpen={modals.edit}
         onClose={() => {
-          setIsEditModalOpen(false);
+          setModals((prev) => ({ ...prev, edit: false }));
           setSelectedInvoice(null);
         }}
         onSubmit={handleEditSubmit}
@@ -263,21 +216,21 @@ const ListInvoice = () => {
               <input
                 type="text"
                 placeholder="Tìm theo tên đối tác..."
-                value={searchPartner}
-                onChange={(e) => setSearchPartner(e.target.value)}
+                value={filters.partner}
+                onChange={(e) => {
+                  setFilters((prev) => ({ ...prev, partner: e.target.value }));
+                  setCurrentPage(1);
+                }}
                 className="w-full px-4 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
               />
-              <button
-                onClick={handleSearch}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-              >
-                <FaSearch className="h-4 w-4" />
-              </button>
             </div>
             <div className="relative flex-1">
               <select
-                value={searchType}
-                onChange={(e) => setSearchType(e.target.value)}
+                value={filters.type}
+                onChange={(e) => {
+                  setFilters((prev) => ({ ...prev, type: e.target.value }));
+                  setCurrentPage(1);
+                }}
                 className="w-full px-4 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
               >
                 <option value="">Tất cả loại hóa đơn</option>
@@ -291,8 +244,11 @@ const ListInvoice = () => {
             <div className="relative flex-1">
               <input
                 type="date"
-                value={searchDate}
-                onChange={(e) => setSearchDate(e.target.value)}
+                value={filters.date}
+                onChange={(e) => {
+                  setFilters((prev) => ({ ...prev, date: e.target.value }));
+                  setCurrentPage(1);
+                }}
                 className="w-full px-4 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
               />
             </div>
@@ -365,7 +321,7 @@ const ListInvoice = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-left text-gray-900">
-                          {formatCurrency(invoice.moneyAmount)} VNĐ
+                          {formatCurrency(invoice.moneyAmount)}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">

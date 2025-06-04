@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { FaArrowLeft } from "react-icons/fa";
 import { getInventoryAdjustmentById } from "@/api/inventoryAdjustmentApi";
 import { getWarehouseById } from "@/api/warehouseApi";
 import { getProductById } from "@/api/productApi";
 import { getInventoryAdjustmentTypeById } from "@/api/inventoryAdjustmentTypesApi";
 import { toast } from "react-toastify";
+import { formatDate } from "@/utils/formatter";
 
 const AdjustInventoryDetail = () => {
   const { adjustmentId } = useParams();
@@ -70,21 +71,6 @@ const AdjustInventoryDetail = () => {
 
     fetchAdjustmentDetails();
   }, [adjustmentId]);
-
-  const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
-    try {
-      return new Date(dateString).toLocaleString("vi-VN", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    } catch (error) {
-      return dateString || "N/A";
-    }
-  };
 
   const handleGoBack = () => {
     navigate("/dashboard/warehouse/adjust-inventory");

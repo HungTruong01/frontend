@@ -1,20 +1,12 @@
 import React, { useState, useEffect } from "react";
-import {
-  FaPlus,
-  FaSearch,
-  FaFilter,
-  FaSort,
-  FaEye,
-  FaEdit,
-  FaTrash,
-} from "react-icons/fa";
+import { FaSearch, FaSort } from "react-icons/fa";
 import { getAllImportBatches } from "@/api/importBatch";
 import { getAllProducts } from "@/api/productApi";
 import { getAllWarehouse } from "@/api/warehouseApi";
 import { getAllWarehouseTransaction } from "@/api/warehouseTransactionApi";
 import { getAllTransactionBatches } from "@/api/transactionBatchApi";
 import { Pagination } from "@/utils/pagination";
-
+import { formatCurrency } from "@/utils/formatter";
 const ImportBatch = () => {
   const [importBatches, setImportBatches] = useState([]);
   const [products, setProducts] = useState([]);
@@ -299,7 +291,7 @@ const ImportBatch = () => {
                       "Không xác định"}
                   </td>
                   <td className="py-3 px-4 text-gray-600 text-right">
-                    {batch.unitCost.toLocaleString("vi-VN")} VND
+                    {formatCurrency(batch.unitCost)}
                   </td>
                   <td className="py-3 px-4 text-gray-600 text-right">
                     {batch.importQuantity}
@@ -405,9 +397,7 @@ const ImportBatch = () => {
                       {tran.importBatchId}
                     </td>
                     <td className="py-3 px-4 text-gray-600 text-center">
-                      {tran.warehouseTransactionId
-                        ? `GD#${tran.warehouseTransactionId}`
-                        : "-"}
+                      {`GD#${tran.warehouseTransactionId}`}
                     </td>
                   </tr>
                 ))

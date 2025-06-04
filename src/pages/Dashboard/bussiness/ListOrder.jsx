@@ -1,19 +1,35 @@
 import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import {
+  fetchOrders,
+  fetchOrderTypes,
+  fetchOrderStatus,
+} from "@/redux/slices/orderSlice";
+import { fetchPartners } from "@/redux/slices/partnerSlice";
+import { fetchProducts } from "@/redux/slices/productSlice";
+import { fetchWarehouseTransactions } from "@/redux/slices/warehouseTransactionSlice";
+import { fetchDeliveryStatuses } from "@/redux/slices/deliveryStatusSlice";
 import { FaEye, FaEdit, FaPlus, FaFileExport, FaSort } from "react-icons/fa";
 import OrderDetailModal from "@/components/Dashboard/order/OrderDetailModal";
-import { getAllOrders, getOrderById } from "@/api/orderApi";
-import { getAllOrderTypes } from "@/api/orderTypeApi";
-import { getAllOrderStatus } from "@/api/orderStatusApi";
-import { getAllWarehouseTransaction } from "@/api/warehouseTransactionApi";
-import { getAllDeliveryStatus } from "@/api/deliveryStatusApi";
-import { getAllPartners } from "@/api/partnerApi";
+import { getOrderById } from "@/api/orderApi";
 import { exportExcel } from "@/utils/exportExcel";
 import { Pagination } from "@/utils/pagination";
 import { toast } from "react-toastify";
+import { formatCurrency, formatDate } from "@/utils/formatter";
 
 const ListOrder = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { orders, orderTypes, orderStatus, loading } = useSelector(
+    (state) => state.order
+  );
+  const { products } = useSelector((state) => state.product);
+  const { partners } = useSelector((state) => state.partner);
+  const { warehouseTransactions } = useSelector(
+    (state) => state.warehouseTransaction
+  );
+  const { deliveryStatuses } = useSelector((state) => state.deliveryStatus);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [searchStatus, setSearchStatus] = useState("");
@@ -21,66 +37,34 @@ const ListOrder = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [itemsPerPage] = useState(7);
   const [currentPage, setCurrentPage] = useState(1);
-  const [orders, setOrders] = useState([]);
-  const [orderType, setOrderType] = useState([]);
-  const [orderStatus, setOrderStatus] = useState([]);
-  const [partners, setPartners] = useState([]);
-  const [warehouseTransactions, setWarehouseTransactions] = useState([]);
-  const [deliveryStatuses, setDeliveryStatuses] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [sortConfig, setSortConfig] = useState({
     key: "createdAt",
     direction: "desc",
   });
 
-  const fetchAllData = async () => {
-    setIsLoading(true);
-    try {
-      const [
-        order,
-        orderType,
-        orderStatus,
-        partners,
-        warehouseTransactions,
-        deliveryStatuses,
-      ] = await Promise.all([
-        getAllOrders(0, 100, "id", "asc"),
-        getAllOrderTypes(0, 100, "id", "asc"),
-        getAllOrderStatus(0, 100, "id", "asc"),
-        getAllPartners(0, 100, "id", "asc"),
-        getAllWarehouseTransaction(0, 100, "id", "asc"),
-        getAllDeliveryStatus(0, 100, "id", "asc"),
-      ]);
-      setOrders(order.content || []);
-      setOrderType(orderType.data.content || []);
-      setOrderStatus(orderStatus.data.content || []);
-      setPartners(partners.data.content || []);
-      setWarehouseTransactions(warehouseTransactions.content || []);
-      setDeliveryStatuses(deliveryStatuses.data.content || []);
-      setIsLoading(false);
-    } catch (error) {
-      toast.error("Lỗi khi tải dữ liệu. Vui lòng thử lại sau!");
-      console.error("Error fetching data", error);
-    }
-  };
-
   useEffect(() => {
-    fetchAllData();
-  }, []);
+    dispatch(fetchOrders());
+    dispatch(fetchOrderTypes());
+    dispatch(fetchOrderStatus());
+    dispatch(fetchProducts());
+    dispatch(fetchPartners());
+    dispatch(fetchWarehouseTransactions());
+    dispatch(fetchDeliveryStatuses());
+  }, [dispatch]);
 
   const getOrderTypeName = (orderTypeId) => {
-    const type = orderType.find((type) => type.id === orderTypeId);
-    return type ? type.name : "Unknown";
+    const type = orderTypes.find((type) => type.id === orderTypeId);
+    return type ? type.name : "Không có thông tin";
   };
 
   const getOrderStatusName = (orderStatusId) => {
     const status = orderStatus.find((status) => status.id === orderStatusId);
-    return status ? status.name : "Unknown";
+    return status ? status.name : "Không có thông tin";
   };
 
   const getPartnerName = (partnerId) => {
     const partner = partners.find((partner) => partner.id === partnerId);
-    return partner ? partner.name : "Unknown";
+    return partner ? partner.name : "Không có thông tin";
   };
 
   const getPaymentStatusColor = (order) => {
@@ -149,16 +133,6 @@ const ListOrder = () => {
     currentPage * itemsPerPage
   );
 
-  const formatDate = (dateString) => {
-    if (!dateString) return "Invalid Date";
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) return "Invalid Date";
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
-  };
-
   const handleExportExcel = () => {
     const exportData = filteredOrders.map((order) => ({
       STT: order.id,
@@ -189,12 +163,8 @@ const ListOrder = () => {
       setIsDetailModalOpen(true);
     } catch (error) {
       console.error("Lỗi xem chi tiết đơn hàng", error);
-      alert("Không thể tải chi tiết đơn hàng. Vui lòng thử lại!");
+      toast.error("Không thể tải chi tiết đơn hàng. Vui lòng thử lại!");
     }
-  };
-
-  const formatCurrency = (amount) => {
-    return `${new Intl.NumberFormat("vi-VN").format(amount)}`;
   };
 
   const handleEditOrder = (order) => {
@@ -202,7 +172,7 @@ const ListOrder = () => {
   };
 
   const handleOrderUpdated = () => {
-    fetchOrders();
+    dispatch(fetchOrders());
   };
 
   const isOrderEditable = (order) => {
@@ -228,13 +198,11 @@ const ListOrder = () => {
     return !isNonEditable;
   };
 
-  if (isLoading) {
+  if (loading) {
     return (
-      <div className="w-full bg-white shadow-lg rounded-lg overflow-hidden p-6">
+      <div className="bg-gray-50 min-h-screen w-auto p-6">
         <div className="flex justify-center items-center h-64">
-          <div className="text-lg font-semibold text-gray-600">
-            Đang tải dữ liệu...
-          </div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
         </div>
       </div>
     );
@@ -311,7 +279,7 @@ const ListOrder = () => {
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="">Tất cả</option>
-              {orderType.map((type) => (
+              {orderTypes.map((type) => (
                 <option key={type.id} value={type.id}>
                   {type.name}
                 </option>

@@ -1,51 +1,26 @@
 import React, { useEffect, useState } from "react";
 import { FaTimes, FaFileInvoiceDollar, FaUser, FaBox } from "react-icons/fa";
-import { getAllOrderTypes } from "@/api/orderTypeApi";
-import { getAllOrderStatus } from "@/api/orderStatusApi";
-import { getAllPartners } from "@/api/partnerApi";
-import { getAllProducts } from "@/api/productApi";
+import { useSelector, useDispatch } from "react-redux";
+import { fetchInvoiceTypes } from "@/redux/slices/invoiceTypeSlice";
 import AddInvoiceModal from "../invoice/AddInvoiceModal";
-import { toast } from "react-toastify";
 
 const OrderDetailModal = ({ isOpen, onClose, orderData, onOrderUpdated }) => {
-  const [paymentAmount, setPaymentAmount] = useState("");
+  const dispatch = useDispatch();
+  const orderType = useSelector((state) => state.order.orderTypes);
+  const orderStatus = useSelector((state) => state.order.orderStatus);
+  const { list: invoiceType } = useSelector((state) => state.invoiceTypes);
+  const partners = useSelector((state) => state.partner.partners);
+  const products = useSelector((state) => state.product.products);
+
   const [remainingAmount, setRemainingAmount] = useState(0);
-  const [orderType, setOrderType] = useState([]);
-  const [orderStatus, setOrderStatus] = useState([]);
-  const [partners, setPartners] = useState([]);
   const [orderItems, setOrderItems] = useState([]);
-  const [products, setProducts] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
 
-  const fetchAllData = async () => {
-    setIsLoading(true);
-    try {
-      const [
-        orderTypesResponse,
-        orderStatusResponse,
-        productsResponse,
-        partnersResponse,
-      ] = await Promise.all([
-        getAllOrderTypes(0, 100, "id", "asc"),
-        getAllOrderStatus(0, 100, "id", "asc"),
-        getAllProducts(0, 100, "id", "asc"),
-        getAllPartners(0, 100, "id", "asc"),
-      ]);
-      setOrderType(orderTypesResponse.data.content);
-      setOrderStatus(orderStatusResponse.data.content);
-      setProducts(productsResponse.data?.content || []);
-      setPartners(partnersResponse.data.content || []);
-    } catch (error) {
-      toast.error("Lỗi tải dữ liệu: " + error.message);
-      console.error("Lỗi tải dữ liệu:", error);
-    }
-    setIsLoading(false);
-  };
-
   useEffect(() => {
-    fetchAllData();
-  }, []);
+    if (invoiceType.length === 0) {
+      dispatch(fetchInvoiceTypes());
+    }
+  }, [dispatch, invoiceType.length]);
 
   useEffect(() => {
     if (orderData?.orderDetails && products.length > 0) {
@@ -71,44 +46,9 @@ const OrderDetailModal = ({ isOpen, onClose, orderData, onOrderUpdated }) => {
 
   if (!isOpen || !orderData) return null;
 
-  if (isLoading) {
-    return (
-      <div className="fixed inset-0 bg-black/20 backdrop-blur-lg flex items-center justify-center z-50">
-        <div className="bg-white p-8 rounded-xl">Đang tải dữ liệu...</div>
-      </div>
-    );
-  }
-
-  const handlePaymentChange = (e) => {
-    const amount = parseFloat(e.target.value) || 0;
-    setPaymentAmount(e.target.value);
-    const remaining = orderData.totalMoney - orderData.paidMoney - amount;
-    setRemainingAmount(remaining < 0 ? 0 : remaining);
-  };
-
-  const getProductName = (productId) => {
-    const product = products.find((p) => p.id === productId);
-    return product ? product.name : "Không xác định";
-  };
-
-  const getPartnerName = (partnerId) => {
+  const getPartnerField = (partnerId, field) => {
     const partner = partners.find((p) => p.id === partnerId);
-    return partner ? partner.name : "Không xác định";
-  };
-
-  const getPartnerPhone = (partnerId) => {
-    const partner = partners.find((p) => p.id === partnerId);
-    return partner ? partner.phone : "Không xác định";
-  };
-
-  const getPartnerEmail = (partnerId) => {
-    const partner = partners.find((p) => p.id === partnerId);
-    return partner ? partner.email : "Không xác định";
-  };
-
-  const getPartnerAddress = (partnerId) => {
-    const partner = partners.find((p) => p.id === partnerId);
-    return partner ? partner.address : "Không xác định";
+    return partner ? partner[field] : "Không xác định";
   };
 
   const getOrderTypeName = (orderTypeId) => {
@@ -146,7 +86,6 @@ const OrderDetailModal = ({ isOpen, onClose, orderData, onOrderUpdated }) => {
     setIsInvoiceModalOpen(false);
   };
 
-  // Xử lý khi hoàn thành việc tạo hoá đơn
   const handleSubmitInvoice = (invoiceData) => {
     setIsInvoiceModalOpen(false);
     if (onOrderUpdated) {
@@ -155,13 +94,26 @@ const OrderDetailModal = ({ isOpen, onClose, orderData, onOrderUpdated }) => {
     onClose();
   };
 
-  // First, add a helper function to check if it's a purchase order
+  const getDefaultInvoiceTypeId = () => {
+    // Lấy tên loại đơn hàng từ orderTypeId
+    const orderTypeName = getOrderTypeName(orderData.orderTypeId);
+    if (orderTypeName === "Đơn mua") {
+      const found = invoiceType.find((type) => type.name === "Phiếu chi");
+      return found ? found.id : "";
+    }
+    if (orderTypeName === "Đơn bán") {
+      const found = invoiceType.find((type) => type.name === "Phiếu thu");
+      return found ? found.id : "";
+    }
+    return "";
+  };
+
   const isPurchaseOrder = () => {
     return getOrderTypeName(orderData.orderTypeId) === "Đơn mua";
   };
 
   return (
-    <div className="fixed inset-0 bg-black/20 backdrop-blur-lg flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white p-8 w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl">
         <div className="flex justify-between items-center mb-8 pb-4 border-b">
           <div>
@@ -261,25 +213,25 @@ const OrderDetailModal = ({ isOpen, onClose, orderData, onOrderUpdated }) => {
                 <div>
                   <span className="text-gray-600">Tên đối tác:</span>
                   <p className="font-medium">
-                    {getPartnerName(orderData.partnerId)}
+                    {getPartnerField(orderData.partnerId, "name")}
                   </p>
                 </div>
                 <div>
                   <span className="text-gray-600">Số điện thoại:</span>
                   <p className="font-medium">
-                    {getPartnerPhone(orderData.partnerId)}
+                    {getPartnerField(orderData.partnerId, "phone")}
                   </p>
                 </div>
                 <div>
                   <span className="text-gray-600">Email:</span>
                   <p className="font-medium">
-                    {getPartnerEmail(orderData.partnerId)}
+                    {getPartnerField(orderData.partnerId, "email")}
                   </p>
                 </div>
                 <div>
                   <span className="text-gray-600">Địa chỉ:</span>
                   <p className="font-medium">
-                    {getPartnerAddress(orderData.partnerId)}
+                    {getPartnerField(orderData.partnerId, "address")}
                   </p>
                 </div>
               </div>
@@ -386,6 +338,7 @@ const OrderDetailModal = ({ isOpen, onClose, orderData, onOrderUpdated }) => {
         onClose={handleCloseInvoiceModal}
         onSubmit={handleSubmitInvoice}
         preselectedOrderData={orderData}
+        defaultInvoiceTypeId={getDefaultInvoiceTypeId()}
       />
     </div>
   );

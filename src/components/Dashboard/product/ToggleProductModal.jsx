@@ -14,8 +14,7 @@ const ToggleProductModal = ({
   mode = "add",
 }) => {
   const isEdit = mode === "edit";
-
-  const [formData, setFormData] = useState({
+  const initData = {
     id: "",
     name: "",
     description: "",
@@ -25,7 +24,8 @@ const ToggleProductModal = ({
     productTypeId: "",
     productUnitId: "",
     thumbnail: "",
-  });
+  };
+  const [formData, setFormData] = useState(initData);
 
   const [productTypes, setProductTypes] = useState([]);
   const [productUnits, setProductUnits] = useState([]);
@@ -48,15 +48,12 @@ const ToggleProductModal = ({
     try {
       const [typesRes, unitsRes] = await Promise.all([
         getAllProductTypes(0, 1000, "id", "asc"),
-        getAllProductUnits(0, 1000, "id", "asc"), // Thêm các tham số bắt buộc
+        getAllProductUnits(0, 1000, "id", "asc"),
       ]);
-
-      // Đảm bảo truy cập đúng cấu trúc dữ liệu
       setProductTypes(typesRes.data?.content || []);
       setProductUnits(unitsRes.data?.content || []);
     } catch (error) {
       console.error("Lỗi khi lấy dữ liệu:", error);
-      // Set giá trị mặc định khi có lỗi
       setProductTypes([]);
       setProductUnits([]);
       setUploadError("Không thể tải loại sản phẩm hoặc đơn vị tính");
@@ -105,17 +102,7 @@ const ToggleProductModal = ({
         });
         setPreviewImage(product.thumbnail || null);
       } else {
-        setFormData({
-          id: "",
-          name: "",
-          description: "",
-          exportPrice: "",
-          price: "",
-          quantity: "",
-          productTypeId: "",
-          productUnitId: "",
-          thumbnail: "",
-        });
+        setFormData(initData);
         setPreviewImage(null);
       }
       setUploadError("");
@@ -128,9 +115,7 @@ const ToggleProductModal = ({
     let newValue = value;
 
     if (name === "exportPrice") {
-      // Chỉ cho phép số dương, loại bỏ ký tự không phải số
       newValue = value.replace(/[^0-9]/g, "");
-      // Nếu giá trị là "0" hoặc rỗng, không cập nhật
       if (newValue === "0") {
         newValue = "";
       }

@@ -1,26 +1,32 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
 import { FaArrowLeft, FaPlus, FaTrash } from "react-icons/fa";
 import TogglePartnerModal from "@/components/Dashboard/partner/TogglePartnerModal";
 import ProductSelectionModal from "@/components/Dashboard/product/ProductSelectionModal";
-import { getAllPartners, addPartner } from "@/api/partnerApi";
-import { getAllOrderTypes } from "@/api/orderTypeApi";
+import { addPartner } from "@/api/partnerApi";
 import { createOrder, getOrderById, updateOrder } from "@/api/orderApi";
 import {
   createOrderDetails,
   updateOrderDetailsByOrderId,
 } from "@/api/orderDetailApi";
-import { getAllProducts, updateProduct } from "@/api/productApi";
+import { updateProduct } from "@/api/productApi";
 import { toast } from "react-toastify";
 import { getAllImportBatches } from "@/api/importBatch";
+import { fetchPartners } from "@/redux/slices/partnerSlice";
+import { fetchOrderTypes } from "@/redux/slices/orderSlice";
+import { fetchProducts } from "@/redux/slices/productSlice";
 
 const OrderForm = ({ mode = "add" }) => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const dispatch = useDispatch();
+
+  const partners = useSelector((state) => state.partner.partners);
+  const orderTypes = useSelector((state) => state.order.orderTypes);
+  const products = useSelector((state) => state.product.products);
+
   const [orderItems, setOrderItems] = useState([]);
-  const [partners, setPartners] = useState([]);
-  const [orderTypes, setOrderTypes] = useState([]);
-  const [products, setProducts] = useState([]);
   const [selectedPartner, setSelectedPartner] = useState("");
   const [selectedOrderType, setSelectedOrderType] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
@@ -36,26 +42,13 @@ const OrderForm = ({ mode = "add" }) => {
   const isSalesOrder = selectedOrderType === 2;
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [partnerRes, typeRes, productRes, batchesRes] = await Promise.all(
-          [
-            getAllPartners(0, 100, "id", "asc"),
-            getAllOrderTypes(),
-            getAllProducts(0, 100, "id", "asc"),
-            getAllImportBatches(0, 100, "importDate", "desc"),
-          ]
-        );
-        setPartners(partnerRes.data.content || []);
-        setOrderTypes(typeRes.content || []);
-        setProducts(productRes.data?.content || []);
-        setImportBatches(batchesRes.data?.content || []);
-      } catch {
-        toast.error("Lỗi tải dữ liệu cơ bản");
-      }
-    };
-    fetchData();
-  }, []);
+    if (!partners.length) dispatch(fetchPartners());
+    if (!orderTypes.length) dispatch(fetchOrderTypes());
+    if (!products.length) dispatch(fetchProducts());
+    getAllImportBatches(0, 100, "importDate", "desc").then((batchesRes) => {
+      setImportBatches(batchesRes.data?.content || []);
+    });
+  }, [dispatch, partners.length, orderTypes.length, products.length]);
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -90,17 +83,8 @@ const OrderForm = ({ mode = "add" }) => {
       }
     };
     if (isEdit && products.length) fetchOrder();
-  }, [products]);
-
-  useEffect(() => {
-    if (orderItems.length > 0) {
-      const updatedItems = orderItems.map((item) => ({
-        ...item,
-        expireDate: isPurchaseOrder ? item.expireDate || "" : undefined,
-      }));
-      setOrderItems(updatedItems);
-    }
-  }, [selectedOrderType]);
+    if (!isEdit) setIsLoading(false);
+  }, [products, isEdit, id]);
 
   const validateForm = () => {
     if (!selectedOrderType || !selectedPartner || orderItems.length === 0) {
@@ -125,10 +109,12 @@ const OrderForm = ({ mode = "add" }) => {
   };
 
   const updateProductPrices = async (validatedItems) => {
-    const tempProduct = products.map((p) => [p.id, p]);
+    const tempProduct = Object.fromEntries(products.map((p) => [p.id, p]));
+
     for (const item of validatedItems) {
       const product = tempProduct[item.id];
       const newExportPrice = parseFloat(item.unit_price);
+
       if (product && product.exportPrice !== newExportPrice) {
         try {
           await updateProduct(item.id, {
@@ -233,8 +219,7 @@ const OrderForm = ({ mode = "add" }) => {
       await addPartner(partnerData);
       setIsPartnerModalOpen(false);
       toast.success("Đã thêm đối tác");
-      const res = await getAllPartners(0, 100, "id", "asc");
-      setPartners(res.data.content);
+      dispatch(fetchPartners());
     } catch {
       toast.error("Không thể thêm đối tác");
     }

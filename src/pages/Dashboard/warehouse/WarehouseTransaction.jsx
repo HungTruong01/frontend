@@ -11,6 +11,39 @@ import ToggleWarehouseTransaction from "@/components/Dashboard/warehouse/ToggleW
 import { toast } from "react-toastify";
 import { exportExcel } from "@/utils/exportExcel";
 import { Pagination } from "@/utils/pagination";
+import { formatDate } from "@/utils/formatter";
+
+const enrichTransactions = async (transactions) => {
+  return await Promise.all(
+    transactions.map(async (tran) => {
+      try {
+        const [warehouse, order, status, type] = await Promise.all([
+          getWarehouseById(tran.warehouseId),
+          getOrderById(tran.orderId),
+          getDeliveryStatusById(tran.statusId),
+          getWarehouseTransactionTypeById(tran.transactionTypeId),
+        ]);
+
+        return {
+          ...tran,
+          warehouseName: warehouse?.name || "Kho không rõ",
+          orderCode: order?.code || `DH${tran.orderId}`,
+          statusName: status?.name || "Trạng thái không rõ",
+          transactionTypeName: type?.name || "Loại không rõ",
+        };
+      } catch (error) {
+        console.error(`Lỗi giao dịch ${tran.id}:`, error);
+        return {
+          ...tran,
+          warehouseName: "Lỗi kho",
+          orderCode: "Lỗi đơn hàng",
+          statusName: "Lỗi trạng thái",
+          transactionTypeName: "Lỗi loại giao dịch",
+        };
+      }
+    })
+  );
+};
 
 const WarehouseTransaction = () => {
   const [warehouseTransaction, setWarehouseTransaction] = useState([]);
@@ -36,37 +69,7 @@ const WarehouseTransaction = () => {
     try {
       const response = await getAllWarehouseTransaction(0, 100, "id", "desc");
       const transactions = response.content;
-
-      const detailsTransaction = await Promise.all(
-        transactions.map(async (tran) => {
-          try {
-            const [warehouse, order, status, type] = await Promise.all([
-              getWarehouseById(tran.warehouseId),
-              getOrderById(tran.orderId),
-              getDeliveryStatusById(tran.statusId),
-              getWarehouseTransactionTypeById(tran.transactionTypeId),
-            ]);
-
-            return {
-              ...tran,
-              warehouseName: warehouse?.name || "Kho không rõ",
-              orderCode: order?.code || `DH${tran.orderId}`,
-              statusName: status?.name || "Trạng thái không rõ",
-              transactionTypeName: type?.name || "Loại không rõ",
-            };
-          } catch (error) {
-            console.error(`Lỗi khi enrich giao dịch ${tran.id}:`, error);
-            return {
-              ...tran,
-              warehouseName: "Lỗi kho",
-              orderCode: "Lỗi đơn hàng",
-              statusName: "Lỗi trạng thái",
-              transactionTypeName: "Lỗi loại giao dịch",
-            };
-          }
-        })
-      );
-
+      const detailsTransaction = await enrichTransactions(transactions);
       setWarehouseTransaction(detailsTransaction);
       setFilteredData(detailsTransaction);
     } catch (error) {
@@ -79,31 +82,29 @@ const WarehouseTransaction = () => {
     fetchWarehouseTransaction();
   }, []);
 
-  const formatDate = (dateString) => {
-    if (!dateString) return "Invalid Date";
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) return "Invalid Date";
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
-  };
+  useEffect(() => {
+    if (!searchValue) return;
 
-  const handleSearch = () => {
-    const filtered = warehouseTransaction.filter((item) =>
-      displayColumns.some((col) => {
-        const value = item[col.key]?.toString().toLowerCase() || "";
-        return value.includes(searchValue.toLowerCase());
-      })
-    );
-    setFilteredData(filtered);
-    setCurrentPage(1);
-  };
+    const timer = setTimeout(() => {
+      const keyword = searchValue.toLowerCase().trim();
+      const filtered = warehouseTransaction.filter((item) =>
+        displayColumns.some((col) => {
+          const value = item[col.key]?.toString().toLowerCase() || "";
+          return value.includes(keyword);
+        })
+      );
+      setFilteredData(filtered);
+      setCurrentPage(1);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchValue, warehouseTransaction]);
 
   const handleSearchChange = (e) => {
     setSearchValue(e.target.value);
     if (e.target.value === "") {
       setFilteredData(warehouseTransaction);
+      setCurrentPage(1);
     }
   };
 
@@ -130,19 +131,6 @@ const WarehouseTransaction = () => {
     setCurrentEditItem(null);
     await fetchWarehouseTransaction();
   };
-
-  // const handleDelete = async (item) => {
-  //   if (window.confirm("Bạn có chắc muốn xóa giao dịch này?")) {
-  //     try {
-  //       await deleteWarehouseTransaction(item.id);
-  //       await fetchWarehouseTransaction();
-  //       toast.success("Xóa giao dịch kho thành công");
-  //     } catch (error) {
-  //       console.error("Lỗi khi xóa giao dịch:", error);
-  //       toast.error("Lỗi khi xóa giao dịch kho");
-  //     }
-  //   }
-  // };
 
   const handleExportExcel = () => {
     const exportData = filteredData.map((transaction) => ({
@@ -205,10 +193,7 @@ const WarehouseTransaction = () => {
                 onChange={handleSearchChange}
                 className="w-full px-4 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
               />
-              <button
-                onClick={handleSearch}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-              >
+              <button className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700">
                 <FaSearch className="h-4 w-4" />
               </button>
             </div>

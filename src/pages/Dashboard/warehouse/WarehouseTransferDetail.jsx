@@ -11,6 +11,7 @@ import { getWarehouseTransferById } from "@/api/warehouseTransferApi";
 import { getProductById } from "@/api/productApi";
 import { getWarehouseById } from "@/api/warehouseApi";
 import { getInventoryAdjustmentTypeById } from "@/api/inventoryAdjustmentTypesApi";
+import { formatDate, formatCurrency } from "@/utils/formatter";
 
 const WarehouseTransferDetail = () => {
   const { transferId } = useParams();
@@ -59,25 +60,6 @@ const WarehouseTransferDetail = () => {
       fetchData();
     }
   }, [transferId]);
-
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(amount);
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat("vi-VN", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(date);
-  };
 
   const handleGoBack = () => {
     navigate("/dashboard/warehouse/warehouse-transfer");

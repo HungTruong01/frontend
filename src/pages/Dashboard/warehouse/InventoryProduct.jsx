@@ -25,7 +25,7 @@ const InventoryProduct = () => {
       const response = await getAllInventoryWarehouse(0, 100, "id", "asc");
       const products = response.content || [];
 
-      const enrichedProducts = await Promise.all(
+      const detailProducts = await Promise.all(
         products.map(async (item) => {
           try {
             const [warehouse, product] = await Promise.all([
@@ -49,8 +49,8 @@ const InventoryProduct = () => {
         })
       );
 
-      setInventoryProducts(enrichedProducts);
-      setFilteredData(enrichedProducts);
+      setInventoryProducts(detailProducts);
+      setFilteredData(detailProducts);
     } catch (error) {
       console.error("Lỗi khi lấy danh sách tồn kho:", error);
       toast.error("Không thể tải danh sách tồn kho");

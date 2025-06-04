@@ -23,8 +23,8 @@ const TypeOrder = () => {
   ];
   const fetchOrderType = async () => {
     try {
-      const response = await getAllOrderTypes();
-      setOrderType(response.content);
+      const response = await getAllOrderTypes(0, 100, "id", "asc");
+      setOrderType(response.data.content);
     } catch (error) {
       console.error("Lỗi khi lấy danh sách loại đơn hàng:", error);
     }

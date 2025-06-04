@@ -24,6 +24,7 @@ const TogglePartnerModal = ({
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    if (!isOpen) return;
     if (mode === "edit" && partner) {
       setFormData({
         name: partner?.name || "",
@@ -43,7 +44,7 @@ const TogglePartnerModal = ({
       setFormData(initData);
     }
     setErrors({});
-  }, [isOpen, mode, partner, partnerTypes]);
+  }, [isOpen, mode, partner, partnerTypes.length]);
 
   const normalizeString = (str) => {
     return str.trim().replace(/\s+/g, " ");
