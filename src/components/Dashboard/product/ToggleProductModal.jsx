@@ -19,7 +19,6 @@ const ToggleProductModal = ({
     name: "",
     description: "",
     exportPrice: "",
-    price: "",
     quantity: "",
     productTypeId: "",
     productUnitId: "",
@@ -47,8 +46,8 @@ const ToggleProductModal = ({
   const fetchData = async () => {
     try {
       const [typesRes, unitsRes] = await Promise.all([
-        getAllProductTypes(0, 1000, "id", "asc"),
-        getAllProductUnits(0, 1000, "id", "asc"),
+        getAllProductTypes(0, 100, "id", "asc"),
+        getAllProductUnits(0, 100, "id", "asc"),
       ]);
       setProductTypes(typesRes.data?.content || []);
       setProductUnits(unitsRes.data?.content || []);
@@ -81,6 +80,14 @@ const ToggleProductModal = ({
       newErrors.exportPrice = "Giá bán phải là số dương lớn hơn 0";
     }
 
+    if (!data.productTypeId) {
+      newErrors.productTypeId = "Loại sản phẩm không được để trống";
+    }
+
+    if (!data.productUnitId) {
+      newErrors.productUnitId = "Đơn vị tính không được để trống";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -94,7 +101,6 @@ const ToggleProductModal = ({
           name: product.name || "",
           description: product.description || "",
           exportPrice: product.exportPrice || "",
-          price: product.price || product.exportPrice || "",
           quantity: product.quantity || "",
           productTypeId: product.productTypeId || "",
           productUnitId: product.productUnitId || "",
@@ -171,7 +177,7 @@ const ToggleProductModal = ({
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (isUploading) {
       toast.error("Vui lòng đợi cho đến khi quá trình tải ảnh hoàn tất");
@@ -195,14 +201,21 @@ const ToggleProductModal = ({
       name: normalizedData.name,
       description: normalizedData.description,
       exportPrice: Number(normalizedData.exportPrice),
-      price: Number(normalizedData.exportPrice),
       quantity: normalizedData.quantity ? Number(normalizedData.quantity) : 0,
       productTypeId: Number(normalizedData.productTypeId),
       productUnitId: Number(normalizedData.productUnitId),
       thumbnail: normalizedData.thumbnail || "",
       warehouseProducts: [],
     };
-    onSubmit(data);
+    try {
+      await onSubmit(data);
+      setFormData(initData);
+      setPreviewImage(null);
+      setErrors({});
+      onClose();
+    } catch (error) {
+      toast.error("Có lỗi xảy ra khi lưu sản phẩm");
+    }
   };
 
   // Thêm styles chung cho cả 2 select
@@ -387,7 +400,13 @@ const ToggleProductModal = ({
                   className="text-xm"
                   menuPlacement="top"
                   styles={customSelectStyles}
+                  isClearable={true}
                 />
+                {errors.productTypeId && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {errors.productTypeId}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -408,7 +427,13 @@ const ToggleProductModal = ({
                   className="text-xm"
                   menuPlacement="top"
                   styles={customSelectStyles}
+                  isClearable={true}
                 />
+                {errors.productUnitId && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {errors.productUnitId}
+                  </p>
+                )}
               </div>
             </div>
           </div>

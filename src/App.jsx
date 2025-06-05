@@ -44,13 +44,15 @@ import RevenueReport from "@/pages/Dashboard/reports/RevenueReport";
 import LoginPage from "@/pages/auth/LoginPage";
 import InvoiceType from "@/pages/Dashboard/categories/InvoiceType";
 import DeliveryStatus from "@/pages/Dashboard/categories/DeliveryStatus";
-
+import AddInvoicePage from "@/components/Dashboard/invoice/AddInvoicePage";
 import OrderForm from "@/components/Dashboard/order/OrderForm";
 import ListInvoice from "@/pages/Dashboard/bussiness/ListInvoice";
 import { isUserLoggedIn } from "@/api/authService";
 import Config from "@/pages/Dashboard/system/Config";
 import ConfigPage from "@/pages/Dashboard/ConfigPage";
 import PrivateRoute from "./utils/PrivateRoute";
+import InvoiceDetailPage from "@/components/Dashboard/invoice/InvoiceDetailPage";
+import EditInvoicePage from "@/components/Dashboard/invoice/EditInvoicePage";
 
 // Component để bảo vệ các route
 function AuthenticatedRoute({ children }) {
@@ -235,8 +237,32 @@ const App = () => {
           <Route
             path="business/invoice-management"
             element={
-              <PrivateRoute menuName="Kinh doanh" subMenuName="Hóa đơn">
+              <PrivateRoute menuName="Kinh doanh">
                 <ListInvoice />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/dashboard/business/invoice/add"
+            element={
+              <PrivateRoute menuName="Kinh doanh">
+                <AddInvoicePage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/dashboard/business/invoice/detail/:id"
+            element={
+              <PrivateRoute menuName="Kinh doanh">
+                <InvoiceDetailPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/dashboard/business/invoice/edit/:id"
+            element={
+              <PrivateRoute menuName="Kinh doanh">
+                <EditInvoicePage />
               </PrivateRoute>
             }
           />
@@ -265,27 +291,6 @@ const App = () => {
               </PrivateRoute>
             }
           />
-          <Route
-            path="warehouse/inventory-products"
-            element={
-              <PrivateRoute menuName="Kho">
-                <InventoryProduct />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="warehouse/adjust-inventory"
-            element={
-              <PrivateRoute menuName="Kho">
-                <AdjustInventory />
-              </PrivateRoute>
-            }
-          />
-          {/* <Route
-            path="warehouse/adjust-inventory-detail/:id"
-            element={<InventoryAdjustmentDetail />}
-          /> */}
-
           <Route
             path="warehouse/warehouse-transfer"
             element={

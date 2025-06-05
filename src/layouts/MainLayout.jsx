@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Header from "@/components/Dashboard/Header";
 import SideNav from "@/components/Dashboard/SideNav";
-import menuItem from "@/data/menuItem";
+import menuItem from "@/constants/menuItem";
 import { Outlet } from "react-router-dom";
 
 const MainLayout = () => {

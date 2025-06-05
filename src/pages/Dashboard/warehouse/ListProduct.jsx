@@ -153,9 +153,7 @@ const ListProduct = () => {
       const productData = {
         name: newProduct.name,
         description: newProduct.description,
-        // importPrice: Number(newProduct.importPrice),
         exportPrice: Number(newProduct.exportPrice),
-        price: Number(newProduct.exportPrice),
         quantity: Number(newProduct.quantity || 0),
         productTypeId: Number(newProduct.productTypeId),
         productUnitId: Number(newProduct.productUnitId),
@@ -196,9 +194,7 @@ const ListProduct = () => {
       const productData = {
         name: updatedProduct.name,
         description: updatedProduct.description,
-        // importPrice: Number(updatedProduct.importPrice),
         exportPrice: Number(updatedProduct.exportPrice),
-        price: Number(updatedProduct.exportPrice),
         quantity: Number(updatedProduct.quantity || 0),
         productTypeId: Number(updatedProduct.productTypeId),
         productUnitId: Number(updatedProduct.productUnitId),

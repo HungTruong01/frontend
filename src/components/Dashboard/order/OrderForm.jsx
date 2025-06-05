@@ -13,9 +13,11 @@ import {
 import { updateProduct } from "@/api/productApi";
 import { toast } from "react-toastify";
 import { getAllImportBatches } from "@/api/importBatch";
+import { getAllPartnerTypes } from "@/api/partnerTypeApi";
 import { fetchPartners } from "@/redux/slices/partnerSlice";
 import { fetchOrderTypes } from "@/redux/slices/orderSlice";
 import { fetchProducts } from "@/redux/slices/productSlice";
+import { get } from "lodash";
 
 const OrderForm = ({ mode = "add" }) => {
   const navigate = useNavigate();
@@ -27,6 +29,7 @@ const OrderForm = ({ mode = "add" }) => {
   const products = useSelector((state) => state.product.products);
 
   const [orderItems, setOrderItems] = useState([]);
+  const [partnerTypes, setPartnerTypes] = useState([]);
   const [selectedPartner, setSelectedPartner] = useState("");
   const [selectedOrderType, setSelectedOrderType] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
@@ -47,6 +50,9 @@ const OrderForm = ({ mode = "add" }) => {
     if (!products.length) dispatch(fetchProducts());
     getAllImportBatches(0, 100, "importDate", "desc").then((batchesRes) => {
       setImportBatches(batchesRes.data?.content || []);
+    });
+    getAllPartnerTypes(0, 100, "id", "asc").then((typesRes) => {
+      setPartnerTypes(typesRes.data.content || []);
     });
   }, [dispatch, partners.length, orderTypes.length, products.length]);
 
@@ -358,6 +364,7 @@ const OrderForm = ({ mode = "add" }) => {
           onClose={() => setIsPartnerModalOpen(false)}
           onSubmit={handleAddPartner}
           mode="add"
+          partnerTypes={partnerTypes}
         />
       )}
       <ProductSelectionModal

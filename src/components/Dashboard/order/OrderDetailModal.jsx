@@ -2,10 +2,11 @@ import React, { useEffect, useState } from "react";
 import { FaTimes, FaFileInvoiceDollar, FaUser, FaBox } from "react-icons/fa";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchInvoiceTypes } from "@/redux/slices/invoiceTypeSlice";
-import AddInvoiceModal from "../invoice/AddInvoiceModal";
+import { useNavigate } from "react-router-dom";
 
 const OrderDetailModal = ({ isOpen, onClose, orderData, onOrderUpdated }) => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const orderType = useSelector((state) => state.order.orderTypes);
   const orderStatus = useSelector((state) => state.order.orderStatus);
   const { list: invoiceType } = useSelector((state) => state.invoiceTypes);
@@ -14,7 +15,6 @@ const OrderDetailModal = ({ isOpen, onClose, orderData, onOrderUpdated }) => {
 
   const [remainingAmount, setRemainingAmount] = useState(0);
   const [orderItems, setOrderItems] = useState([]);
-  const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
 
   useEffect(() => {
     if (invoiceType.length === 0) {
@@ -78,34 +78,35 @@ const OrderDetailModal = ({ isOpen, onClose, orderData, onOrderUpdated }) => {
     return `${day}/${month}/${year}`;
   };
 
-  const handlePaymentSubmit = () => {
-    setIsInvoiceModalOpen(true);
-  };
-
-  const handleCloseInvoiceModal = () => {
-    setIsInvoiceModalOpen(false);
-  };
-
-  const handleSubmitInvoice = (invoiceData) => {
-    setIsInvoiceModalOpen(false);
-    if (onOrderUpdated) {
-      onOrderUpdated();
-    }
-    onClose();
-  };
-
   const getDefaultInvoiceTypeId = () => {
-    // Lấy tên loại đơn hàng từ orderTypeId
     const orderTypeName = getOrderTypeName(orderData.orderTypeId);
     if (orderTypeName === "Đơn mua") {
       const found = invoiceType.find((type) => type.name === "Phiếu chi");
-      return found ? found.id : "";
-    }
-    if (orderTypeName === "Đơn bán") {
+      return found?.id;
+    } else if (orderTypeName === "Đơn bán") {
       const found = invoiceType.find((type) => type.name === "Phiếu thu");
-      return found ? found.id : "";
+      return found?.id;
     }
     return "";
+  };
+
+  const handleCreateInvoice = () => {
+    const defaultInvoiceTypeId = getDefaultInvoiceTypeId();
+
+    navigate("/dashboard/business/invoice/add", {
+      state: {
+        preselectedOrderData: {
+          ...orderData,
+          partnerId: orderData.partnerId,
+          id: orderData.id,
+          totalMoney: orderData.totalMoney,
+          paidMoney: orderData.paidMoney,
+          orderTypeName: getOrderTypeName(orderData.orderTypeId), // Add order type name
+        },
+        defaultInvoiceTypeId,
+      },
+    });
+    onClose();
   };
 
   const isPurchaseOrder = () => {
@@ -319,7 +320,7 @@ const OrderDetailModal = ({ isOpen, onClose, orderData, onOrderUpdated }) => {
 
           <div className="flex justify-end">
             <button
-              onClick={handlePaymentSubmit}
+              onClick={handleCreateInvoice}
               disabled={isOrderCompleted()}
               className={`px-6 py-2 rounded-md font-medium ${
                 isOrderCompleted()
@@ -332,14 +333,6 @@ const OrderDetailModal = ({ isOpen, onClose, orderData, onOrderUpdated }) => {
           </div>
         </div>
       </div>
-
-      <AddInvoiceModal
-        isOpen={isInvoiceModalOpen}
-        onClose={handleCloseInvoiceModal}
-        onSubmit={handleSubmitInvoice}
-        preselectedOrderData={orderData}
-        defaultInvoiceTypeId={getDefaultInvoiceTypeId()}
-      />
     </div>
   );
 };

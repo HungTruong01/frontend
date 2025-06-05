@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { fetchInvoices, fetchInvoiceDetail } from "@/redux/slices/invoiceSlice";
 import { fetchInvoiceTypes } from "@/redux/slices/invoiceTypeSlice";
 import { updateInvoice } from "@/api/invoiceApi";
 import { FaEye, FaEdit, FaPlus, FaFileExport, FaSort } from "react-icons/fa";
-import InvoiceDetailModal from "@/components/Dashboard/invoice/InvoiceDetailModal";
-import AddInvoiceModal from "@/components/Dashboard/invoice/AddInvoiceModal";
-import EditInvoiceModal from "@/components/Dashboard/invoice/EditInvoiceModal";
 import { toast } from "react-toastify";
 import { exportExcel } from "@/utils/exportExcel";
 import { Pagination } from "@/utils/pagination";
@@ -14,6 +12,7 @@ import { fetchPartners } from "@/redux/slices/partnerSlice";
 import { formatCurrency, formatDate } from "@/utils/formatter";
 
 const ListInvoice = () => {
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const { list: invoices, loading: isLoading } = useSelector(
     (state) => state.invoices
@@ -21,12 +20,6 @@ const ListInvoice = () => {
   const { list: invoiceType } = useSelector((state) => state.invoiceTypes);
   const { partners } = useSelector((state) => state.partner);
 
-  const [modals, setModals] = useState({
-    detail: false,
-    add: false,
-    edit: false,
-  });
-  const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [itemsPerPage, setItemsPerPage] = useState(7);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalElements, setTotalElements] = useState(0);
@@ -126,68 +119,19 @@ const ListInvoice = () => {
   };
 
   const handleAddClick = () => {
-    setModals((prev) => ({ ...prev, add: true }));
+    navigate("/dashboard/business/invoice/add");
   };
 
   const handleViewDetail = (invoice) => {
-    setSelectedInvoice(invoice);
-    setModals((prev) => ({ ...prev, detail: true }));
+    navigate(`/dashboard/business/invoice/detail/${invoice.id}`);
   };
 
-  const handleEditClick = async (invoice) => {
-    try {
-      const res = await dispatch(fetchInvoiceDetail(invoice.id));
-      if (res.payload) {
-        setSelectedInvoice(res.payload);
-        setModals((prev) => ({ ...prev, edit: true }));
-      }
-    } catch (error) {
-      console.error("Lỗi khi lấy chi tiết hóa đơn để sửa:", error);
-    }
-  };
-
-  const handleAddInvoice = () => {
-    setModals((prev) => ({ ...prev, add: false }));
-    dispatch(fetchInvoices());
-  };
-
-  const handleEditSubmit = async (updatedInvoice) => {
-    try {
-      await updateInvoice(updatedInvoice.id, updatedInvoice);
-      dispatch(fetchInvoices());
-      setModals((prev) => ({ ...prev, edit: false }));
-      setSelectedInvoice(null);
-      toast.success("Cập nhật hóa đơn thành công!");
-    } catch (err) {
-      console.error("Lỗi khi cập nhật hóa đơn:", err);
-      toast.error("Đã xảy ra lỗi khi cập nhật hóa đơn.");
-    }
+  const handleEditClick = (invoice) => {
+    navigate(`/dashboard/business/invoice/edit/${invoice.id}`);
   };
 
   return (
     <div className="w-full bg-white shadow-lg rounded-lg overflow-hidden">
-      <InvoiceDetailModal
-        isOpen={modals.detail}
-        onClose={() => {
-          setModals((prev) => ({ ...prev, detail: false }));
-          setSelectedInvoice(null);
-        }}
-        invoice={selectedInvoice}
-      />
-      <AddInvoiceModal
-        isOpen={modals.add}
-        onClose={() => setModals((prev) => ({ ...prev, add: false }))}
-        onSubmit={handleAddInvoice}
-      />
-      <EditInvoiceModal
-        isOpen={modals.edit}
-        onClose={() => {
-          setModals((prev) => ({ ...prev, edit: false }));
-          setSelectedInvoice(null);
-        }}
-        onSubmit={handleEditSubmit}
-        invoice={selectedInvoice}
-      />
       <div className="p-6">
         <div className="flex flex-col space-y-4">
           <div className="flex justify-between items-center">
@@ -203,7 +147,7 @@ const ListInvoice = () => {
                 Xuất file
               </button>
               <button
-                onClick={handleAddClick}
+                onClick={() => handleAddClick()}
                 className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
               >
                 <FaPlus className="h-5 w-5 mr-2" />
