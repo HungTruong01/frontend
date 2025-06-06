@@ -208,7 +208,7 @@ const ToggleWarehouseTransfer = ({
       );
       toast.error(
         `Lỗi: ${
-          error.response?.data?.message ||
+          error.response?.data ||
           `Có lỗi xảy ra khi ${isEdit ? "cập nhật" : "thêm"} điều chỉnh tồn kho`
         }`
       );

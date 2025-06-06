@@ -17,7 +17,7 @@ const InvoiceDetailPage = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        await Promise.all([dispatch(fetchInvoiceDetail(id))]);
+        await dispatch(fetchInvoiceDetail(id));
       } catch (error) {
         console.error("Error fetching invoice details:", error);
       } finally {

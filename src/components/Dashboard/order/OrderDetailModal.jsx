@@ -101,7 +101,7 @@ const OrderDetailModal = ({ isOpen, onClose, orderData, onOrderUpdated }) => {
           id: orderData.id,
           totalMoney: orderData.totalMoney,
           paidMoney: orderData.paidMoney,
-          orderTypeName: getOrderTypeName(orderData.orderTypeId), // Add order type name
+          orderTypeName: getOrderTypeName(orderData.orderTypeId),
         },
         defaultInvoiceTypeId,
       },
