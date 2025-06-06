@@ -5,10 +5,7 @@ import {
 } from "@/api/warehouseTransferApi";
 import { getWarehouseById } from "@/api/warehouseApi";
 import { getProductById } from "@/api/productApi";
-import {
-  getAllDeliveryStatus,
-  getDeliveryStatusById,
-} from "@/api/deliveryStatusApi";
+import { getDeliveryStatusById } from "@/api/deliveryStatusApi";
 import { FaSearch, FaEye, FaEdit, FaFileExport } from "react-icons/fa";
 import { GoPlus } from "react-icons/go";
 import { toast } from "react-toastify";
@@ -272,13 +269,20 @@ const WarehouseTransfer = () => {
                         >
                           <FaEye className="h-5 w-5" />
                         </button>
-                        <button
-                          onClick={() => handleEdit(row)}
-                          className="text-blue-500 hover:text-blue-700 transition-colors"
-                          title="Sửa"
-                        >
-                          <FaEdit className="h-5 w-5" />
-                        </button>
+                        {row.statusName === "Đã hoàn thành" ? (
+                          <FaEdit
+                            className="h-5 w-5 text-gray-400 cursor-not-allowed"
+                            title="Không thể sửa khi đã hoàn thành"
+                          />
+                        ) : (
+                          <button
+                            onClick={() => handleEdit(row)}
+                            className="text-blue-500 hover:text-blue-700 transition-colors"
+                            title="Sửa"
+                          >
+                            <FaEdit className="h-5 w-5" />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
