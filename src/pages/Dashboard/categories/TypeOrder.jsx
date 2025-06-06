@@ -6,6 +6,7 @@ import {
   updateOrderType,
   deleteOrderType,
 } from "@/api/orderTypeApi";
+import { toast } from "react-toastify";
 const TypeOrder = () => {
   const [orderType, setOrderType] = useState([]);
   const addOrderFields = [
@@ -33,18 +34,22 @@ const TypeOrder = () => {
   const handleAddOrderType = async (newOrderType) => {
     try {
       await createOrderType(newOrderType);
+      toast.success("Thêm loại đơn hàng thành công!");
       fetchOrderType();
     } catch (error) {
       console.error("Lỗi khi thêm loại đơn hàng:", error);
+      toast.error("Lỗi khi thêm loại đơn hàng!");
     }
   };
 
   const handleEditOrderType = async (updatedOrderType) => {
     try {
       await updateOrderType(updatedOrderType.id, updatedOrderType);
+      toast.success("Cập nhật loại đơn hàng thành công!");
       fetchOrderType();
     } catch (error) {
       console.error("Lỗi khi sửa loại đơn hàng:", error);
+      toast.error("Lỗi khi sửa loại đơn hàng!");
     }
   };
 

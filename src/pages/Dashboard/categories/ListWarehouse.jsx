@@ -6,6 +6,7 @@ import {
   updateWarehouse,
   deleteWarehouse,
 } from "@/api/warehouseApi";
+import { toast } from "react-toastify";
 const ListWarehouse = () => {
   const [warehouse, setWarehouse] = useState([]);
   const addWarehouseFields = [
@@ -42,18 +43,22 @@ const ListWarehouse = () => {
   const handleAdd = async (data) => {
     try {
       await createWarehouse(data);
+      toast.success("Thêm kho bãi thành công!");
       fetchData();
     } catch (error) {
       console.error("Lỗi khi thêm kho bãi:", error);
+      toast.error("Lỗi khi thêm kho bãi!");
     }
   };
 
   const handleEdit = async (data) => {
     try {
       await updateWarehouse(data.id, data);
+      toast.success("Sửa kho bãi thành công!");
       fetchData();
     } catch (error) {
       console.error("Lỗi khi sửa kho bãi:", error);
+      toast.error("Lỗi khi sửa kho bãi!");
     }
   };
 

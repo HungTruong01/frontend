@@ -6,6 +6,7 @@ import {
   updateInvoiceType,
   deleteInvoiceType,
 } from "@/api/invoiceTypeApi";
+import { toast } from "react-toastify";
 const InvoiceType = () => {
   const [invoiceType, setInvoiceType] = useState([]);
   const addAccountFields = [
@@ -24,7 +25,6 @@ const InvoiceType = () => {
   const fetchInvoiceType = async () => {
     try {
       const response = await getAllInvoiceTypes(0, 100, "id", "asc");
-      // console.log("API response:", response);
       setInvoiceType(response.data.content);
     } catch (error) {
       console.error("Lỗi khi lấy danh sách loại hoá đơn:", error);
@@ -34,18 +34,22 @@ const InvoiceType = () => {
   const handleAddInvoiceType = async (newInvoiceType) => {
     try {
       await createInvoiceType(newInvoiceType);
+      toast.success("Thêm loại hoá đơn thành công!");
       fetchInvoiceType();
     } catch (error) {
       console.error("Lỗi khi thêm loại hoá đơn:", error);
+      toast.error("Lỗi khi thêm loại hoá đơn!");
     }
   };
 
   const handleEditInvoiceType = async (updatedInvoiceType) => {
     try {
       await updateInvoiceType(updatedInvoiceType.id, updatedInvoiceType);
+      toast.success("Cập nhật loại hoá đơn thành công!");
       fetchInvoiceType();
     } catch (error) {
       console.log("Lỗi khi cập nhật loại hoá đơn:", error);
+      toast.error("Lỗi khi cập nhật loại hoá đơn!");
     }
   };
 

@@ -6,6 +6,7 @@ import {
   updateWarehouseTransactionType,
   deleteWarehouseTransactionType,
 } from "@/api/warehouseTransactionTypeApi";
+import { toast } from "react-toastify";
 const TypeTransactionWareHouse = () => {
   const [warehouseTransactionType, setWarehouseTransactionType] = useState([]);
   const addWarehouseTransactionTypeFields = [
@@ -38,18 +39,22 @@ const TypeTransactionWareHouse = () => {
   const handleAdd = async (data) => {
     try {
       await createWarehouseTransactionType(data);
+      toast.success("Thêm loại giao dịch kho thành công!");
       fetchData();
     } catch (error) {
       console.error("Lỗi khi thêm loại giao dịch kho:", error);
+      toast.error("Lỗi khi thêm loại giao dịch kho!");
     }
   };
 
   const handleEdit = async (data) => {
     try {
       await updateWarehouseTransactionType(data.id, data);
+      toast.success("Cập nhật loại giao dịch kho thành công!");
       fetchData();
     } catch (error) {
       console.error("Lỗi khi sửa loại giao dịch kho:", error);
+      toast.error("Lỗi khi sửa loại giao dịch kho!");
     }
   };
 

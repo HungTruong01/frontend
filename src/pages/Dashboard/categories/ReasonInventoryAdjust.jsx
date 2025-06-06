@@ -6,6 +6,7 @@ import {
   updateInventoryAdjustmentType,
   deleteInventoryAdjustmentType,
 } from "@/api/inventoryAdjustmentTypesApi";
+import { toast } from "react-toastify";
 
 const ReasonInventoryAdjust = () => {
   const [reason, setReason] = useState([]);
@@ -34,18 +35,22 @@ const ReasonInventoryAdjust = () => {
   const handleAddReason = async (reason) => {
     try {
       await createInventoryAdjustmentType(reason);
+      toast.success("Thêm lý do điều chỉnh kho thành công!");
       fetchData();
     } catch (error) {
       console.error("Error adding reason:", error);
+      toast.error("Lỗi khi thêm lý do điều chỉnh kho!");
     }
   };
 
   const handleEditReason = async (reason) => {
     try {
       await updateInventoryAdjustmentType(reason.id, reason);
+      toast.success("Cập nhật lý do điều chỉnh kho thành công!");
       fetchData();
     } catch (error) {
       console.error("Error editing reason:", error);
+      toast.error("Lỗi khi cập nhật lý do điều chỉnh kho!");
     }
   };
 

@@ -6,6 +6,7 @@ import {
   updateProductType,
   deleteProductType,
 } from "@/api/productTypeApi";
+import { toast } from "react-toastify";
 const TypeProduct = () => {
   const [typeProduct, setTypeProduct] = useState([]);
   const addProductTypeField = [
@@ -34,18 +35,22 @@ const TypeProduct = () => {
   const handleAddProductType = async (newProductType) => {
     try {
       await createProductType(newProductType);
+      toast.success("Thêm loại sản phẩm thành công!");
       fetchTypeProduct();
     } catch (error) {
       console.error("Lỗi khi thêm loại sản phẩm:", error);
+      toast.error("Lỗi khi thêm loại sản phẩm!");
     }
   };
 
   const handleEditProductType = async (updatedProductType) => {
     try {
       await updateProductType(updatedProductType.id, updatedProductType);
+      toast.success("Cập nhật loại sản phẩm thành công!");
       fetchTypeProduct();
     } catch (error) {
       console.log("Lỗi khi cập nhật loại sản phẩm:", error);
+      toast.error("Lỗi khi cập nhật loại sản phẩm!");
     }
   };
 

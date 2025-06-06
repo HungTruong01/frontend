@@ -6,6 +6,7 @@ import {
   updateOrderStatus,
   deleteOrderStatus,
 } from "@/api/orderStatusApi";
+import { toast } from "react-toastify";
 const OrderStatus = () => {
   const [orderStatus, setOrderStatus] = useState([]);
   const addOrderStatusFields = [
@@ -32,17 +33,21 @@ const OrderStatus = () => {
   const handleCreateOrderStatus = async (newOrderStatus) => {
     try {
       await createOrderStatus(newOrderStatus);
+      toast.success("Thêm trạng thái đơn hàng thành công!");
       fetchOrderStatus();
     } catch (error) {
       console.log("Error creating order status:", error);
+      toast.error("Lỗi khi thêm trạng thái đơn hàng!");
     }
   };
   const handleUpdateOrderStatus = async (updatedOrderStatus) => {
     try {
       await updateOrderStatus(updatedOrderStatus.id, updatedOrderStatus);
+      toast.success("Cập nhật trạng thái đơn hàng thành công!");
       fetchOrderStatus();
     } catch (error) {
       console.log("Error updating order status:", error);
+      toast.error("Lỗi khi cập nhật trạng thái đơn hàng!");
     }
   };
 

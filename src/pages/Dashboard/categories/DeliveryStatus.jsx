@@ -6,6 +6,7 @@ import {
   updateDeliveryStatus,
   deleteDeliveryStatus,
 } from "@/api/deliveryStatusApi";
+import { toast } from "react-toastify";
 const DeliveryStatus = () => {
   const [delivery, setDelivery] = useState([]);
   const addDeliveryStatusFields = [
@@ -34,18 +35,22 @@ const DeliveryStatus = () => {
   const handleAdd = async (data) => {
     try {
       await createDeliveryStatus(data);
+      toast.success("Thêm trạng thái vận chuyển thành công!");
       fetchData();
     } catch (error) {
       console.error("Error adding delivery status:", error);
+      toast.error("Lỗi khi thêm trạng thái vận chuyển!");
     }
   };
 
   const handleEdit = async (data) => {
     try {
       await updateDeliveryStatus(data.id, data);
+      toast.success("Cập nhật trạng thái vận chuyển thành công!");
       fetchData();
     } catch (error) {
       console.error("Error updating delivery status:", error);
+      toast.error("Lỗi khi cập nhật trạng thái vận chuyển!");
     }
   };
 

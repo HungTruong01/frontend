@@ -6,6 +6,7 @@ import {
   updatePartnerType,
   deletePartnerType,
 } from "@/api/partnerTypeApi";
+import { toast } from "react-toastify";
 const TypePartner = () => {
   const [partnerType, setPartnerType] = useState([]);
   const addPartnerTypeFields = [
@@ -33,18 +34,22 @@ const TypePartner = () => {
   const handleAddPartnerType = async (newPartnerType) => {
     try {
       await createPartnerType(newPartnerType);
+      toast.success("Thêm loại đối tác thành công!");
       fetchTypePartner();
     } catch (error) {
       console.log("Lỗi khi thêm loại đối tác:", error);
+      toast.error("Lỗi khi thêm loại đối tác!");
     }
   };
 
   const handleEditPartnerType = async (updatedPartnerType) => {
     try {
       await updatePartnerType(updatedPartnerType.id, updatedPartnerType);
+      toast.success("Cập nhật loại đối tác thành công!");
       fetchTypePartner();
     } catch (error) {
       console.log("Lỗi khi cập nhật loại đối tác:", error);
+      toast.error("Lỗi khi cập nhật loại đối tác!");
     }
   };
 
