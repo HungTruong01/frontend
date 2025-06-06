@@ -28,13 +28,9 @@ const InvoiceDetailPage = () => {
   }, [dispatch, id]);
 
   const orderDetails = invoice?.items || [];
-  const totalAmount = orderDetails.reduce(
-    (sum, item) => sum + (item.total || 0),
-    0
-  );
-
-  const totalPaidAmount = invoice?.moneyAmount || 0;
-  const remainingAmount = Math.max(totalAmount - totalPaidAmount, 0);
+  const orderTotal = invoice?.order?.totalMoney || 0;
+  const orderPaidTotal = invoice?.order?.paidMoney || 0;
+  const remainingAmount = Math.max(orderTotal - orderPaidTotal, 0);
 
   const getPaymentTypeDisplay = (type) => {
     const types = {
@@ -165,15 +161,21 @@ const InvoiceDetailPage = () => {
           </div>
           <div className="space-y-2 mt-4">
             <div className="flex justify-between text-gray-700 font-semibold">
-              <span>Tổng cộng:</span>
+              <span>Tổng tiền đơn hàng:</span>
               <span className="text-blue-700 text-lg font-bold">
-                {formatCurrency(totalAmount)}
+                {formatCurrency(orderTotal)}
               </span>
             </div>
             <div className="flex justify-between text-gray-700">
-              <span>Đã thanh toán (hóa đơn):</span>
+              <span>Số tiền thanh toán (hóa đơn này):</span>
               <span className="font-bold">
-                {formatCurrency(totalPaidAmount)}
+                {formatCurrency(invoice?.moneyAmount || 0)}
+              </span>
+            </div>
+            <div className="flex justify-between text-gray-700">
+              <span>Tổng đã thanh toán (tất cả hóa đơn):</span>
+              <span className="font-bold">
+                {formatCurrency(orderPaidTotal)}
               </span>
             </div>
             <div className="flex justify-between text-gray-700">

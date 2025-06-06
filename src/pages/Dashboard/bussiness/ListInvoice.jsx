@@ -93,7 +93,7 @@ const ListInvoice = () => {
       STT: index + 1,
       "Mã hóa đơn": invoice.id,
       "Ngày lập": formatDate(invoice.createdAt),
-      "Số tiền": formatCurrency(invoice.moneyAmount) + " VNĐ",
+      "Số tiền": formatCurrency(invoice.moneyAmount),
       "Mã đơn hàng": invoice.orderId || "N/A",
       "Đối tác": invoice.partnerName || "N/A",
       "Loại hóa đơn": getInvoiceTypeName(invoice.invoiceTypeId),
