@@ -149,7 +149,10 @@ const ToggleInventoryAdjustment = ({
         error
       );
       toast.error(
-        `Lỗi khi ${isEditing ? "cập nhật" : "thêm"} điều chỉnh tồn kho`
+        `Lỗi: ${
+          error.response?.data ||
+          `Có lỗi xảy ra khi ${isEdit ? "cập nhật" : "thêm"} điều chỉnh tồn kho`
+        }`
       );
     } finally {
       setLoading(false);

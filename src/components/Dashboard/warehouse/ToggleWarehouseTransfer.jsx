@@ -203,13 +203,13 @@ const ToggleWarehouseTransfer = ({
       onClose();
     } catch (error) {
       console.error(
-        `Lỗi khi ${isEdit ? "cập nhật" : "thêm"} điều chỉnh tồn kho:`,
+        `Lỗi khi ${isEdit ? "cập nhật" : "thêm"} chuyển kho:`,
         error
       );
       toast.error(
         `Lỗi: ${
           error.response?.data ||
-          `Có lỗi xảy ra khi ${isEdit ? "cập nhật" : "thêm"} điều chỉnh tồn kho`
+          `Có lỗi xảy ra khi ${isEdit ? "cập nhật" : "thêm"} chuyển kho`
         }`
       );
     } finally {
