@@ -1,50 +1,62 @@
 import { getAllPartners } from "@/api/partnerApi";
 import { getAllInvoices } from "@/api/invoiceApi";
+import { getAllOrders } from "@/api/orderApi";
 
 export const getMonthlyDebtReport = async (year, month) => {
   try {
     if (!year || !month || month < 1 || month > 12) {
       throw new Error("Năm hoặc tháng không hợp lệ");
     }
-    const partnerResponse = await getAllPartners(0, 100, "id", "asc");
+    const [partnerResponse, invoiceResponse, orderResponse] = await Promise.all(
+      [
+        getAllPartners(0, 100, "id", "asc"),
+        getAllInvoices(0, 100, "id", "asc"),
+        getAllOrders(0, 100, "id", "asc"),
+      ]
+    );
     const partners = partnerResponse.data.content;
-
-    // Lấy dữ liệu hóa đơn
-    const invoiceResponse = await getAllInvoices(0, 1000, "id", "asc");
     const invoices = invoiceResponse.content;
+    const orders = orderResponse.content;
 
-    const filteredPartners = partners.filter((partner) => {
-      const date = new Date(
-        partner.lastTransactionDate || partner.createdAt || new Date()
+    const orderMap = orders.reduce((acc, order) => {
+      acc[order.id] = order;
+      return acc;
+    }, {});
+
+    const filteredInvoices = invoices
+      .filter((invoice) => {
+        if (!invoice.createdAt) return false;
+        const date = new Date(invoice.createdAt);
+        return date.getFullYear() === year && date.getMonth() + 1 === month;
+      })
+      .map((invoice) => ({
+        ...invoice,
+        partnerId: orderMap[invoice.orderId]?.partnerId,
+      }))
+      .filter((invoice) => invoice.partnerId);
+
+    const activePartnerIds = new Set(
+      filteredInvoices.map((invoice) => invoice.partnerId)
+    );
+
+    const filteredPartners = partners.filter((partner) =>
+      activePartnerIds.has(partner.id)
+    );
+
+    const partnerDebts = filteredPartners.map((partner) => {
+      const partnerInvoices = filteredInvoices.filter(
+        (invoice) => invoice.partnerId === partner.id
       );
-      return date.getFullYear() === year && date.getMonth() + 1 === month;
-    });
 
-    const filteredInvoices = invoices.filter((invoice) => {
-      if (!invoice.createdAt) return false;
-      const date = new Date(invoice.createdAt);
-      // Kiểm tra cả thời gian và loại hóa đơn
-      return date.getFullYear() === year && date.getMonth() + 1 === month;
-    });
-    //console.log("Filtered invoices (Monthly):", filteredInvoices);
+      const totalPaid = partnerInvoices.reduce(
+        (sum, invoice) => sum + (invoice.moneyAmount || 0),
+        0
+      );
 
-    // Tính toán dữ liệu
-    const totalDebt = filteredPartners.reduce(
-      (sum, partner) => sum + (partner.debt || 0),
-      0
-    );
-    const totalInvoicePaid = filteredInvoices.reduce(
-      (sum, invoice) => sum + (invoice.moneyAmount || 0),
-      0
-    );
-    //console.log("Monthly total invoice paid:", totalInvoicePaid);
-
-    return {
-      totalDebt,
-      totalInvoicePaid,
-      partners: filteredPartners.map((partner) => ({
+      return {
         name: partner.name,
         debt: partner.debt || 0,
+        paid: totalPaid,
         partnerTypeId: partner.partnerTypeId,
         partnerTypeName:
           partner.partnerTypeId === 1
@@ -52,7 +64,29 @@ export const getMonthlyDebtReport = async (year, month) => {
             : partner.partnerTypeId === 2
             ? "Nhà cung cấp"
             : "Không xác định",
-      })),
+      };
+    });
+
+    const totalDebt = partnerDebts.reduce(
+      (sum, partner) => sum + partner.debt,
+      0
+    );
+
+    const totalInvoicePaid = filteredInvoices.reduce(
+      (sum, invoice) => sum + (invoice.moneyAmount || 0),
+      0
+    );
+
+    const daysInMonth = new Date(year, month, 0).getDate();
+    const labels = Array.from({ length: daysInMonth }, (_, i) =>
+      new Date(year, month - 1, i + 1).toLocaleDateString("vi-VN")
+    );
+
+    return {
+      labels,
+      totalDebt,
+      totalInvoicePaid,
+      partners: partnerDebts,
     };
   } catch (error) {
     console.error("Error fetching monthly debt report:", error);
@@ -67,12 +101,10 @@ export const getYearlyDebtReport = async (year) => {
     if (!year) {
       throw new Error("Năm không hợp lệ");
     }
-
     const partnerResponse = await getAllPartners(0, 100, "id", "asc");
     const partners = partnerResponse.data.content;
-    const invoiceResponse = await getAllInvoices(0, 1000, "id", "asc");
+    const invoiceResponse = await getAllInvoices(0, 100, "id", "asc");
     const invoices = invoiceResponse.content;
-    // Lọc khách hàng (partnerTypeId === 1) theo năm
     const filteredPartners = partners.filter((partner) => {
       const date = new Date(
         partner.lastTransactionDate || partner.createdAt || new Date()
@@ -85,9 +117,6 @@ export const getYearlyDebtReport = async (year) => {
       const date = new Date(invoice.createdAt);
       return date.getFullYear() === year;
     });
-    //console.log("Filtered invoices (Yearly):", filteredInvoices);
-
-    // Tính toán dữ liệu
     const totalDebt = filteredPartners.reduce(
       (sum, partner) => sum + (partner.debt || 0),
       0
@@ -96,11 +125,7 @@ export const getYearlyDebtReport = async (year) => {
       (sum, invoice) => sum + (invoice.moneyAmount || 0),
       0
     );
-    //console.log("Yearly total invoice paid:", totalInvoicePaid);
-
-    // Tạo labels cho từng tháng
     const labels = Array.from({ length: 12 }, (_, i) => `Tháng ${i + 1}`);
-
     return {
       labels,
       totalDebt,
@@ -125,53 +150,84 @@ export const getYearlyDebtReport = async (year) => {
 
 export const getDebtReportByDateRange = async (startDate, endDate) => {
   try {
-    if (!startDate || !endDate) {
-      throw new Error("Ngày bắt đầu hoặc ngày kết thúc không hợp lệ");
-    }
-    if (new Date(startDate) > new Date(endDate)) {
-      throw new Error("Ngày bắt đầu phải trước ngày kết thúc");
-    }
-
-    const partnerResponse = await getAllPartners(0, 100, "id", "asc");
+    const [partnerResponse, invoiceResponse, orderResponse] = await Promise.all(
+      [
+        getAllPartners(0, 100, "id", "asc"),
+        getAllInvoices(0, 100, "id", "asc"),
+        getAllOrders(0, 100, "id", "asc"),
+      ]
+    );
     const partners = partnerResponse.data.content;
-
-    // Lấy dữ liệu hóa đơn
-    const invoiceResponse = await getAllInvoices(0, 1000, "id", "asc");
     const invoices = invoiceResponse.content;
+    const orders = orderResponse.content;
 
-    // Lọc khách hàng theo khoảng thời gian
-    const filteredPartners = partners.filter((partner) => {
-      const date = new Date(
-        partner.lastTransactionDate || partner.createdAt || new Date()
+    const orderMap = orders.reduce((acc, order) => {
+      acc[order.id] = order;
+      return acc;
+    }, {});
+
+    const filteredInvoices = invoices
+      .filter((invoice) => {
+        if (!invoice.createdAt) return false;
+        const invoiceDate = new Date(invoice.createdAt);
+        return (
+          invoiceDate >= new Date(startDate) && invoiceDate <= new Date(endDate)
+        );
+      })
+      .map((invoice) => ({
+        ...invoice,
+        partnerId: orderMap[invoice.orderId]?.partnerId,
+      }))
+      .filter((invoice) => invoice.partnerId);
+
+    const activePartnerIds = new Set(
+      filteredInvoices.map((invoice) => invoice.partnerId)
+    );
+
+    const filteredPartners = partners.filter((partner) =>
+      activePartnerIds.has(partner.id)
+    );
+
+    const partnerDebts = filteredPartners.map((partner) => {
+      const partnerInvoices = filteredInvoices.filter(
+        (invoice) => invoice.partnerId === partner.id
       );
-      return date >= new Date(startDate) && date <= new Date(endDate);
+
+      const totalPaid = partnerInvoices.reduce(
+        (sum, invoice) => sum + (invoice.moneyAmount || 0),
+        0
+      );
+
+      return {
+        name: partner.name,
+        debt: partner.debt || 0,
+        paid: totalPaid,
+        partnerTypeId: partner.partnerTypeId,
+        partnerTypeName:
+          partner.partnerTypeId === 1
+            ? "Khách hàng"
+            : partner.partnerTypeId === 2
+            ? "Nhà cung cấp"
+            : "Không xác định",
+      };
     });
 
-    // Lọc hóa đơn thanh toán theo khoảng thời gian
-    const filteredInvoices = invoices.filter((invoice) => {
-      if (!invoice.createdAt) return false;
-      const date = new Date(invoice.createdAt);
-      return date >= new Date(startDate) && date <= new Date(endDate);
-    });
-    //console.log("Filtered invoices (Date Range):", filteredInvoices);
-
-    // Tính toán dữ liệu
-    const totalDebt = filteredPartners.reduce(
-      (sum, partner) => sum + (partner.debt || 0),
+    const totalDebt = partnerDebts.reduce(
+      (sum, partner) => sum + partner.debt,
       0
     );
+
     const totalInvoicePaid = filteredInvoices.reduce(
       (sum, invoice) => sum + (invoice.moneyAmount || 0),
       0
     );
-    //console.log("Date range total invoice paid:", totalInvoicePaid);
+    const days =
+      Math.ceil(
+        (new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24)
+      ) + 1;
 
-    // Tạo labels cho từng ngày trong khoảng thời gian
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
     const labels = Array.from({ length: days }, (_, i) => {
-      const date = new Date(start);
+      const date = new Date(startDate);
       date.setDate(date.getDate() + i);
       return date.toLocaleDateString("vi-VN");
     });
@@ -180,17 +236,7 @@ export const getDebtReportByDateRange = async (startDate, endDate) => {
       labels,
       totalDebt,
       totalInvoicePaid,
-      partners: filteredPartners.map((partner) => ({
-        name: partner.name,
-        debt: partner.debt || 0,
-        partnerTypeId: partner.partnerTypeId,
-        partnerTypeName:
-          partner.partnerTypeId === 1
-            ? "Khách hàng"
-            : partner.partnerTypeId === 2
-            ? "Nhà cung cấp"
-            : "Không xác định",
-      })),
+      partners: partnerDebts,
     };
   } catch (error) {
     console.error("Error fetching debt report by date range:", error);

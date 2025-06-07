@@ -22,35 +22,37 @@ const DebtReport = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [reportData, setReportData] = useState(null);
-  const [filter, setFilter] = useState("monthly");
-  const [timeRange, setTimeRange] = useState("2023");
+  const [hasStartDateSelected, setHasStartDateSelected] = useState(false);
 
   const fetchReportData = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      if (reportType === "custom" && (!startDate || !endDate)) {
-        throw new Error("Vui lòng chọn ngày bắt đầu và kết thúc");
-      }
-
-      if (reportType === "custom" && new Date(startDate) > new Date(endDate)) {
-        throw new Error("Ngày bắt đầu phải trước ngày kết thúc");
+      if (reportType === "custom") {
+        if (!hasStartDateSelected && !startDate) {
+          toast.warning("Vui lòng chọn ngày bắt đầu");
+          return;
+        }
+        if (hasStartDateSelected && !endDate) {
+          toast.warning("Vui lòng chọn ngày kết thúc");
+          return;
+        }
+        if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
+          toast.error("Ngày bắt đầu phải trước ngày kết thúc");
+          return;
+        }
       }
 
       let data;
       if (reportType === "monthly") {
         data = await getMonthlyDebtReport(year, month);
-        console.log("Monthly report data:", data);
       } else if (reportType === "yearly") {
         data = await getYearlyDebtReport(year);
-        console.log("Yearly report data:", data);
       } else {
         data = await getDebtReportByDateRange(startDate, endDate);
-        console.log("Custom date range report data:", data);
       }
 
-      // Kiểm tra nếu không có dữ liệu
       if (
         (!data.partners || data.partners.length === 0) &&
         data.totalDebt === 0 &&
@@ -60,13 +62,10 @@ const DebtReport = () => {
           "Không có dữ liệu công nợ hoặc hóa đơn thanh toán trong khoảng thời gian này"
         );
       }
-
       setReportData(data);
     } catch (error) {
-      const errorMessage =
-        error.message || "Không thể tải dữ liệu báo cáo công nợ";
-      setError(errorMessage);
-      toast.error(errorMessage);
+      setError(error.message || "Không thể tải dữ liệu báo cáo công nợ");
+      toast.error(error.message || "Không thể tải dữ liệu báo cáo công nợ");
       setReportData(null);
     } finally {
       setLoading(false);
@@ -82,16 +81,8 @@ const DebtReport = () => {
     datasets: [
       {
         data: [reportData?.totalDebt || 0, reportData?.totalInvoicePaid || 0],
-        backgroundColor: [
-          "rgba(239, 68, 68, 0.6)",
-          // "rgba(34, 197, 94, 0.6)",
-          "rgba(59, 130, 246, 0.6)",
-        ],
-        borderColor: [
-          "rgb(239, 68, 68)",
-          // "rgb(34, 197, 94)",
-          "rgb(59, 130, 246)",
-        ],
+        backgroundColor: ["rgba(239, 68, 68, 0.6)", "rgba(59, 130, 246, 0.6)"],
+        borderColor: ["rgb(239, 68, 68)", "rgb(59, 130, 246)"],
         borderWidth: 1,
       },
     ],
@@ -125,7 +116,6 @@ const DebtReport = () => {
     },
   };
 
-  // Lọc khách hàng còn nợ (debt - paid > 0)
   const remainingDebtPartners =
     reportData?.partners?.filter(
       (partner) => (partner.debt || 0) - (partner.paid || 0) > 0
@@ -174,6 +164,11 @@ const DebtReport = () => {
       console.error("Lỗi khi xuất Excel:", error);
       toast.error("Có lỗi xảy ra khi xuất file Excel");
     }
+  };
+
+  const handleStartDateChange = (e) => {
+    setStartDate(e.target.value);
+    setHasStartDateSelected(true);
   };
 
   return (
@@ -250,14 +245,24 @@ const DebtReport = () => {
                 <input
                   type="date"
                   value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  onChange={handleStartDateChange}
+                  className={`px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    !startDate && reportType === "custom"
+                      ? "border-red-300"
+                      : "border-gray-300"
+                  }`}
+                  required
                 />
                 <input
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className={`px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    !endDate && reportType === "custom"
+                      ? "border-red-300"
+                      : "border-gray-300"
+                  }`}
+                  required
                 />
               </>
             )}

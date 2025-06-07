@@ -55,9 +55,7 @@ const AdjustInventoryDetail = () => {
           }));
         } catch (relatedError) {
           console.error("Lỗi khi tải dữ liệu liên quan:", relatedError);
-          toast.warning(
-            "Một số thông tin liên quan không thể tải. Hiển thị dữ liệu một phần."
-          );
+          toast.error("Lỗi khi tải dữ liệu điều chỉnh tồn kho.");
         } finally {
           setRelatedDataLoading(false);
         }

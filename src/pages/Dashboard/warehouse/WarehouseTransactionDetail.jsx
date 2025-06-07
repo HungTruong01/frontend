@@ -21,14 +21,33 @@ const getTypeColor = (type) => {
 const WarehouseTransactionDetail = () => {
   const { transactionId } = useParams();
   const [transaction, setTransaction] = useState(null);
-  const [warehouse, setWarehouse] = useState(null);
-  const [order, setOrder] = useState(null);
-  const [status, setStatus] = useState(null);
-  const [type, setType] = useState(null);
-
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [relatedDataLoading, setRelatedDataLoading] = useState(false);
+
+  const mapOrderDetailsToItems = async (orderDetails) => {
+    return await Promise.all(
+      orderDetails.map(async (detail) => {
+        try {
+          const product = await getProductById(detail.productId);
+          return {
+            id: detail.id,
+            productId: detail.productId,
+            productCode: product?.code || detail.productId,
+            productName: product?.name || "Không xác định",
+            quantity: detail.quantity,
+          };
+        } catch {
+          return {
+            id: detail.id,
+            productId: detail.productId,
+            productCode: detail.productId,
+            productName: "Không thể tải thông tin",
+            quantity: detail.quantity,
+          };
+        }
+      })
+    );
+  };
 
   useEffect(() => {
     const fetchTransactionDetails = async () => {
@@ -42,86 +61,37 @@ const WarehouseTransactionDetail = () => {
         const transactionData = await getWarehouseTransactionById(
           transactionId
         );
-        if (!transactionData) {
+        if (!transactionData)
           throw new Error("Không tìm thấy dữ liệu giao dịch");
+
+        const [warehouse, order, status, type] = await Promise.all([
+          getWarehouseById(transactionData.warehouseId),
+          getOrderById(transactionData.orderId),
+          getDeliveryStatusById(transactionData.statusId),
+          getWarehouseTransactionTypeById(transactionData.transactionTypeId),
+        ]);
+
+        let items = transactionData.items || [];
+        if (order?.orderDetails?.length > 0 && items.length === 0) {
+          items = await mapOrderDetailsToItems(order.orderDetails);
         }
-        setTransaction(transactionData);
-        setLoading(false);
-        setRelatedDataLoading(true);
-        try {
-          const [warehouse, order, status, type] = await Promise.all([
-            getWarehouseById(transactionData.warehouseId),
-            getOrderById(transactionData.orderId),
-            getDeliveryStatusById(transactionData.statusId),
-            getWarehouseTransactionTypeById(transactionData.transactionTypeId),
-          ]);
-          setWarehouse(warehouse);
-          setOrder(order);
-          setStatus(status);
-          setType(type);
 
-          let items =
-            transactionData.items || transactionData.transactionItems || [];
-
-          if (order && order.orderDetails && order.orderDetails.length > 0) {
-            const productPromises = order.orderDetails.map(async (detail) => {
-              try {
-                const product = await getProductById(detail.productId);
-                return {
-                  id: detail.id,
-                  productId: detail.productId,
-                  productCode: product?.code || detail.productId,
-                  productName: product?.name || "Không xác định",
-                  quantity: detail.quantity,
-                  unit: product?.unit || "Cái",
-                };
-              } catch (err) {
-                console.error(
-                  `Lỗi khi lấy thông tin sản phẩm ID ${detail.productId}:`,
-                  err
-                );
-                return {
-                  id: detail.id,
-                  productId: detail.productId,
-                  productCode: detail.productId,
-                  productName: "Không thể tải thông tin",
-                  quantity: detail.quantity,
-                  unit: "Cái",
-                };
-              }
-            });
-
-            const productItems = await Promise.all(productPromises);
-
-            if (!items || items.length === 0) {
-              items = productItems;
-            }
-          }
-
-          setTransaction((prev) => ({
-            ...prev,
-            warehouseName: warehouse?.name || "Kho không rõ",
-            orderCode: order?.code || `DH${transactionData.orderId || ""}`,
-            statusName: status?.name || "Trạng thái không rõ",
-            transactionTypeName: type?.name || "Loại không rõ",
-            items: items,
-          }));
-        } catch (relatedError) {
-          console.error("Lỗi khi tải dữ liệu liên quan:", relatedError);
-          toast.warning(
-            "Một số thông tin liên quan không thể tải. Hiển thị dữ liệu một phần."
-          );
-        } finally {
-          setRelatedDataLoading(false);
-        }
+        setTransaction({
+          ...transactionData,
+          warehouseName: warehouse?.name || "Kho không rõ",
+          orderCode: order?.code || `DH${transactionData.orderId || ""}`,
+          statusName: status?.name || "Trạng thái không rõ",
+          transactionTypeName: type?.name || "Loại không rõ",
+          items,
+        });
       } catch (err) {
         console.error("Lỗi khi tải chi tiết giao dịch:", err);
         setError(err.message || "Không thể tải thông tin giao dịch kho");
         toast.error("Không thể tải thông tin giao dịch kho");
+      } finally {
         setLoading(false);
       }
     };
-
     fetchTransactionDetails();
   }, [transactionId]);
 
@@ -135,8 +105,13 @@ const WarehouseTransactionDetail = () => {
     );
   }
 
-  const items = transaction.items || transaction.transactionItems || [];
-  console.log(items);
+  if (error) {
+    return (
+      <div className="bg-red-50 text-red-700 p-4 rounded mt-6">{error}</div>
+    );
+  }
+
+  const items = transaction.items || [];
   const totalQuantity = items.reduce(
     (sum, item) => sum + (Number(item.quantity) || 0),
     0
@@ -144,17 +119,11 @@ const WarehouseTransactionDetail = () => {
 
   return (
     <div className="w-full space-y-6">
-      {relatedDataLoading && (
-        <div className="bg-blue-50 text-blue-700 p-2 rounded text-center">
-          Đang tải thông tin bổ sung...
-        </div>
-      )}
-
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-2">
         <div className="flex items-center space-x-4">
           <Link
             to="/dashboard/warehouse/warehouse-transaction"
-            className="flex items-center text-gray-600 hover:text-blue-600 transition-colors"
+            className="flex items-center text-gray-600 hover:text-blue-600 transition-colors mb-3"
           >
             <FaArrowLeft />
           </Link>

@@ -3,9 +3,9 @@ import {
   getAllWarehouseTransfer,
   deleteWarehouseTransfer,
 } from "@/api/warehouseTransferApi";
-import { getWarehouseById } from "@/api/warehouseApi";
-import { getProductById } from "@/api/productApi";
-import { getDeliveryStatusById } from "@/api/deliveryStatusApi";
+import { getAllWarehouse } from "@/api/warehouseApi";
+import { getAllProducts } from "@/api/productApi";
+import { getAllDeliveryStatus } from "@/api/deliveryStatusApi";
 import { FaSearch, FaEye, FaEdit, FaFileExport } from "react-icons/fa";
 import { GoPlus } from "react-icons/go";
 import { toast } from "react-toastify";
@@ -24,6 +24,7 @@ const WarehouseTransfer = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [currentEditItem, setCurrentEditItem] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const displayColumns = [
@@ -37,49 +38,53 @@ const WarehouseTransfer = () => {
   ];
 
   const fetchData = async () => {
+    setIsLoading(true);
     try {
-      const response = await getAllWarehouseTransfer(0, 100, "id", "asc");
-      const transfers = response.content || [];
-      const enrichedTransfers = await Promise.all(
-        transfers.map(async (transfer) => {
-          try {
-            const [sourceWarehouse, destinationWarehouse, product, status] =
-              await Promise.all([
-                getWarehouseById(transfer.sourceWarehouseId),
-                getWarehouseById(transfer.destinationWarehouseId),
-                getProductById(transfer.productId),
-                getDeliveryStatusById(transfer.statusId),
-              ]);
+      const [transferRes, warehouseRes, productRes, statusRes] =
+        await Promise.all([
+          getAllWarehouseTransfer(0, 100, "id", "asc"),
+          getAllWarehouse(0, 100, "id", "asc"),
+          getAllProducts(0, 100, "id", "asc"),
+          getAllDeliveryStatus(0, 100, "id", "asc"),
+        ]);
 
-            return {
-              ...transfer,
-              sourceWarehouseName: sourceWarehouse?.name || "Kho xuất không rõ",
-              destinationWarehouseName:
-                destinationWarehouse?.name || "Kho nhập không rõ",
-              productName: product?.name || `Sản phẩm ${transfer.productId}`,
-              statusName: status?.name || "Trạng thái không rõ",
-            };
-          } catch (error) {
-            console.error(
-              `Lỗi khi lấy thông tin chi tiết chuyển kho ${transfer.id}:`,
-              error
-            );
-            return {
-              ...transfer,
-              sourceWarehouseName: "Lỗi kho xuất",
-              destinationWarehouseName: "Lỗi kho nhập",
-              productName: "Lỗi sản phẩm",
-              statusName: "Lỗi trạng thái",
-            };
-          }
-        })
-      );
+      const warehouseList = warehouseRes.content || [];
+      const productList = productRes.data.content || [];
+      const statusList = statusRes.data.content || [];
 
-      setWarehouseTransfer(enrichedTransfers);
-      setFilteredData(enrichedTransfers);
+      const warehouseMap = warehouseList.reduce((acc, w) => {
+        acc[w.id] = w.name;
+        return acc;
+      }, {});
+
+      const productMap = productList.reduce((acc, p) => {
+        acc[p.id] = p.name;
+        return acc;
+      }, {});
+
+      const statusMap = statusList.reduce((acc, s) => {
+        acc[s.id] = s.name;
+        return acc;
+      }, {});
+
+      const transfers = transferRes.content.map((transfer) => ({
+        ...transfer,
+        sourceWarehouseName:
+          warehouseMap[transfer.sourceWarehouseId] || "Kho xuất không rõ",
+        destinationWarehouseName:
+          warehouseMap[transfer.destinationWarehouseId] || "Kho nhập không rõ",
+        productName:
+          productMap[transfer.productId] || `Sản phẩm ${transfer.productId}`,
+        statusName: statusMap[transfer.statusId] || "Trạng thái không rõ",
+      }));
+
+      setWarehouseTransfer(transfers);
+      setFilteredData(transfers);
     } catch (error) {
-      console.error("Lỗi khi lấy danh sách điều chỉnh tồn kho:", error);
-      toast.error("Không thể tải danh sách điều chỉnh tồn kho");
+      console.error("Lỗi khi tải dữ liệu:", error);
+      toast.error("Không thể tải dữ liệu");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -227,78 +232,86 @@ const WarehouseTransfer = () => {
         </div>
 
         <div className="w-full overflow-x-auto">
-          <table className="w-full min-w-max">
-            <thead>
-              <tr className="bg-gray-200 text-gray-700">
-                {displayColumns.map((col) => (
-                  <th
-                    key={col.key}
-                    className="py-3 px-4 font-semibold whitespace-nowrap text-left"
-                  >
-                    {col.label}
+          {isLoading ? (
+            <div className="bg-gray-50 min-h-screen w-auto p-6">
+              <div className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+              </div>
+            </div>
+          ) : (
+            <table className="w-full min-w-max">
+              <thead>
+                <tr className="bg-gray-200 text-gray-700">
+                  {displayColumns.map((col) => (
+                    <th
+                      key={col.key}
+                      className="py-3 px-4 font-semibold whitespace-nowrap text-left"
+                    >
+                      {col.label}
+                    </th>
+                  ))}
+                  <th className="py-3 px-4 font-semibold text-center">
+                    Hành động
                   </th>
-                ))}
-                <th className="py-3 px-4 font-semibold text-center">
-                  Hành động
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {paginatedData.length > 0 ? (
-                paginatedData.map((row) => (
-                  <tr
-                    key={row.id}
-                    className="border-b border-gray-300 hover:bg-gray-100 transition-colors"
-                  >
-                    {displayColumns.map((col) => (
-                      <td
-                        key={col.key}
-                        className="py-3 px-4 text-sm text-gray-600 whitespace-nowrap text-left"
-                      >
-                        {col.key === "createdAt"
-                          ? formatDate(row[col.key])
-                          : row[col.key]}
-                      </td>
-                    ))}
-                    <td className="py-3 px-4 text-center">
-                      <div className="flex justify-center space-x-3">
-                        <button
-                          onClick={() => handleViewDetail(row.id)}
-                          className="text-blue-500 hover:text-blue-700 transition-colors"
-                          title="Xem"
+                </tr>
+              </thead>
+              <tbody>
+                {paginatedData.length > 0 ? (
+                  paginatedData.map((row) => (
+                    <tr
+                      key={row.id}
+                      className="border-b border-gray-300 hover:bg-gray-100 transition-colors"
+                    >
+                      {displayColumns.map((col) => (
+                        <td
+                          key={col.key}
+                          className="py-3 px-4 text-sm text-gray-600 whitespace-nowrap text-left"
                         >
-                          <FaEye className="h-5 w-5" />
-                        </button>
-                        {row.statusName === "Đã hoàn thành" ? (
-                          <FaEdit
-                            className="h-5 w-5 text-gray-400 cursor-not-allowed"
-                            title="Không thể sửa khi đã hoàn thành"
-                          />
-                        ) : (
+                          {col.key === "createdAt"
+                            ? formatDate(row[col.key])
+                            : row[col.key]}
+                        </td>
+                      ))}
+                      <td className="py-3 px-4 text-center">
+                        <div className="flex justify-center space-x-3">
                           <button
-                            onClick={() => handleEdit(row)}
+                            onClick={() => handleViewDetail(row.id)}
                             className="text-blue-500 hover:text-blue-700 transition-colors"
-                            title="Sửa"
+                            title="Xem"
                           >
-                            <FaEdit className="h-5 w-5" />
+                            <FaEye className="h-5 w-5" />
                           </button>
-                        )}
-                      </div>
+                          {row.statusName === "Đã hoàn thành" ? (
+                            <FaEdit
+                              className="h-5 w-5 text-gray-400 cursor-not-allowed"
+                              title="Không thể sửa khi đã hoàn thành"
+                            />
+                          ) : (
+                            <button
+                              onClick={() => handleEdit(row)}
+                              className="text-blue-500 hover:text-blue-700 transition-colors"
+                              title="Sửa"
+                            >
+                              <FaEdit className="h-5 w-5" />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={displayColumns.length + 1}
+                      className="py-8 text-center text-gray-500"
+                    >
+                      Không có dữ liệu
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td
-                    colSpan={displayColumns.length + 1}
-                    className="py-8 text-center text-gray-500"
-                  >
-                    Không có dữ liệu
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                )}
+              </tbody>
+            </table>
+          )}
         </div>
         <div className="flex justify-between mt-4 space-x-2">
           <p className="text-sm text-gray-600">

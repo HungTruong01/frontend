@@ -54,7 +54,6 @@ const AddInvoicePage = () => {
   const [loading, setLoading] = useState(false);
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [orderPaidAmount, setOrderPaidAmount] = useState(0);
-  const [error, setError] = useState(null);
 
   const debouncedFetchOrders = useCallback(
     debounce(async (partnerId) => {
@@ -68,7 +67,7 @@ const AddInvoicePage = () => {
         const ordersData = await getOrdersByPartnerId(partnerId);
         setFilteredOrders(ordersData.content || []);
       } catch (err) {
-        setError("Không thể tải danh sách đơn hàng của đối tác.");
+        toast.error("Không thể tải danh sách đơn hàng của đối tác.");
         console.error(err);
         setFilteredOrders([]);
       } finally {
@@ -86,19 +85,18 @@ const AddInvoicePage = () => {
   }, []);
 
   useEffect(() => {
-    const partnerId = parseInt(formData.partnerId, 10);
+    const partnerId = parseInt(formData.partnerId);
     debouncedFetchOrders(partnerId);
     return () => debouncedFetchOrders.cancel();
   }, [formData.partnerId, debouncedFetchOrders]);
 
   useEffect(() => {
     const fetchOrderDetails = async () => {
-      const selectedOrderId = parseInt(formData.invoiceDetails[0]?.orderId, 10);
+      const selectedOrderId = parseInt(formData.invoiceDetails[0]?.orderId);
       if (!selectedOrderId) {
         setSelectedOrderDetails([]);
         setFormData((prev) => ({ ...prev, totalAmount: "" }));
         setOrderPaidAmount(0);
-        setError(null);
         return;
       }
 
@@ -106,7 +104,7 @@ const AddInvoicePage = () => {
       try {
         const orderData = await getOrderById(selectedOrderId);
         if (!orderData || !orderData.orderDetails?.length) {
-          setError(
+          toast.error(
             `Không tìm thấy chi tiết đơn hàng cho orderId ${selectedOrderId}`
           );
           setSelectedOrderDetails([]);
@@ -145,7 +143,7 @@ const AddInvoicePage = () => {
         const total = detailedItems.reduce((sum, item) => sum + item.total, 0);
         setFormData((prev) => ({ ...prev, totalAmount: total.toString() }));
       } catch (err) {
-        setError("Không thể tải chi tiết đơn hàng.");
+        toast.error("Không thể tải chi tiết đơn hàng.");
         console.error(err);
         setSelectedOrderDetails([]);
       } finally {
@@ -219,7 +217,7 @@ const AddInvoicePage = () => {
       }
 
       if (!submitData.paymentType) {
-        setError("Vui lòng chọn hình thức thanh toán");
+        toast.error("Vui lòng chọn hình thức thanh toán");
         setLoading(false);
         return;
       }
@@ -419,7 +417,7 @@ const AddInvoicePage = () => {
                     : "bg-white hover:border-blue-300"
                 }`}
                 required
-                disabled={preselectedOrderData} // Disable if coming from order
+                disabled={preselectedOrderData}
               >
                 <option value="">Chọn loại hóa đơn</option>
                 {invoiceTypes.map((type) => (
@@ -543,10 +541,10 @@ const AddInvoicePage = () => {
                       <td className="px-4 py-2">{item.productName}</td>
                       <td className="px-4 py-2 text-right">{item.quantity}</td>
                       <td className="px-4 py-2 text-right">
-                        {item.unitPrice.toLocaleString()} VNĐ
+                        {item.unitPrice.toLocaleString()}
                       </td>
                       <td className="px-4 py-2 text-right font-medium">
-                        {item.total.toLocaleString()} VNĐ
+                        {item.total.toLocaleString()}
                       </td>
                     </tr>
                   ))

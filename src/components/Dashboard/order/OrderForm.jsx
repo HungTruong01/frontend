@@ -17,7 +17,6 @@ import { getAllPartnerTypes } from "@/api/partnerTypeApi";
 import { fetchPartners } from "@/redux/slices/partnerSlice";
 import { fetchOrderTypes } from "@/redux/slices/orderSlice";
 import { fetchProducts } from "@/redux/slices/productSlice";
-import { get } from "lodash";
 
 const OrderForm = ({ mode = "add" }) => {
   const navigate = useNavigate();

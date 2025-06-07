@@ -3,9 +3,9 @@ import {
   getAllInventoryAdjustment,
   deleteInventoryAdjustment,
 } from "@/api/inventoryAdjustmentApi";
-import { getWarehouseById } from "@/api/warehouseApi";
-import { getProductById } from "@/api/productApi";
-import { getInventoryAdjustmentTypeById } from "@/api/inventoryAdjustmentTypesApi";
+import { getAllWarehouse } from "@/api/warehouseApi";
+import { getAllProducts } from "@/api/productApi";
+import { getAllInventoryAdjustmentType } from "@/api/inventoryAdjustmentTypesApi";
 import { FaSearch, FaEye, FaEdit, FaFileExport } from "react-icons/fa";
 import { GoPlus } from "react-icons/go";
 import { toast } from "react-toastify";
@@ -24,6 +24,7 @@ const AdjustInventory = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [currentEditItem, setCurrentEditItem] = useState(null);
+  const [isLoading, setIsLoading] = useState(false); // Add loading state
   const navigate = useNavigate();
 
   const displayColumns = [
@@ -36,98 +37,51 @@ const AdjustInventory = () => {
   ];
 
   const fetchData = async () => {
+    setIsLoading(true);
     try {
-      const response = await getAllInventoryAdjustment(0, 100, "id", "asc");
-      const adjustmentData = response.content || [];
+      const [adjustmentRes, warehouseRes, productRes, adjustmentTypeRes] =
+        await Promise.all([
+          getAllInventoryAdjustment(0, 100, "id", "asc"),
+          getAllWarehouse(0, 100, "id", "asc"),
+          getAllProducts(0, 100, "id", "asc"),
+          getAllInventoryAdjustmentType(0, 100, "id", "asc"),
+        ]);
 
-      const enrichedAdjustments = await Promise.all(
-        adjustmentData.map(async (adjustment) => {
-          try {
-            let warehouse = null;
-            try {
-              warehouse = await getWarehouseById(adjustment.warehouseId);
-              if (!warehouse || !warehouse.name) {
-                console.error(
-                  "Warehouse missing or no name property:",
-                  warehouse
-                );
-              }
-            } catch (warehouseErr) {
-              console.error(
-                `Error fetching warehouse ID ${adjustment.warehouseId}:`,
-                warehouseErr
-              );
-            }
+      const warehouseList = warehouseRes.content || [];
+      const productList = productRes.data.content || [];
+      const adjustmentTypeList = adjustmentTypeRes.content || [];
 
-            let product = null;
-            try {
-              product = await getProductById(adjustment.productId);
-              if (!product || !product.name) {
-                console.error("Product missing or no name property:", product);
-              }
-            } catch (productErr) {
-              console.error(
-                `Error fetching product ID ${adjustment.productId}:`,
-                productErr
-              );
-            }
-            const adjustmentTypeId = adjustment.inventoryAdjustmentTypeId;
-            let adjustmentType = null;
-            try {
-              adjustmentType = await getInventoryAdjustmentTypeById(
-                adjustmentTypeId
-              );
-              if (!adjustmentType || !adjustmentType.name) {
-                console.error(
-                  "Adjustment type missing or no name property:",
-                  adjustmentType
-                );
-              }
-            } catch (typeErr) {
-              console.error(
-                `Error fetching adjustment type ID ${adjustmentTypeId}:`,
-                typeErr
-              );
-            }
+      const warehouseMap = warehouseList.reduce((acc, w) => {
+        acc[w.id] = w.name;
+        return acc;
+      }, {});
+      const productMap = productList.reduce((acc, p) => {
+        acc[p.id] = p.name;
+        return acc;
+      }, {});
+      const adjustmentTypeMap = adjustmentTypeList.reduce((acc, t) => {
+        acc[t.id] = t.name;
+        return acc;
+      }, {});
 
-            return {
-              ...adjustment,
-              warehouseName:
-                warehouse && warehouse.name
-                  ? warehouse.name
-                  : `Kho ${adjustment.warehouseId}`,
-              productName:
-                product && product.name
-                  ? product.name
-                  : `Sản phẩm ${adjustment.productId}`,
-              adjustmentTypeName:
-                adjustmentType && adjustmentType.name
-                  ? adjustmentType.name
-                  : `Loại ${adjustmentTypeId}`,
-            };
-          } catch (innerErr) {
-            console.error(
-              `Lỗi khi lấy thông tin chi tiết điều chỉnh ${adjustment.id}:`,
-              innerErr
-            );
-            return {
-              ...adjustment,
-              warehouseName: `Kho ${adjustment.warehouseId}`,
-              productName: `Sản phẩm ${adjustment.productId}`,
-              adjustmentTypeName: `Loại ${
-                adjustment.inventoryAdjustmentTypeId ||
-                adjustment.adjustmentTypeId
-              }`,
-            };
-          }
-        })
-      );
+      const enrichedAdjustments = adjustmentRes.content.map((adjustment) => ({
+        ...adjustment,
+        warehouseName: warehouseMap[adjustment.warehouseId],
+        productName:
+          productMap[adjustment.productId] ||
+          `Sản phẩm ${adjustment.productId}`,
+        adjustmentTypeName:
+          adjustmentTypeMap[adjustment.inventoryAdjustmentTypeId] ||
+          `Loại ${adjustment.inventoryAdjustmentTypeId}`,
+      }));
 
       setAdjustments(enrichedAdjustments);
       setFilteredData(enrichedAdjustments);
     } catch (error) {
-      console.error("Main fetch error:", error);
+      console.error("Lỗi khi tải dữ liệu:", error);
       toast.error("Không thể tải danh sách điều chỉnh tồn kho");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -279,78 +233,86 @@ const AdjustInventory = () => {
         </div>
 
         <div className="w-full overflow-x-auto">
-          <table className="w-full min-w-max">
-            <thead>
-              <tr className="bg-gray-200 text-gray-700">
-                {displayColumns.map((col) => (
-                  <th
-                    key={col.key}
-                    className="py-3 px-4 font-semibold whitespace-nowrap text-left"
-                  >
-                    {col.label}
+          {isLoading ? (
+            <div className="bg-gray-50 min-h-screen w-auto p-6">
+              <div className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+              </div>
+            </div>
+          ) : (
+            <table className="w-full min-w-max">
+              <thead>
+                <tr className="bg-gray-200 text-gray-700">
+                  {displayColumns.map((col) => (
+                    <th
+                      key={col.key}
+                      className="py-3 px-4 font-semibold whitespace-nowrap text-left"
+                    >
+                      {col.label}
+                    </th>
+                  ))}
+                  <th className="py-3 px-4 font-semibold text-center">
+                    Hành động
                   </th>
-                ))}
-                <th className="py-3 px-4 font-semibold text-center">
-                  Hành động
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {paginatedData.length > 0 ? (
-                paginatedData.map((row) => (
-                  <tr
-                    key={row.id}
-                    className="border-b border-gray-300 hover:bg-gray-100 transition-colors"
-                  >
-                    {displayColumns.map((col) => (
-                      <td
-                        key={col.key}
-                        className="py-3 px-4 text-sm text-gray-600 whitespace-nowrap text-left"
-                      >
-                        {col.key === "createdAt"
-                          ? formatDate(row[col.key])
-                          : row[col.key] || "N/A"}
-                      </td>
-                    ))}
-                    <td className="py-3 px-4 text-center">
-                      <div className="flex justify-center space-x-3">
-                        <button
-                          onClick={() => handleViewDetail(row.id)}
-                          className="text-blue-500 hover:text-blue-700 transition-colors"
-                          title="Xem"
+                </tr>
+              </thead>
+              <tbody>
+                {paginatedData.length > 0 ? (
+                  paginatedData.map((row) => (
+                    <tr
+                      key={row.id}
+                      className="border-b border-gray-300 hover:bg-gray-100 transition-colors"
+                    >
+                      {displayColumns.map((col) => (
+                        <td
+                          key={col.key}
+                          className="py-3 px-4 text-sm text-gray-600 whitespace-nowrap text-left"
                         >
-                          <FaEye className="h-5 w-5" />
-                        </button>
-                        <button
-                          onClick={() => handleEdit(row)}
-                          className="text-blue-500 hover:text-blue-700 transition-colors"
-                          title="Sửa"
-                        >
-                          <FaEdit className="h-5 w-5" />
-                        </button>
-                        {/* <button
+                          {col.key === "createdAt"
+                            ? formatDate(row[col.key])
+                            : row[col.key] || "N/A"}
+                        </td>
+                      ))}
+                      <td className="py-3 px-4 text-center">
+                        <div className="flex justify-center space-x-3">
+                          <button
+                            onClick={() => handleViewDetail(row.id)}
+                            className="text-blue-500 hover:text-blue-700 transition-colors"
+                            title="Xem"
+                          >
+                            <FaEye className="h-5 w-5" />
+                          </button>
+                          <button
+                            onClick={() => handleEdit(row)}
+                            className="text-blue-500 hover:text-blue-700 transition-colors"
+                            title="Sửa"
+                          >
+                            <FaEdit className="h-5 w-5" />
+                          </button>
+                          {/* <button
                           onClick={() => handleDelete(row)}
                           className="text-red-500 hover:text-red-700 transition-colors"
                           title="Xóa"
                         >
                           <FaRegTrashAlt className="h-5 w-5" />
                         </button> */}
-                      </div>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={displayColumns.length + 1}
+                      className="py-8 text-center text-gray-500"
+                    >
+                      Không có dữ liệu
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td
-                    colSpan={displayColumns.length + 1}
-                    className="py-8 text-center text-gray-500"
-                  >
-                    Không có dữ liệu
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                )}
+              </tbody>
+            </table>
+          )}
         </div>
         <div className="flex justify-between items-center mt-4">
           <p className="text-sm text-gray-600">

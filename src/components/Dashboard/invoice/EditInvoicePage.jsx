@@ -21,7 +21,6 @@ const EditInvoicePage = () => {
   const dispatch = useDispatch();
   const invoice = useSelector((state) => state.invoices.detail);
   const { list: invoiceTypes } = useSelector((state) => state.invoiceTypes);
-  const { partners } = useSelector((state) => state.partner);
   const initialFormData = {
     id: "",
     partnerId: "",
@@ -47,13 +46,12 @@ const EditInvoicePage = () => {
       if (id) {
         setLoading(true);
         try {
-          const [invoiceResult, partnersResult] = await Promise.all([
+          const [invoiceResult] = await Promise.all([
             dispatch(fetchInvoiceDetail(id)),
-            dispatch(fetchPartners()),
             dispatch(fetchInvoiceTypes()),
           ]);
 
-          if (invoiceResult.error || partnersResult.error) {
+          if (invoiceResult.error) {
             throw new Error("Lỗi khi tải dữ liệu");
           }
         } catch (error) {
@@ -186,20 +184,12 @@ const EditInvoicePage = () => {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Đối tác <span className="text-red-500">*</span>
               </label>
-              <select
-                name="partnerId"
-                value={formData.partnerId}
-                onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white hover:border-blue-300"
-                required
-              >
-                <option value="">Chọn đối tác</option>
-                {partners.map((partner) => (
-                  <option key={partner.id} value={partner.id}>
-                    {partner.name}
-                  </option>
-                ))}
-              </select>
+              <input
+                type="text"
+                value={partnerDetails.name}
+                readOnly
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed text-gray-700"
+              />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -229,8 +219,9 @@ const EditInvoicePage = () => {
                 name="orderId"
                 value={formData.orderId}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                className="w-full px-4 py-3 border border-gray-300  rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-100 cursor-not-allowed"
                 required
+                disabled
               />
             </div>
             <div>

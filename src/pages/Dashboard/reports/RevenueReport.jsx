@@ -18,26 +18,39 @@ const RevenueReport = () => {
 
   useEffect(() => {
     const getData = async () => {
-      setReportData([]);
-      setSevenueData(0);
-      let data;
-      if (filter === "monthly") {
-        data = await analyzeWithCondition(timeRange);
-      } else if (filter === "quarterly") {
-        data = await analyzeWithConditionQuality(timeRange);
-      } else if (filter === "yearly") {
-        data = await analyzeWithConditionYear();
-      }
+      try {
+        setReportData([]);
+        setSevenueData(0);
+        setProfitData(0);
+        const selectedYear = parseInt(timeRange);
+        let data;
+        if (filter === "monthly") {
+          data = await analyzeWithCondition(selectedYear);
+        } else if (filter === "quarterly") {
+          data = await analyzeWithConditionQuality(selectedYear);
+        } else if (filter === "yearly") {
+          data = await analyzeWithConditionYear(selectedYear);
+        }
 
-      const revenueData = data?.content
-        .map((item) => +item.revenue)
-        ?.reduce((sum, val) => sum + val, 0);
-      const profitData = data?.content
-        .map((item) => +item.profit)
-        ?.reduce((sum, val) => sum + val, 0);
-      setProfitData(profitData);
-      setSevenueData(revenueData);
-      setReportData(data?.content);
+        if (!data || data.content.length === 0) {
+          toast.warning(`Không có dữ liệu cho năm ${selectedYear}`);
+          return;
+        }
+
+        const revenueData = data.content
+          .map((item) => +item.revenue)
+          ?.reduce((sum, val) => sum + val, 0);
+        const profitData = data.content
+          .map((item) => +item.profit)
+          ?.reduce((sum, val) => sum + val, 0);
+
+        setProfitData(profitData);
+        setSevenueData(revenueData);
+        setReportData(data.content);
+      } catch (error) {
+        console.error("Lỗi khi lấy dữ liệu:", error);
+        toast.error("Không thể tải dữ liệu báo cáo");
+      }
     };
     getData();
   }, [timeRange, filter]);
@@ -48,17 +61,21 @@ const RevenueReport = () => {
         Label: order.label,
         "Doanh thu": Number(order.revenue || 0).toLocaleString(),
         "Lợi nhuận": Number(order.profit || 0).toLocaleString(),
-        "Tỷ lệ lợi nhuận": `${(
-          (Number(order.profit || 0) / Number(order.revenue || 1)) *
-          100
-        ).toFixed(2)}%`,
+        "Tỷ lệ lợi nhuận": !order.revenue
+          ? "0%"
+          : `${(
+              (Number(order.profit || 0) / Number(order.revenue)) *
+              100
+            ).toFixed(2)}%`,
       }));
 
       exportData.push({
         Label: "Tổng",
         "Doanh thu": revenueData.toLocaleString(),
         "Lợi nhuận": profitData.toLocaleString(),
-        "Tỷ lệ lợi nhuận": `${((profitData / revenueData) * 100).toFixed(2)}%`,
+        "Tỷ lệ lợi nhuận": !revenueData
+          ? "0%"
+          : `${((profitData / revenueData) * 100).toFixed(2)}%`,
       });
 
       exportExcel({
@@ -137,7 +154,9 @@ const RevenueReport = () => {
               Tỷ lệ lợi nhuận
             </h3>
             <p className="text-2xl font-semibold text-purple-600">
-              {((profitData / revenueData) * 100).toFixed(2)}%
+              {!revenueData
+                ? "0%"
+                : ((profitData / revenueData) * 100).toFixed(2) + "%"}
             </p>
           </div>
         </div>
@@ -177,7 +196,9 @@ const RevenueReport = () => {
                     {formatCurrency(item?.profit)}
                   </td>
                   <td className="py-3 px-4 text-sm text-gray-600 text-right">
-                    {((item.profit / item?.revenue) * 100).toFixed(2)}%
+                    {!item?.revenue
+                      ? "0%"
+                      : ((item.profit / item?.revenue) * 100).toFixed(2) + "%"}
                   </td>
                 </tr>
               ))}

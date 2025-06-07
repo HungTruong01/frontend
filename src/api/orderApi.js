@@ -91,10 +91,20 @@ export const analyzeWithConditionQuality = async (year) => {
 };
 export const analyzeWithConditionYear = async (year) => {
   try {
-    const response = await axios.get(`${BASE_REST_API_URL}/year-revenue`);
+    const response = await axios.get(`${BASE_REST_API_URL}/year-revenue`, {
+      params: { year },
+    });
+    if (response.data?.content?.[0]?.label !== `Năm ${year}`) {
+      console.log(`Data returned is not for requested year ${year}`);
+      return { content: [] };
+    }
     return response.data;
   } catch (error) {
-    console.error("Xảy ra lỗi:", error);
-    throw error;
+    if (error.response?.status === 404) {
+      console.log(`No data found for year ${year}`);
+      return { content: [] };
+    }
+    console.error(`Error fetching data for year ${year}:`, error);
+    throw new Error(`Failed to fetch data for year ${year}: ${error.message}`);
   }
 };

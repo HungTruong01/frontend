@@ -6,8 +6,6 @@ import ProductDetailModal from "@/components/Dashboard/product/ProductDetailModa
 import {
   getAllProducts,
   getProductById,
-  createProduct,
-  updateProduct,
   deleteProduct,
   getProductsByProductTypeId,
 } from "@/api/productApi";
@@ -24,72 +22,69 @@ const ListProduct = () => {
   const [searchType, setSearchType] = useState("");
   const [searchName, setSearchName] = useState("");
 
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [mode, setMode] = useState("add");
+
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [products, setProducts] = useState([]);
   const [productTypes, setProductTypes] = useState([]);
   const [productUnits, setProductUnits] = useState([]);
-
   const [imageErrors, setImageErrors] = useState({});
 
   const [sortConfig, setSortConfig] = useState({
     key: "id",
     direction: "asc",
   });
+  const [isLoading, setIsLoading] = useState(false);
 
-  const fetchProductTypes = async () => {
-    try {
-      const response = await getAllProductTypes(0, 100, "id", "asc");
-      if (response && response.data) {
-        setProductTypes(response.data.content || []);
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      try {
+        const [typesRes, unitsRes] = await Promise.all([
+          getAllProductTypes(0, 100, "id", "asc"),
+          getAllProductUnits(0, 100, "id", "asc"),
+        ]);
+        setProductTypes(typesRes.data.content);
+        setProductUnits(unitsRes.data.content);
+      } catch (error) {
+        toast.error("Không thể tải loại sản phẩm hoặc đơn vị tính.");
+        console.error(error);
       }
-    } catch (error) {
-      console.log("Lỗi khi lấy loại sản phẩm:", error);
-      setProductTypes([]);
-    }
-  };
-
-  const fetchProductUnits = async () => {
-    try {
-      const response = await getAllProductUnits(0, 100, "id", "asc");
-      if (response && response.data) {
-        setProductUnits(response.data.content || []);
-      }
-    } catch (error) {
-      console.error("Lỗi khi lấy đơn vị tính:", error);
-      setProductUnits([]);
-    }
-  };
+    };
+    fetchInitialData();
+  }, []);
 
   const fetchProducts = useCallback(async () => {
+    setIsLoading(true);
     try {
+      let response;
       if (searchType) {
-        const response = await getProductsByProductTypeId(
+        response = await getProductsByProductTypeId(
           0,
           100,
           "id",
           "asc",
           searchType
         );
-        setProducts(response.content || []);
+        setProducts(response.content);
       } else {
-        const response = await getAllProducts(0, 100, "id", "asc");
+        response = await getAllProducts(0, 100, "id", "asc");
         setProducts(response.data.content);
       }
       setImageErrors({});
     } catch (error) {
-      toast.error("Không thể lấy dữ liệu sản phẩm. Vui lòng thử lại.");
+      toast.error("Không thể lấy danh sách sản phẩm.");
+      console.error(error);
       setProducts([]);
+    } finally {
+      setIsLoading(false);
     }
   }, [searchType]);
 
   useEffect(() => {
     fetchProducts();
-    fetchProductTypes();
-    fetchProductUnits();
-  }, [searchType, fetchProducts]);
+  }, [fetchProducts]);
 
   const getProductTypeName = (productTypeId) => {
     const type = productTypes.find((type) => type.id === productTypeId);
@@ -126,13 +121,11 @@ const ListProduct = () => {
           ? a[sortConfig.key] - b[sortConfig.key]
           : b[sortConfig.key] - a[sortConfig.key];
       }
-
       if (sortConfig.key === "name") {
         return sortConfig.direction === "asc"
           ? a[sortConfig.key].localeCompare(b[sortConfig.key])
           : b[sortConfig.key].localeCompare(a[sortConfig.key]);
       }
-
       return sortConfig.direction === "asc"
         ? a[sortConfig.key] - b[sortConfig.key]
         : b[sortConfig.key] - a[sortConfig.key];
@@ -145,29 +138,19 @@ const ListProduct = () => {
   );
 
   const handleAddClick = () => {
-    setIsAddModalOpen(true);
+    setMode("add");
+    setSelectedProduct(null);
+    setIsModalOpen(true);
   };
 
-  const handleAddSubmit = async (newProduct) => {
-    try {
-      const productData = {
-        name: newProduct.name,
-        description: newProduct.description,
-        exportPrice: Number(newProduct.exportPrice),
-        quantity: Number(newProduct.quantity || 0),
-        productTypeId: Number(newProduct.productTypeId),
-        productUnitId: Number(newProduct.productUnitId),
-        thumbnail: newProduct.thumbnail || "",
-      };
-      await createProduct(productData);
-      toast.success("Thêm sản phẩm mới thành công");
-      await fetchProducts();
-      setIsAddModalOpen(false);
-    } catch (error) {
-      toast.error(
-        error?.response?.data || "Không thể thêm sản phẩm. Vui lòng thử lại."
-      );
-    }
+  const handleEditProduct = (product) => {
+    setMode("edit");
+    setSelectedProduct(product);
+    setIsModalOpen(true);
+  };
+
+  const handleReloadProducts = () => {
+    fetchProducts();
   };
 
   const handleViewDetail = async (product) => {
@@ -184,90 +167,22 @@ const ListProduct = () => {
     }
   };
 
-  const handleEditProduct = (product) => {
-    setSelectedProduct(product);
-    setIsEditModalOpen(true);
-  };
-
-  const handleEditSubmit = async (updatedProduct) => {
-    try {
-      const productData = {
-        name: updatedProduct.name,
-        description: updatedProduct.description,
-        exportPrice: Number(updatedProduct.exportPrice),
-        quantity: Number(updatedProduct.quantity || 0),
-        productTypeId: Number(updatedProduct.productTypeId),
-        productUnitId: Number(updatedProduct.productUnitId),
-        thumbnail: updatedProduct.thumbnail || "",
-      };
-
-      await updateProduct(updatedProduct.id, productData);
-      toast.success("Cập nhật sản phẩm thành công");
-
-      // Xóa lỗi ảnh cũ nếu có
-      setImageErrors((prev) => {
-        const newErrors = { ...prev };
-        delete newErrors[updatedProduct.id];
-        return newErrors;
-      });
-
-      // Tải lại danh sách sản phẩm từ API để đảm bảo dữ liệu đồng bộ
-      await fetchProducts();
-      setIsEditModalOpen(false);
-    } catch (error) {
-      toast.error(
-        error?.response?.data ||
-          "Không thể cập nhật sản phẩm. Vui lòng thử lại."
-      );
-    }
-  };
-
-  const handleDeleteProduct = async (productId) => {
-    if (window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này?")) {
-      try {
-        await deleteProduct(productId);
-        toast.success("Xóa sản phẩm thành công");
-
-        // Tải lại danh sách sản phẩm từ API
-        await fetchProducts();
-      } catch (error) {
-        console.error(
-          "Không thể xóa sản phẩm:",
-          error.response?.data || error.message
-        );
-        toast.error("Không thể xóa sản phẩm. Vui lòng thử lại.");
-      }
-    }
-  };
-
   const handleImageError = (productId) => {
-    setImageErrors((prev) => ({
-      ...prev,
-      [productId]: true,
-    }));
+    setImageErrors((prev) => ({ ...prev, [productId]: true }));
   };
 
-  // Tạo timestamp ngẫu nhiên để tránh cache
   const getImageUrl = (url) => {
     if (!url) return "";
     return `${url}?t=${Date.now()}`;
   };
-
   return (
     <div className="w-full bg-white shadow-lg rounded-lg overflow-hidden">
       <ToggleProductModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        onSubmit={handleAddSubmit}
-        mode="add"
-      />
-
-      <ToggleProductModal
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        onSubmit={handleEditSubmit}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
         product={selectedProduct}
-        mode="edit"
+        mode={mode}
+        onSubmit={handleReloadProducts}
       />
 
       <ProductDetailModal
@@ -344,152 +259,155 @@ const ListProduct = () => {
         </div>
 
         <div className="overflow-x-auto bg-white">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-gray-200">
-                <th
-                  className="px-4 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer"
-                  onClick={() => handleSort("id")}
-                >
-                  <div className="flex items-center space-x-1">
-                    <span>Mã</span>
-                    <FaSort />
-                  </div>
-                </th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
-                  <div className="flex items-center space-x-1">
-                    <span>Hình ảnh</span>
-                  </div>
-                </th>
-                <th
-                  className="px-4 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer"
-                  onClick={() => handleSort("name")}
-                >
-                  <div className="flex items-center space-x-1">
-                    <span>Tên sản phẩm</span>
-                    <FaSort />
-                  </div>
-                </th>
-                <th
-                  className="px-4 py-3 text-right text-sm font-semibold text-gray-700 cursor-pointer"
-                  onClick={() => handleSort("exportPrice")}
-                >
-                  <div className="flex items-center justify-end space-x-1">
-                    <span>Giá bán</span>
-                    <FaSort />
-                  </div>
-                </th>
-                <th
-                  className="px-4 py-3 text-center text-sm font-semibold text-gray-700 cursor-pointer"
-                  onClick={() => handleSort("quantity")}
-                >
-                  <div className="flex items-center justify-center space-x-1">
-                    <span>Số lượng</span>
-                    <FaSort />
-                  </div>
-                </th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
-                  <div className="flex items-center space-x-1">
-                    <span>Loại sản phẩm</span>
-                  </div>
-                </th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
-                  <div className="flex items-center space-x-1">
-                    <span>Đơn vị tính</span>
-                  </div>
-                </th>
-                <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
-                  <div className="flex items-center justify-center space-x-1">
-                    <span>Hành động</span>
-                  </div>
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {paginatedData.map((product) => (
-                <tr
-                  key={product.id}
-                  className="hover:bg-gray-100 transition-colors"
-                >
-                  <td className="p-4 whitespace-nowrap text-left">
-                    <div className="text-sm text-gray-900">{product.id}</div>
-                  </td>
-                  <td className="p-2 whitespace-nowrap">
-                    <div className="w-12 h-12 rounded-md overflow-hidden border border-gray-200">
-                      {product.thumbnail && !imageErrors[product.id] ? (
-                        <img
-                          src={getImageUrl(product.thumbnail)}
-                          alt={product.name}
-                          className="w-full h-full object-cover"
-                          onError={() => handleImageError(product.id)}
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400 text-xs">
-                          Chưa có ảnh
-                        </div>
-                      )}
+          {isLoading ? (
+            <div className="bg-gray-50 min-h-screen w-auto p-6">
+              <div className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+              </div>
+            </div>
+          ) : (
+            <table className="w-full">
+              <thead>
+                <tr className="bg-gray-200">
+                  <th
+                    className="px-4 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer"
+                    onClick={() => handleSort("id")}
+                  >
+                    <div className="flex items-center space-x-1">
+                      <span>Mã</span>
+                      <FaSort />
                     </div>
-                  </td>
-                  <td className="p-4 whitespace-nowrap text-left">
-                    <div className="text-sm text-gray-900">{product.name}</div>
-                  </td>
-                  <td className="p-4 whitespace-nowrap text-right">
-                    <div className="text-sm text-gray-900">
-                      {formatCurrency(product.exportPrice)}
+                  </th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                    <div className="flex items-center space-x-1">
+                      <span>Hình ảnh</span>
                     </div>
-                  </td>
-                  <td className="p-4 whitespace-nowrap text-center">
-                    <div
-                      className={`text-sm font-medium ${
-                        product.quantity < 10
-                          ? "text-red-600"
-                          : product.quantity > 500
-                          ? "text-yellow-600"
-                          : "text-green-600"
-                      }`}
-                    >
-                      {product.quantity}
+                  </th>
+                  <th
+                    className="px-4 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer"
+                    onClick={() => handleSort("name")}
+                  >
+                    <div className="flex items-center space-x-1">
+                      <span>Tên sản phẩm</span>
+                      <FaSort />
                     </div>
-                  </td>
-                  <td className="p-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900 text-left">
-                      {getProductTypeName(product.productTypeId)}
+                  </th>
+                  <th
+                    className="px-4 py-3 text-right text-sm font-semibold text-gray-700 cursor-pointer"
+                    onClick={() => handleSort("exportPrice")}
+                  >
+                    <div className="flex items-center justify-end space-x-1">
+                      <span>Giá bán</span>
+                      <FaSort />
                     </div>
-                  </td>
-                  <td className="p-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900 text-left">
-                      {getProductUnitName(product.productUnitId)}
+                  </th>
+                  <th
+                    className="px-4 py-3 text-center text-sm font-semibold text-gray-700 cursor-pointer"
+                    onClick={() => handleSort("quantity")}
+                  >
+                    <div className="flex items-center justify-center space-x-1">
+                      <span>Số lượng</span>
+                      <FaSort />
                     </div>
-                  </td>
-                  <td className="p-4 whitespace-nowrap text-center">
-                    <div className="flex justify-center space-x-3">
-                      <button
-                        onClick={() => handleViewDetail(product)}
-                        className="text-blue-500 hover:text-blue-700 transition-colors"
-                        title="Xem chi tiết"
-                      >
-                        <FaEye className="h-5 w-5" />
-                      </button>
-                      <button
-                        onClick={() => handleEditProduct(product)}
-                        className="text-blue-500 hover:text-blue-700 transition-colors"
-                        title="Sửa"
-                      >
-                        <FaEdit className="h-5 w-5" />
-                      </button>
-                      {/* <button
-                        onClick={() => handleDeleteProduct(product.id)}
-                        className="text-red-500 hover:text-red-700 transition-colors"
-                        title="Xóa"
-                      >
-                        <FaRegTrashAlt className="h-5 w-5" />
-                      </button> */}
+                  </th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                    <div className="flex items-center space-x-1">
+                      <span>Loại sản phẩm</span>
                     </div>
-                  </td>
+                  </th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                    <div className="flex items-center space-x-1">
+                      <span>Đơn vị tính</span>
+                    </div>
+                  </th>
+                  <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
+                    <div className="flex items-center justify-center space-x-1">
+                      <span>Hành động</span>
+                    </div>
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {paginatedData.map((product) => (
+                  <tr
+                    key={product.id}
+                    className="hover:bg-gray-100 transition-colors"
+                  >
+                    <td className="p-4 whitespace-nowrap text-left">
+                      <div className="text-sm text-gray-900">{product.id}</div>
+                    </td>
+                    <td className="p-2 whitespace-nowrap">
+                      <div className="w-12 h-12 rounded-md overflow-hidden border border-gray-200">
+                        {product.thumbnail && !imageErrors[product.id] ? (
+                          <img
+                            src={getImageUrl(product.thumbnail)}
+                            alt={product.name}
+                            className="w-full h-full object-cover"
+                            onError={() => handleImageError(product.id)}
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400 text-xs">
+                            Chưa có ảnh
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td className="p-4 whitespace-nowrap text-left">
+                      <div className="text-sm text-gray-900">
+                        {product.name}
+                      </div>
+                    </td>
+                    <td className="p-4 whitespace-nowrap text-right">
+                      <div className="text-sm text-gray-900">
+                        {formatCurrency(product.exportPrice)}
+                      </div>
+                    </td>
+                    <td className="p-4 whitespace-nowrap text-center">
+                      <div
+                        className={`text-sm font-medium ${
+                          product.quantity < 10
+                            ? "text-red-600"
+                            : product.quantity > 500
+                            ? "text-yellow-600"
+                            : "text-green-600"
+                        }`}
+                      >
+                        {product.quantity}
+                      </div>
+                    </td>
+                    <td className="p-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900 text-left">
+                        {getProductTypeName(product.productTypeId)}
+                      </div>
+                    </td>
+                    <td className="p-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900 text-left">
+                        {getProductUnitName(product.productUnitId)}
+                      </div>
+                    </td>
+                    <td className="p-4 whitespace-nowrap text-center">
+                      <div className="flex justify-center space-x-3">
+                        <button
+                          onClick={() => handleViewDetail(product)}
+                          className="text-blue-500 hover:text-blue-700 transition-colors"
+                          title="Xem chi tiết"
+                        >
+                          <FaEye className="h-5 w-5" />
+                        </button>
+                        <button
+                          onClick={() => handleEditProduct(product)}
+                          className="text-blue-500 hover:text-blue-700 transition-colors"
+                          title="Sửa"
+                        >
+                          <FaEdit className="h-5 w-5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
         <div className="flex items-center justify-between mt-6">
           <p className="text-sm text-gray-600">

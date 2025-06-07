@@ -16,7 +16,7 @@ import {
 } from "@/api/incomeReportApi";
 import { toast } from "react-toastify";
 import { exportExcel } from "@/utils/exportExcel";
-import { FaFilter, FaDownload } from "react-icons/fa";
+import { FaDownload } from "react-icons/fa";
 import { formatCurrency } from "@/utils/formatter";
 
 ChartJS.register(
@@ -37,8 +37,6 @@ const IncomeReport = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [reportData, setReportData] = useState(null);
-  const [filter, setFilter] = useState("monthly");
-  const [timeRange, setTimeRange] = useState("2023");
 
   const fetchReportData = async () => {
     try {

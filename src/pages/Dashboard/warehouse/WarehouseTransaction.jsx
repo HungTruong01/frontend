@@ -3,47 +3,15 @@ import { FaSearch, FaEye, FaEdit, FaFileExport } from "react-icons/fa";
 import { GoPlus } from "react-icons/go";
 import { useNavigate } from "react-router-dom";
 import { getAllWarehouseTransaction } from "@/api/warehouseTransactionApi";
-import { getOrderById } from "@/api/orderApi";
-import { getDeliveryStatusById } from "@/api/deliveryStatusApi";
-import { getWarehouseById } from "@/api/warehouseApi";
-import { getWarehouseTransactionTypeById } from "@/api/warehouseTransactionTypeApi";
+import { getAllWarehouse } from "@/api/warehouseApi";
+import { getAllOrders } from "@/api/orderApi";
+import { getAllDeliveryStatus } from "@/api/deliveryStatusApi";
+import { getAllWarehouseTransactionType } from "@/api/warehouseTransactionTypeApi";
 import ToggleWarehouseTransaction from "@/components/Dashboard/warehouse/ToggleWarehouseTransaction";
 import { toast } from "react-toastify";
 import { exportExcel } from "@/utils/exportExcel";
 import { Pagination } from "@/utils/pagination";
 import { formatDate } from "@/utils/formatter";
-
-const enrichTransactions = async (transactions) => {
-  return await Promise.all(
-    transactions.map(async (tran) => {
-      try {
-        const [warehouse, order, status, type] = await Promise.all([
-          getWarehouseById(tran.warehouseId),
-          getOrderById(tran.orderId),
-          getDeliveryStatusById(tran.statusId),
-          getWarehouseTransactionTypeById(tran.transactionTypeId),
-        ]);
-
-        return {
-          ...tran,
-          warehouseName: warehouse?.name || "Kho không rõ",
-          orderCode: order?.code || `DH${tran.orderId}`,
-          statusName: status?.name || "Trạng thái không rõ",
-          transactionTypeName: type?.name || "Loại không rõ",
-        };
-      } catch (error) {
-        console.error(`Lỗi giao dịch ${tran.id}:`, error);
-        return {
-          ...tran,
-          warehouseName: "Lỗi kho",
-          orderCode: "Lỗi đơn hàng",
-          statusName: "Lỗi trạng thái",
-          transactionTypeName: "Lỗi loại giao dịch",
-        };
-      }
-    })
-  );
-};
 
 const WarehouseTransaction = () => {
   const [warehouseTransaction, setWarehouseTransaction] = useState([]);
@@ -54,6 +22,7 @@ const WarehouseTransaction = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [currentEditItem, setCurrentEditItem] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const displayColumns = [
@@ -66,15 +35,49 @@ const WarehouseTransaction = () => {
   ];
 
   const fetchWarehouseTransaction = async () => {
+    setIsLoading(true);
     try {
-      const response = await getAllWarehouseTransaction(0, 100, "id", "desc");
-      const transactions = response.content;
-      const detailsTransaction = await enrichTransactions(transactions);
-      setWarehouseTransaction(detailsTransaction);
-      setFilteredData(detailsTransaction);
+      const [transactionRes, warehouseRes, orderRes, statusRes, typeRes] =
+        await Promise.all([
+          getAllWarehouseTransaction(0, 100, "id", "desc"),
+          getAllWarehouse(0, 100, "id", "asc"),
+          getAllOrders(0, 100, "id", "asc"),
+          getAllDeliveryStatus(0, 100, "id", "asc"),
+          getAllWarehouseTransactionType(0, 100, "id", "asc"),
+        ]);
+
+      const warehouseMap = warehouseRes.content.reduce((acc, w) => {
+        acc[w.id] = w.name;
+        return acc;
+      }, {});
+      const orderMap = orderRes.content.reduce((acc, o) => {
+        acc[o.id] = o.code;
+        return acc;
+      }, {});
+      const statusMap = statusRes.data.content.reduce((acc, s) => {
+        acc[s.id] = s.name;
+        return acc;
+      }, {});
+      const typeMap = typeRes.content.reduce((acc, t) => {
+        acc[t.id] = t.name;
+        return acc;
+      }, {});
+
+      const enriched = transactionRes.content.map((tran) => ({
+        ...tran,
+        warehouseName: warehouseMap[tran.warehouseId] || "Kho không rõ",
+        orderCode: orderMap[tran.orderId] || `DH${tran.orderId}`,
+        statusName: statusMap[tran.statusId] || "Trạng thái không rõ",
+        transactionTypeName: typeMap[tran.transactionTypeId] || "Loại không rõ",
+      }));
+
+      setWarehouseTransaction(enriched);
+      setFilteredData(enriched);
     } catch (error) {
-      console.error("Lỗi khi lấy danh sách giao dịch kho:", error);
+      console.error("Lỗi khi tải dữ liệu giao dịch kho:", error);
       toast.error("Không thể tải danh sách giao dịch kho");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -217,80 +220,88 @@ const WarehouseTransaction = () => {
         </div>
 
         <div className="w-full overflow-x-auto">
-          <table className="w-full min-w-max">
-            <thead>
-              <tr className="bg-gray-200 text-gray-700">
-                {displayColumns.map((col) => (
-                  <th
-                    key={col.key}
-                    className="py-3 px-4 font-semibold whitespace-nowrap text-left"
-                  >
-                    {col.label}
+          {isLoading ? (
+            <div className="bg-gray-50 min-h-screen w-auto p-6">
+              <div className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+              </div>
+            </div>
+          ) : (
+            <table className="w-full min-w-max">
+              <thead>
+                <tr className="bg-gray-200 text-gray-700">
+                  {displayColumns.map((col) => (
+                    <th
+                      key={col.key}
+                      className="py-3 px-4 font-semibold whitespace-nowrap text-left"
+                    >
+                      {col.label}
+                    </th>
+                  ))}
+                  <th className="py-3 px-4 font-semibold text-center">
+                    Hành động
                   </th>
-                ))}
-                <th className="py-3 px-4 font-semibold text-center">
-                  Hành động
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {paginatedData.length > 0 ? (
-                paginatedData.map((row) => (
-                  <tr
-                    key={row.id}
-                    className="border-b border-gray-300 hover:bg-gray-100 transition-colors"
-                  >
-                    {displayColumns.map((col) => (
-                      <td
-                        key={col.key}
-                        className="py-3 px-4 text-sm text-gray-600 whitespace-nowrap text-left"
-                      >
-                        {col.key === "createdAt"
-                          ? formatDate(row[col.key])
-                          : row[col.key]}
+                </tr>
+              </thead>
+              <tbody>
+                {paginatedData.length > 0 ? (
+                  paginatedData.map((row) => (
+                    <tr
+                      key={row.id}
+                      className="border-b border-gray-300 hover:bg-gray-100 transition-colors"
+                    >
+                      {displayColumns.map((col) => (
+                        <td
+                          key={col.key}
+                          className="py-3 px-4 text-sm text-gray-600 whitespace-nowrap text-left"
+                        >
+                          {col.key === "createdAt"
+                            ? formatDate(row[col.key])
+                            : row[col.key]}
+                        </td>
+                      ))}
+                      <td className="py-3 px-4 text-center">
+                        <div className="flex justify-center space-x-3">
+                          <button
+                            onClick={() => handleViewDetail(row.id)}
+                            className="text-blue-500 hover:text-blue-700 transition-colors"
+                            title="Xem"
+                          >
+                            <FaEye className="h-5 w-5" />
+                          </button>
+                          <button
+                            onClick={() => handleEdit(row)}
+                            className={`${
+                              row.statusName === "Đã hoàn thành"
+                                ? "text-gray-400 cursor-not-allowed"
+                                : "text-blue-500 hover:text-blue-700"
+                            } transition-colors`}
+                            title={
+                              row.statusName === "Đã hoàn thành"
+                                ? "Không thể chỉnh sửa"
+                                : "Sửa"
+                            }
+                            disabled={row.statusName === "Đã hoàn thành"}
+                          >
+                            <FaEdit className="h-5 w-5" />
+                          </button>
+                        </div>
                       </td>
-                    ))}
-                    <td className="py-3 px-4 text-center">
-                      <div className="flex justify-center space-x-3">
-                        <button
-                          onClick={() => handleViewDetail(row.id)}
-                          className="text-blue-500 hover:text-blue-700 transition-colors"
-                          title="Xem"
-                        >
-                          <FaEye className="h-5 w-5" />
-                        </button>
-                        <button
-                          onClick={() => handleEdit(row)}
-                          className={`${
-                            row.statusName === "Đã hoàn thành"
-                              ? "text-gray-400 cursor-not-allowed"
-                              : "text-blue-500 hover:text-blue-700"
-                          } transition-colors`}
-                          title={
-                            row.statusName === "Đã hoàn thành"
-                              ? "Không thể chỉnh sửa"
-                              : "Sửa"
-                          }
-                          disabled={row.statusName === "Đã hoàn thành"}
-                        >
-                          <FaEdit className="h-5 w-5" />
-                        </button>
-                      </div>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={displayColumns.length + 1}
+                      className="py-8 text-center text-gray-500"
+                    >
+                      Không có dữ liệu
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td
-                    colSpan={displayColumns.length + 1}
-                    className="py-8 text-center text-gray-500"
-                  >
-                    Không có dữ liệu
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                )}
+              </tbody>
+            </table>
+          )}
         </div>
         <div className="flex justify-between items-center mt-4">
           <p className="text-sm text-gray-600">

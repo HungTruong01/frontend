@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { FaTimes, FaUpload, FaSpinner } from "react-icons/fa";
 import { getAllProductTypes } from "@/api/productTypeApi";
 import { getAllProductUnits } from "@/api/productUnitApi";
+import { createProduct, updateProduct } from "@/api/productApi";
 import { uploadImageToCloudinary } from "@/utils/uploadFile";
 import { toast } from "react-toastify";
 import Select from "react-select";
@@ -183,8 +184,6 @@ const ToggleProductModal = ({
       toast.error("Vui lòng đợi cho đến khi quá trình tải ảnh hoàn tất");
       return;
     }
-
-    // Chuẩn hóa dữ liệu trước khi validate
     const normalizedData = {
       ...formData,
       name: normalizeString(formData.name),
@@ -205,15 +204,26 @@ const ToggleProductModal = ({
       productTypeId: Number(normalizedData.productTypeId),
       productUnitId: Number(normalizedData.productUnitId),
       thumbnail: normalizedData.thumbnail || "",
-      warehouseProducts: [],
     };
+
     try {
-      await onSubmit(data);
+      if (isEdit) {
+        await updateProduct(data.id, data);
+      } else {
+        await createProduct(data);
+      }
+
+      toast.success(
+        isEdit ? "Cập nhật sản phẩm thành công" : "Thêm sản phẩm thành công"
+      );
+
+      onSubmit();
       setFormData(initData);
       setPreviewImage(null);
       setErrors({});
       onClose();
     } catch (error) {
+      console.error("Lỗi khi lưu sản phẩm:", error);
       toast.error("Có lỗi xảy ra khi lưu sản phẩm");
     }
   };

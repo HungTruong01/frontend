@@ -3,6 +3,7 @@ import { FaTimes, FaFileInvoiceDollar, FaUser, FaBox } from "react-icons/fa";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchInvoiceTypes } from "@/redux/slices/invoiceTypeSlice";
 import { useNavigate } from "react-router-dom";
+import { formatCurrency, formatDate } from "@/utils/formatter";
 
 const OrderDetailModal = ({ isOpen, onClose, orderData, onOrderUpdated }) => {
   const dispatch = useDispatch();
@@ -63,19 +64,6 @@ const OrderDetailModal = ({ isOpen, onClose, orderData, onOrderUpdated }) => {
 
   const isOrderCompleted = () => {
     return getOrderStatusName(orderData.orderStatusId) === "Đã thanh toán";
-  };
-
-  const formatCurrency = (value) =>
-    new Intl.NumberFormat("vi-VN").format(value);
-
-  const formatDate = (dateString) => {
-    if (!dateString) return "Ngày không hợp lệ";
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) return "Ngày không hợp lệ";
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
   };
 
   const getDefaultInvoiceTypeId = () => {

@@ -48,9 +48,9 @@ const WarehouseTransferDetail = () => {
         setDestinationWarehouse(destinationData);
         setAdjustmentType(typeData);
       } catch (err) {
-        console.error("Error fetching adjustment details:", err);
-        setError("Không thể tải thông tin chi tiết điều chỉnh tồn kho");
-        toast.error("Không thể tải thông tin chi tiết điều chỉnh tồn kho");
+        console.error("Lỗi tải chi tiết chuyển kho:", err);
+        setError("Không thể tải thông tin chi tiết chuyển kho");
+        toast.error("Không thể tải thông tin chi tiết chuyển kho");
       } finally {
         setLoading(false);
       }
@@ -78,7 +78,7 @@ const WarehouseTransferDetail = () => {
       <div className="bg-white rounded-lg shadow-lg p-6">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-gray-800">
-            Chi tiết điều chỉnh tồn kho
+            Chi tiết chuyển kho
           </h1>
           <button
             onClick={handleGoBack}
@@ -99,7 +99,7 @@ const WarehouseTransferDetail = () => {
       <div className="bg-white rounded-lg shadow-lg p-6">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-gray-800">
-            Chi tiết điều chỉnh tồn kho
+            Chi tiết chuyển kho
           </h1>
           <button
             onClick={handleGoBack}
@@ -109,7 +109,7 @@ const WarehouseTransferDetail = () => {
           </button>
         </div>
         <div className="bg-yellow-50 text-yellow-700 p-4 rounded-lg">
-          <p>Không tìm thấy thông tin điều chỉnh tồn kho</p>
+          <p>Không tìm thấy thông tin chuyển kho</p>
         </div>
       </div>
     );
@@ -125,7 +125,6 @@ const WarehouseTransferDetail = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          {/* Thông tin cơ bản */}
           <div className="bg-blue-50 rounded-lg p-6 shadow-sm">
             <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
               <FaCalendarAlt className="mr-2 text-blue-600" /> Thông tin chuyển
@@ -205,7 +204,6 @@ const WarehouseTransferDetail = () => {
 
         {/* Thông tin kho */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Kho xuất */}
           <div className="bg-orange-50 rounded-lg p-6 shadow-sm">
             <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
               <FaWarehouse className="mr-2 text-orange-600" /> Kho xuất
@@ -238,7 +236,6 @@ const WarehouseTransferDetail = () => {
             )}
           </div>
 
-          {/* Kho nhập */}
           <div className="bg-green-50 rounded-lg p-6 shadow-sm">
             <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
               <FaWarehouse className="mr-2 text-green-600" /> Kho nhập
@@ -272,7 +269,6 @@ const WarehouseTransferDetail = () => {
           </div>
         </div>
 
-        {/* Nút hành động */}
         <div className="mt-8 flex justify-end space-x-4">
           <button
             onClick={handleGoBack}

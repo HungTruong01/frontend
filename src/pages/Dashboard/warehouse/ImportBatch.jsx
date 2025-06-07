@@ -44,10 +44,10 @@ const ImportBatch = () => {
           warehousesResponse,
           warehouseTransactionRes,
         ] = await Promise.all([
-          getAllImportBatches(0, 1000, "importDate", "desc"),
-          getAllProducts(0, 1000, "id", "asc"),
-          getAllWarehouse(0, 1000, "id", "asc"),
-          getAllWarehouseTransaction(0, 1000, "id", "asc"),
+          getAllImportBatches(0, 100, "importDate", "desc"),
+          getAllProducts(0, 100, "id", "asc"),
+          getAllWarehouse(0, 100, "id", "asc"),
+          getAllWarehouseTransaction(0, 100, "id", "asc"),
         ]);
         setImportBatches(batchesResponse.data.content || []);
         setProducts(productsResponse.data.content || []);

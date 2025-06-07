@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { FaSearch } from "react-icons/fa";
 import { getAllInventoryWarehouse } from "@/api/inventoryWarehouseApi";
-import { getWarehouseById } from "@/api/warehouseApi";
-import { getProductById } from "@/api/productApi";
+import { getAllWarehouse } from "@/api/warehouseApi";
+import { getAllProducts } from "@/api/productApi";
 import { toast } from "react-toastify";
 import { Pagination } from "@/utils/pagination";
 
@@ -12,6 +12,7 @@ const InventoryProduct = () => {
   const [searchValue, setSearchValue] = useState("");
   const [itemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
 
   const displayColumns = [
     { key: "id", label: "Mã tồn kho" },
@@ -21,39 +22,41 @@ const InventoryProduct = () => {
   ];
 
   const fetchInventoryProducts = async () => {
+    setIsLoading(true);
     try {
-      const response = await getAllInventoryWarehouse(0, 100, "id", "asc");
-      const products = response.content || [];
+      const [inventoryRes, warehouseRes, productRes] = await Promise.all([
+        getAllInventoryWarehouse(0, 100, "id", "asc"),
+        getAllWarehouse(0, 100, "id", "asc"),
+        getAllProducts(0, 100, "id", "asc"),
+      ]);
 
-      const detailProducts = await Promise.all(
-        products.map(async (item) => {
-          try {
-            const [warehouse, product] = await Promise.all([
-              getWarehouseById(item.warehouseId),
-              getProductById(item.productId),
-            ]);
+      const inventories = inventoryRes.content || [];
+      const warehouseList = warehouseRes.content || [];
+      const productList = productRes.data.content || [];
 
-            return {
-              ...item,
-              warehouseName: warehouse?.name || "Kho không rõ",
-              productName: product?.name || `SP${item.productId}`,
-            };
-          } catch (innerErr) {
-            console.error(`Lỗi khi enrich sản phẩm ${item.id}:`, innerErr);
-            return {
-              ...item,
-              warehouseName: "Lỗi kho",
-              productName: "Lỗi sản phẩm",
-            };
-          }
-        })
-      );
+      const warehouseMap = warehouseList.reduce((acc, w) => {
+        acc[w.id] = w.name;
+        return acc;
+      }, {});
 
-      setInventoryProducts(detailProducts);
-      setFilteredData(detailProducts);
+      const productMap = productList.reduce((acc, p) => {
+        acc[p.id] = p.name;
+        return acc;
+      }, {});
+
+      const enriched = inventories.map((item) => ({
+        ...item,
+        warehouseName: warehouseMap[item.warehouseId] || "Kho không rõ",
+        productName: productMap[item.productId] || `SP${item.productId}`,
+      }));
+
+      setInventoryProducts(enriched);
+      setFilteredData(enriched);
     } catch (error) {
-      console.error("Lỗi khi lấy danh sách tồn kho:", error);
+      console.error("Lỗi khi tải tồn kho:", error);
       toast.error("Không thể tải danh sách tồn kho");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -109,48 +112,56 @@ const InventoryProduct = () => {
         </div>
 
         <div className="w-full overflow-x-auto">
-          <table className="w-full min-w-max">
-            <thead>
-              <tr className="bg-gray-200 text-gray-700">
-                {displayColumns.map((col) => (
-                  <th
-                    key={col.key}
-                    className="py-3 px-4 font-semibold whitespace-nowrap text-left"
-                  >
-                    {col.label}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {paginatedData.length > 0 ? (
-                paginatedData.map((row) => (
-                  <tr
-                    key={row.id}
-                    className="border-b border-gray-300 hover:bg-gray-100 transition-colors"
-                  >
-                    {displayColumns.map((col) => (
-                      <td
-                        key={col.key}
-                        className="py-3 px-4 text-sm text-gray-600 whitespace-nowrap text-left"
-                      >
-                        {row[col.key]}
-                      </td>
-                    ))}
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td
-                    colSpan={displayColumns.length}
-                    className="py-8 text-center text-gray-500"
-                  >
-                    Không có dữ liệu
-                  </td>
+          {isLoading ? (
+            <div className="bg-gray-50 min-h-screen w-auto p-6">
+              <div className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+              </div>
+            </div>
+          ) : (
+            <table className="w-full min-w-max">
+              <thead>
+                <tr className="bg-gray-200 text-gray-700">
+                  {displayColumns.map((col) => (
+                    <th
+                      key={col.key}
+                      className="py-3 px-4 font-semibold whitespace-nowrap text-left"
+                    >
+                      {col.label}
+                    </th>
+                  ))}
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {paginatedData.length > 0 ? (
+                  paginatedData.map((row) => (
+                    <tr
+                      key={row.id}
+                      className="border-b border-gray-300 hover:bg-gray-100 transition-colors"
+                    >
+                      {displayColumns.map((col) => (
+                        <td
+                          key={col.key}
+                          className="py-3 px-4 text-sm text-gray-600 whitespace-nowrap text-left"
+                        >
+                          {row[col.key]}
+                        </td>
+                      ))}
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={displayColumns.length}
+                      className="py-8 text-center text-gray-500"
+                    >
+                      Không có dữ liệu
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          )}
         </div>
 
         <div className="flex justify-between items-center mt-4">
