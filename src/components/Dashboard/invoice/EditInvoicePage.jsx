@@ -167,7 +167,7 @@ const EditInvoicePage = () => {
 
   return (
     <div className="w-full">
-      <div className="w-full mx-auto bg-white rounded-xl shadow-2xl p-6 flex flex-col md:flex-row gap-8">
+      <div className="w-full bg-white rounded-xl shadow-2xl p-6 flex flex-col md:flex-row gap-8">
         {/* Cột trái: Form nhập thông tin */}
         <div className="flex-1 min-w-[320px]">
           <div className="flex items-center mb-8">
