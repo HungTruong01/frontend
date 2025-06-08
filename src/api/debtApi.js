@@ -123,10 +123,6 @@ export const getYearlyDebtReport = async (year) => {
       }))
       .filter((invoice) => invoice.partnerId);
 
-    const activePartnerIds = new Set(
-      filteredInvoices.map((invoice) => invoice.partnerId)
-    );
-
     const partnerDebts = partners.map((partner) => {
       const partnerInvoices = filteredInvoices.filter(
         (invoice) => invoice.partnerId === partner.id
