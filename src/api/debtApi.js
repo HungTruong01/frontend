@@ -35,15 +35,7 @@ export const getMonthlyDebtReport = async (year, month) => {
       }))
       .filter((invoice) => invoice.partnerId);
 
-    const activePartnerIds = new Set(
-      filteredInvoices.map((invoice) => invoice.partnerId)
-    );
-
-    const filteredPartners = partners.filter((partner) =>
-      activePartnerIds.has(partner.id)
-    );
-
-    const partnerDebts = filteredPartners.map((partner) => {
+    const partnerDebts = partners.map((partner) => {
       const partnerInvoices = filteredInvoices.filter(
         (invoice) => invoice.partnerId === partner.id
       );
@@ -135,9 +127,7 @@ export const getYearlyDebtReport = async (year) => {
       filteredInvoices.map((invoice) => invoice.partnerId)
     );
 
-    const filteredPartners = partners;
-
-    const partnerDebts = filteredPartners.map((partner) => {
+    const partnerDebts = partners.map((partner) => {
       const partnerInvoices = filteredInvoices.filter(
         (invoice) => invoice.partnerId === partner.id
       );
