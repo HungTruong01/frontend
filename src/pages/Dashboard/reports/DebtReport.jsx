@@ -88,10 +88,8 @@ const DebtReport = () => {
     },
   };
 
-  const remainingDebtPartners =
-    reportData?.partners?.filter(
-      (partner) => (partner.debt || 0) - (partner.paid || 0) > 0
-    ) || [];
+  const remainingDebtPartners = reportData?.partners || [];
+  console.log(remainingDebtPartners);
 
   const handleExportExcel = () => {
     try {
@@ -100,9 +98,6 @@ const DebtReport = () => {
         {
           "Tổng công nợ": formatCurrency(reportData.totalDebt || 0),
           "Đã thanh toán": formatCurrency(reportData.totalInvoicePaid || 0),
-          "Còn nợ": formatCurrency(
-            (reportData.totalDebt || 0) - (reportData.totalInvoicePaid || 0)
-          ),
           "Tỷ lệ thanh toán": `${(
             (reportData.totalInvoicePaid / reportData.totalDebt) *
             100
@@ -136,11 +131,6 @@ const DebtReport = () => {
       console.error("Lỗi khi xuất Excel:", error);
       toast.error("Có lỗi xảy ra khi xuất file Excel");
     }
-  };
-
-  const handleStartDateChange = (e) => {
-    setStartDate(e.target.value);
-    setHasStartDateSelected(true);
   };
 
   return (
@@ -280,9 +270,7 @@ const DebtReport = () => {
                             {partner.partnerTypeName}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-red-600">
-                            {formatCurrency(
-                              (partner.debt || 0) - (partner.paid || 0)
-                            )}
+                            {formatCurrency(partner.debt)}
                           </td>
                         </tr>
                       ))}

@@ -66,7 +66,7 @@ export const getMonthlyDebtReport = async (year, month) => {
             : "Không xác định",
       };
     });
-
+    const partnersWithDebt = partnerDebts.filter((partner) => partner.debt > 0);
     const totalDebt = partnerDebts.reduce(
       (sum, partner) => sum + partner.debt,
       0
@@ -83,10 +83,10 @@ export const getMonthlyDebtReport = async (year, month) => {
     );
 
     return {
-      labels,
+      labels: [],
       totalDebt,
       totalInvoicePaid,
-      partners: partnerDebts,
+      partners: partnersWithDebt,
     };
   } catch (error) {
     console.error("Error fetching monthly debt report:", error);
@@ -101,38 +101,56 @@ export const getYearlyDebtReport = async (year) => {
     if (!year) {
       throw new Error("Năm không hợp lệ");
     }
-    const partnerResponse = await getAllPartners(0, 100, "id", "asc");
-    const partners = partnerResponse.data.content;
-    const invoiceResponse = await getAllInvoices(0, 100, "id", "asc");
-    const invoices = invoiceResponse.content;
-    const filteredPartners = partners.filter((partner) => {
-      const date = new Date(
-        partner.lastTransactionDate || partner.createdAt || new Date()
-      );
-      return date.getFullYear() === year;
-    });
 
-    const filteredInvoices = invoices.filter((invoice) => {
-      if (!invoice.createdAt) return false;
-      const date = new Date(invoice.createdAt);
-      return date.getFullYear() === year;
-    });
-    const totalDebt = filteredPartners.reduce(
-      (sum, partner) => sum + (partner.debt || 0),
-      0
+    const [partnerResponse, invoiceResponse, orderResponse] = await Promise.all(
+      [
+        getAllPartners(0, 100, "id", "asc"),
+        getAllInvoices(0, 100, "id", "asc"),
+        getAllOrders(0, 100, "id", "asc"),
+      ]
     );
-    const totalInvoicePaid = filteredInvoices.reduce(
-      (sum, invoice) => sum + (invoice.moneyAmount || 0),
-      0
+
+    const partners = partnerResponse.data.content;
+    const invoices = invoiceResponse.content;
+    const orders = orderResponse.content;
+
+    const orderMap = orders.reduce((acc, order) => {
+      acc[order.id] = order;
+      return acc;
+    }, {});
+
+    const filteredInvoices = invoices
+      .filter((invoice) => {
+        if (!invoice.createdAt) return false;
+        const date = new Date(invoice.createdAt);
+        return date.getFullYear() === year;
+      })
+      .map((invoice) => ({
+        ...invoice,
+        partnerId: orderMap[invoice.orderId]?.partnerId,
+      }))
+      .filter((invoice) => invoice.partnerId);
+
+    const activePartnerIds = new Set(
+      filteredInvoices.map((invoice) => invoice.partnerId)
     );
-    const labels = Array.from({ length: 12 }, (_, i) => `Tháng ${i + 1}`);
-    return {
-      labels,
-      totalDebt,
-      totalInvoicePaid,
-      partners: filteredPartners.map((partner) => ({
+
+    const filteredPartners = partners;
+
+    const partnerDebts = filteredPartners.map((partner) => {
+      const partnerInvoices = filteredInvoices.filter(
+        (invoice) => invoice.partnerId === partner.id
+      );
+
+      const totalPaid = partnerInvoices.reduce(
+        (sum, invoice) => sum + (invoice.moneyAmount || 0),
+        0
+      );
+
+      return {
         name: partner.name,
         debt: partner.debt || 0,
+        paid: totalPaid,
         partnerTypeId: partner.partnerTypeId,
         partnerTypeName:
           partner.partnerTypeId === 1
@@ -140,7 +158,26 @@ export const getYearlyDebtReport = async (year) => {
             : partner.partnerTypeId === 2
             ? "Nhà cung cấp"
             : "Không xác định",
-      })),
+      };
+    });
+
+    const partnersWithDebt = partnerDebts.filter((partner) => partner.debt > 0);
+
+    const totalDebt = partnerDebts.reduce(
+      (sum, partner) => sum + partner.debt,
+      0
+    );
+
+    const totalInvoicePaid = filteredInvoices.reduce(
+      (sum, invoice) => sum + (invoice.moneyAmount || 0),
+      0
+    );
+
+    return {
+      labels: Array.from({ length: 12 }, (_, i) => `Tháng ${i + 1}`),
+      totalDebt,
+      totalInvoicePaid,
+      partners: partnersWithDebt,
     };
   } catch (error) {
     console.error("Error fetching yearly debt report:", error);
