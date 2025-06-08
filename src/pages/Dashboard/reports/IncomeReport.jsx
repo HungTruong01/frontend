@@ -12,7 +12,6 @@ import { Bar } from "react-chartjs-2";
 import {
   getMonthlyIncomeReport,
   getYearlyIncomeReport,
-  getIncomeReportByDateRange,
 } from "@/api/incomeReportApi";
 import { toast } from "react-toastify";
 import { exportExcel } from "@/utils/exportExcel";
@@ -32,8 +31,6 @@ const IncomeReport = () => {
   const [reportType, setReportType] = useState("monthly");
   const [year, setYear] = useState(new Date().getFullYear());
   const [month, setMonth] = useState(new Date().getMonth() + 1);
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [reportData, setReportData] = useState(null);
@@ -42,29 +39,11 @@ const IncomeReport = () => {
     try {
       setLoading(true);
       let data;
-
-      if (reportType === "custom" && (!startDate || !endDate)) {
-        throw new Error("Vui lòng chọn ngày bắt đầu và kết thúc");
+      if (reportType === "monthly") {
+        data = await getMonthlyIncomeReport(year, month);
+      } else {
+        data = await getYearlyIncomeReport(year);
       }
-
-      if (reportType === "custom" && new Date(startDate) > new Date(endDate)) {
-        throw new Error("Ngày bắt đầu phải trước ngày kết thúc");
-      }
-
-      switch (reportType) {
-        case "monthly":
-          data = await getMonthlyIncomeReport(year, month);
-          break;
-        case "yearly":
-          data = await getYearlyIncomeReport(year);
-          break;
-        case "custom":
-          data = await getIncomeReportByDateRange(startDate, endDate);
-          break;
-        default:
-          data = await getMonthlyIncomeReport(year, month);
-      }
-
       setReportData(data);
       setError(null);
     } catch (err) {
@@ -78,17 +57,8 @@ const IncomeReport = () => {
   };
 
   useEffect(() => {
-    if (reportType === "custom" && (!startDate || !endDate)) {
-      setLoading(false);
-      return;
-    }
-
-    const timer = setTimeout(() => {
-      fetchReportData();
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [reportType, year, month, startDate, endDate]);
+    fetchReportData();
+  }, [reportType, year, month]);
 
   const chartData = {
     labels: reportData?.labels || [],
@@ -121,9 +91,7 @@ const IncomeReport = () => {
         text:
           reportType === "monthly"
             ? `Báo cáo thu chi - Tháng ${month}/${year}`
-            : reportType === "yearly"
-            ? `Báo cáo thu chi - Năm ${year}`
-            : `Báo cáo thu chi từ ${startDate} đến ${endDate}`,
+            : `Báo cáo thu chi - Năm ${year}`,
       },
     },
     scales: {
@@ -206,7 +174,6 @@ const IncomeReport = () => {
             >
               <option value="monthly">Theo tháng</option>
               <option value="yearly">Theo năm</option>
-              <option value="custom">Tùy chỉnh</option>
             </select>
 
             {reportType === "monthly" && (
@@ -248,23 +215,6 @@ const IncomeReport = () => {
                   </option>
                 ))}
               </select>
-            )}
-
-            {reportType === "custom" && (
-              <>
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </>
             )}
           </div>
         </div>

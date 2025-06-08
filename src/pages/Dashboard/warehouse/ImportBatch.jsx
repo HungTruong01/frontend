@@ -18,8 +18,7 @@ const ImportBatch = () => {
   const [filters, setFilters] = useState({
     warehouse: "all",
     product: "all",
-    startDate: "",
-    endDate: "",
+    date: "",
   });
   const [sortConfig, setSortConfig] = useState({
     key: "importDate",
@@ -98,10 +97,7 @@ const ImportBatch = () => {
 
   const filteredBatches = importBatches
     .filter((batch) => {
-      const matchesSearch =
-        batch.id.toString().includes(searchTerm) ||
-        batch.productId.toString().includes(searchTerm);
-
+      const matchesSearch = batch.id.toString().includes(searchTerm);
       const matchesWarehouse =
         filters.warehouse === "all" ||
         batch.warehouseId === parseInt(filters.warehouse);
@@ -111,10 +107,9 @@ const ImportBatch = () => {
         batch.productId === parseInt(filters.product);
 
       const matchesDate =
-        (!filters.startDate ||
-          new Date(batch.importDate) >= new Date(filters.startDate)) &&
-        (!filters.endDate ||
-          new Date(batch.importDate) <= new Date(filters.endDate));
+        !filters.date ||
+        new Date(batch.importDate).toLocaleDateString() ===
+          new Date(filters.date).toLocaleDateString();
 
       return matchesSearch && matchesWarehouse && matchesProduct && matchesDate;
     })
@@ -174,7 +169,7 @@ const ImportBatch = () => {
           <div className="relative flex-1">
             <input
               type="text"
-              placeholder="Tìm kiếm theo mã lô hoặc mã sản phẩm..."
+              placeholder="Tìm kiếm theo mã lô hàng"
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
@@ -211,15 +206,10 @@ const ImportBatch = () => {
             </select>
             <input
               type="date"
-              value={filters.startDate}
-              onChange={(e) => handleFilterChange("startDate", e.target.value)}
+              value={filters.date}
+              onChange={(e) => handleFilterChange("date", e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <input
-              type="date"
-              value={filters.endDate}
-              onChange={(e) => handleFilterChange("endDate", e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Chọn ngày"
             />
           </div>
         </div>

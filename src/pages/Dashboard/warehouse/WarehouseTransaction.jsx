@@ -16,7 +16,8 @@ import { formatDate } from "@/utils/formatter";
 const WarehouseTransaction = () => {
   const [warehouseTransaction, setWarehouseTransaction] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
-  const [searchValue, setSearchValue] = useState("");
+  const [searchOrderCode, setSearchOrderCode] = useState("");
+  const [selectedTransactionType, setSelectedTransactionType] = useState("all");
   const [itemsPerPage, setItemsPerPage] = useState(7);
   const [currentPage, setCurrentPage] = useState(1);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -86,29 +87,32 @@ const WarehouseTransaction = () => {
   }, []);
 
   useEffect(() => {
-    if (!searchValue) return;
+    const filtered = warehouseTransaction.filter((item) => {
+      const matchesOrderCode =
+        !searchOrderCode ||
+        item.orderCode.toLowerCase().includes(searchOrderCode.toLowerCase());
 
-    const timer = setTimeout(() => {
-      const keyword = searchValue.toLowerCase().trim();
-      const filtered = warehouseTransaction.filter((item) =>
-        displayColumns.some((col) => {
-          const value = item[col.key]?.toString().toLowerCase() || "";
-          return value.includes(keyword);
-        })
-      );
-      setFilteredData(filtered);
-      setCurrentPage(1);
-    }, 300);
+      const matchesType =
+        selectedTransactionType === "all" ||
+        item.transactionTypeId === parseInt(selectedTransactionType);
 
-    return () => clearTimeout(timer);
-  }, [searchValue, warehouseTransaction]);
+      return matchesOrderCode && matchesType;
+    });
+
+    setFilteredData(filtered);
+    setCurrentPage(1);
+  }, [searchOrderCode, selectedTransactionType, warehouseTransaction]);
 
   const handleSearchChange = (e) => {
-    setSearchValue(e.target.value);
+    setSearchOrderCode(e.target.value);
     if (e.target.value === "") {
       setFilteredData(warehouseTransaction);
       setCurrentPage(1);
     }
+  };
+
+  const handleTransactionTypeChange = (e) => {
+    setSelectedTransactionType(e.target.value);
   };
 
   const handleAddNew = async () => {
@@ -188,18 +192,27 @@ const WarehouseTransaction = () => {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-gray-800">Giao dịch kho</h1>
           <div className="flex items-center space-x-4">
-            <div className="relative flex-grow w-64">
+            <div className="relative w-64">
               <input
                 type="text"
-                placeholder="Tìm kiếm..."
-                value={searchValue}
+                placeholder="Tìm kiếm theo mã đơn hàng"
+                value={searchOrderCode}
                 onChange={handleSearchChange}
-                className="w-full px-4 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-              <button className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700">
-                <FaSearch className="h-4 w-4" />
-              </button>
+              <FaSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             </div>
+
+            <select
+              value={selectedTransactionType}
+              onChange={handleTransactionTypeChange}
+              className="w-48 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">Loại giao dịch</option>
+              <option value="1">Nhập kho</option>
+              <option value="2">Xuất kho</option>
+            </select>
+
             <div className="flex items-center space-x-4">
               <button
                 onClick={handleExportExcel}

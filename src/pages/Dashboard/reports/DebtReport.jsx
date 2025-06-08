@@ -1,11 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Chart as ChartJS, Title, Tooltip, Legend, ArcElement } from "chart.js";
 import { Pie } from "react-chartjs-2";
-import {
-  getMonthlyDebtReport,
-  getYearlyDebtReport,
-  getDebtReportByDateRange,
-} from "@/api/debtApi";
+import { getMonthlyDebtReport, getYearlyDebtReport } from "@/api/debtApi";
 import { toast } from "react-toastify";
 import { exportExcel } from "@/utils/exportExcel";
 import { FaFilter, FaDownload } from "react-icons/fa";
@@ -17,42 +13,20 @@ const DebtReport = () => {
   const [reportType, setReportType] = useState("monthly");
   const [year, setYear] = useState(new Date().getFullYear());
   const [month, setMonth] = useState(new Date().getMonth() + 1);
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [reportData, setReportData] = useState(null);
-  const [hasStartDateSelected, setHasStartDateSelected] = useState(false);
 
   const fetchReportData = async () => {
     try {
       setLoading(true);
       setError(null);
-
-      if (reportType === "custom") {
-        if (!hasStartDateSelected && !startDate) {
-          toast.warning("Vui lòng chọn ngày bắt đầu");
-          return;
-        }
-        if (hasStartDateSelected && !endDate) {
-          toast.warning("Vui lòng chọn ngày kết thúc");
-          return;
-        }
-        if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
-          toast.error("Ngày bắt đầu phải trước ngày kết thúc");
-          return;
-        }
-      }
-
       let data;
       if (reportType === "monthly") {
         data = await getMonthlyDebtReport(year, month);
-      } else if (reportType === "yearly") {
-        data = await getYearlyDebtReport(year);
       } else {
-        data = await getDebtReportByDateRange(startDate, endDate);
+        data = await getYearlyDebtReport(year);
       }
-
       if (
         (!data.partners || data.partners.length === 0) &&
         data.totalDebt === 0 &&
@@ -74,7 +48,7 @@ const DebtReport = () => {
 
   useEffect(() => {
     fetchReportData();
-  }, [reportType, year, month, startDate, endDate]);
+  }, [reportType, year, month]);
 
   const pieChartData = {
     labels: ["Công nợ", "Đã thanh toán (Hóa đơn)"],
@@ -100,9 +74,7 @@ const DebtReport = () => {
         text:
           reportType === "monthly"
             ? `Tỷ lệ công nợ và thanh toán - Tháng ${month}/${year}`
-            : reportType === "yearly"
-            ? `Tỷ lệ công nợ và thanh toán - Năm ${year}`
-            : `Tỷ lệ công nợ và thanh toán từ ${startDate} đến ${endDate}`,
+            : `Tỷ lệ công nợ và thanh toán - Năm ${year}`,
       },
       tooltip: {
         callbacks: {
@@ -196,7 +168,6 @@ const DebtReport = () => {
             >
               <option value="monthly">Theo tháng</option>
               <option value="yearly">Theo năm</option>
-              <option value="custom">Tùy chỉnh</option>
             </select>
 
             {reportType === "monthly" && (
@@ -238,33 +209,6 @@ const DebtReport = () => {
                   </option>
                 ))}
               </select>
-            )}
-
-            {reportType === "custom" && (
-              <>
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={handleStartDateChange}
-                  className={`px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    !startDate && reportType === "custom"
-                      ? "border-red-300"
-                      : "border-gray-300"
-                  }`}
-                  required
-                />
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className={`px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    !endDate && reportType === "custom"
-                      ? "border-red-300"
-                      : "border-gray-300"
-                  }`}
-                  required
-                />
-              </>
             )}
           </div>
         </div>

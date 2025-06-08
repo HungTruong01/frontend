@@ -19,6 +19,7 @@ const WarehouseTransfer = () => {
   const [warehouseTransfer, setWarehouseTransfer] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [searchValue, setSearchValue] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("all");
   const [itemsPerPage, setItemsPerPage] = useState(7);
   const [currentPage, setCurrentPage] = useState(1);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -92,22 +93,23 @@ const WarehouseTransfer = () => {
     fetchData();
   }, []);
 
-  const handleSearch = () => {
-    const filtered = warehouseTransfer.filter((item) =>
-      displayColumns.some((col) => {
-        const value = item[col.key]?.toString().toLowerCase() || "";
-        return value.includes(searchValue.toLowerCase());
-      })
-    );
+  useEffect(() => {
+    const filtered = warehouseTransfer.filter((item) => {
+      const matchesSearch = item.productName
+        ?.toLowerCase()
+        .includes(searchValue.toLowerCase());
+      const matchesStatus =
+        selectedStatus === "all" || item.statusId === parseInt(selectedStatus);
+
+      return matchesSearch && matchesStatus;
+    });
+
     setFilteredData(filtered);
     setCurrentPage(1);
-  };
+  }, [searchValue, selectedStatus, warehouseTransfer]);
 
-  const handleSearchChange = (e) => {
-    setSearchValue(e.target.value);
-    if (e.target.value === "") {
-      setFilteredData(warehouseTransfer);
-    }
+  const handleStatusChange = (e) => {
+    setSelectedStatus(e.target.value);
   };
 
   const handleAddNew = async () => {
@@ -197,21 +199,27 @@ const WarehouseTransfer = () => {
             Danh sách đơn hàng nội bộ
           </h1>
           <div className="flex items-center space-x-4">
-            <div className="relative flex-grow w-64">
+            <div className="relative w-64">
               <input
                 type="text"
-                placeholder="Tìm kiếm..."
+                placeholder="Tìm kiếm sản phẩm..."
                 value={searchValue}
-                onChange={handleSearchChange}
-                className="w-full px-4 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                onChange={(e) => setSearchValue(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
               />
-              <button
-                onClick={handleSearch}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-              >
-                <FaSearch className="h-4 w-4" />
-              </button>
+              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             </div>
+
+            <select
+              value={selectedStatus}
+              onChange={handleStatusChange}
+              className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm min-w-[180px]"
+            >
+              <option value="all">Tất cả trạng thái</option>
+              <option value="1">Đã hoàn thành</option>
+              <option value="2">Đang xử lý</option>
+            </select>
+
             <div className="flex items-center space-x-4">
               <button
                 onClick={handleExportExcel}

@@ -12,7 +12,7 @@ const Banner = ({ description, background, button }) => {
       <div className="container mx-auto h-full flex flex-col justify-center items-start px-4 sm:px-6 relative z-10">
         <div className="w-full sm:w-[90%] md:w-[100%] lg:w-[750px]">
           {description && (
-            <div className="text-white leading-normal text-justify mb-6 w-full leading-relaxed">
+            <div className="text-white leading-normal text-justify mb-6 w-full">
               <div
                 dangerouslySetInnerHTML={{
                   __html: description,

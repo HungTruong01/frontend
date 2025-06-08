@@ -166,8 +166,8 @@ const EditInvoicePage = () => {
   }
 
   return (
-    <div className="w-full min-h-screen flex items-center justify-center">
-      <div className="w-full max-w-6xl bg-white rounded-2xl shadow-2xl p-6 md:p-10 flex flex-col md:flex-row gap-8">
+    <div className="w-full">
+      <div className="w-full max-w-6xl mx-auto bg-white rounded-xl shadow-2xl p-6 flex flex-col md:flex-row gap-8">
         {/* Cột trái: Form nhập thông tin */}
         <div className="flex-1 min-w-[320px]">
           <div className="flex items-center mb-8">
@@ -245,7 +245,7 @@ const EditInvoicePage = () => {
                 Số tiền <span className="text-red-500">*</span>
               </label>
               <input
-                type="number"
+                type="text"
                 name="paidAmount"
                 value={formData.paidAmount}
                 onChange={handleChange}
@@ -352,18 +352,13 @@ const EditInvoicePage = () => {
             </div>
             <div className="flex justify-between text-gray-700">
               <span>Số tiền thanh toán (hóa đơn này):</span>
-              <input
-                type="text"
-                name="paidAmount"
-                value={formData.paidAmount}
-                onChange={handleChange}
-                className="w-full p-2 border border-gray-200 rounded-lg text-black text-right bg-white"
-                placeholder="Nhập số tiền trả (VNĐ)"
-              />
+              <span className="font-bold text-right">
+                {formData.paidAmount} VNĐ
+              </span>
             </div>
             <div className="flex justify-between text-gray-700">
               <span>Số tiền còn lại:</span>
-              <span className="font-bold">
+              <span className="font-bold text-red-500">
                 {remainingAmount.toLocaleString()} VNĐ
               </span>
             </div>

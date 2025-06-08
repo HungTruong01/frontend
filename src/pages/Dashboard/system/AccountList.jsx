@@ -287,7 +287,7 @@ const AccountList = () => {
                         <FaEdit className="h-5 w-5" />
                       </button>
                       <button
-                        onClick={() => handleDeleteAccount(row.id)}
+                        onClick={() => handleDeleteAccount(account.id)}
                         className={`text-red-500 hover:text-red-700 transition-colors ${
                           account.roleId === 1 &&
                           "cursor-not-allowed opacity-50"

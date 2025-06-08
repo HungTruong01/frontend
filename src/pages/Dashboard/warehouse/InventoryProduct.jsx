@@ -9,6 +9,8 @@ import { Pagination } from "@/utils/pagination";
 const InventoryProduct = () => {
   const [inventoryProducts, setInventoryProducts] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
+  const [selectedWarehouse, setSelectedWarehouse] = useState("all");
+  const [warehouses, setWarehouses] = useState([]);
   const [searchValue, setSearchValue] = useState("");
   const [itemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
@@ -29,7 +31,7 @@ const InventoryProduct = () => {
         getAllWarehouse(0, 100, "id", "asc"),
         getAllProducts(0, 100, "id", "asc"),
       ]);
-
+      setWarehouses(warehouseRes.content);
       const inventories = inventoryRes.content || [];
       const warehouseList = warehouseRes.content || [];
       const productList = productRes.data.content || [];
@@ -64,23 +66,25 @@ const InventoryProduct = () => {
     fetchInventoryProducts();
   }, []);
 
-  const handleSearch = () => {
-    const filtered = inventoryProducts.filter((item) =>
-      displayColumns.some((col) => {
-        const value = item[col.key]?.toString().toLowerCase() || "";
-        return value.includes(searchValue.toLowerCase());
-      })
-    );
+  useEffect(() => {
+    const filtered = inventoryProducts.filter((item) => {
+      const matchesSearch = item.productName
+        ?.toLowerCase()
+        .includes(searchValue.toLowerCase());
+
+      const matchesWarehouse =
+        selectedWarehouse === "all" ||
+        item.warehouseId === parseInt(selectedWarehouse);
+
+      return matchesSearch && matchesWarehouse;
+    });
+
     setFilteredData(filtered);
     setCurrentPage(1);
-  };
+  }, [searchValue, selectedWarehouse, inventoryProducts]);
 
-  const handleSearchChange = (e) => {
-    setSearchValue(e.target.value);
-    if (e.target.value === "") {
-      setFilteredData(inventoryProducts);
-      setCurrentPage(1);
-    }
+  const handleWarehouseChange = (e) => {
+    setSelectedWarehouse(e.target.value);
   };
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
@@ -94,20 +98,30 @@ const InventoryProduct = () => {
       <div className="p-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-gray-800">Tồn kho</h1>
-          <div className="relative w-64 ml-auto">
-            <input
-              type="text"
-              placeholder="Tìm kiếm..."
-              value={searchValue}
-              onChange={handleSearchChange}
-              className="w-full px-4 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            />
-            <button
-              onClick={handleSearch}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+          <div className="flex items-center space-x-4">
+            <div className="relative w-64">
+              <input
+                type="text"
+                placeholder="Tìm kiếm sản phẩm..."
+                value={searchValue}
+                onChange={(e) => setSearchValue(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              />
+              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            </div>
+
+            <select
+              value={selectedWarehouse}
+              onChange={handleWarehouseChange}
+              className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm min-w-[180px]"
             >
-              <FaSearch className="h-4 w-4" />
-            </button>
+              <option value="all">Tất cả kho</option>
+              {warehouses.map((warehouse) => (
+                <option key={warehouse.id} value={warehouse.id}>
+                  {warehouse.name}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 

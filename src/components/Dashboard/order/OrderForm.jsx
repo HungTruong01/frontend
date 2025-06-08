@@ -371,6 +371,7 @@ const OrderForm = ({ mode = "add" }) => {
         onClose={() => setIsProductModalOpen(false)}
         onSelect={handleProductSelect}
         selectedProducts={orderItems}
+        orderTypeId={selectedOrderType}
       />
 
       <div className="p-6">

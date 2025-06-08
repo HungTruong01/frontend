@@ -18,13 +18,15 @@ import { formatDate } from "@/utils/formatter";
 const AdjustInventory = () => {
   const [adjustments, setAdjustments] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
+  const [adjustType, setAdjustType] = useState([]);
   const [searchValue, setSearchValue] = useState("");
+  const [selectedReason, setSelectedReason] = useState("all");
   const [itemsPerPage] = useState(7);
   const [currentPage, setCurrentPage] = useState(1);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [currentEditItem, setCurrentEditItem] = useState(null);
-  const [isLoading, setIsLoading] = useState(false); // Add loading state
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const displayColumns = [
@@ -46,6 +48,7 @@ const AdjustInventory = () => {
           getAllProducts(0, 100, "id", "asc"),
           getAllInventoryAdjustmentType(0, 100, "id", "asc"),
         ]);
+      setAdjustType(adjustmentTypeRes.content);
 
       const warehouseList = warehouseRes.content || [];
       const productList = productRes.data.content || [];
@@ -89,24 +92,22 @@ const AdjustInventory = () => {
     fetchData();
   }, []);
 
-  const handleSearch = () => {
-    const filtered = adjustments.filter((item) =>
-      displayColumns.some((col) => {
-        const value = item[col.key]?.toString().toLowerCase() || "";
-        return value.includes(searchValue.toLowerCase());
-      })
-    );
+  useEffect(() => {
+    const filtered = adjustments.filter((item) => {
+      const matchesSearch = item.productName
+        ?.toLowerCase()
+        .includes(searchValue.toLowerCase());
+
+      const matchesReason =
+        selectedReason === "all" ||
+        item.inventoryAdjustmentTypeId === parseInt(selectedReason);
+
+      return matchesSearch && matchesReason;
+    });
+
     setFilteredData(filtered);
     setCurrentPage(1);
-  };
-
-  const handleSearchChange = (e) => {
-    setSearchValue(e.target.value);
-    if (e.target.value === "") {
-      setFilteredData(adjustments);
-      setCurrentPage(1);
-    }
-  };
+  }, [searchValue, selectedReason, adjustments]);
 
   const handleAddNew = async () => {
     setIsAddModalOpen(false);
@@ -128,19 +129,6 @@ const AdjustInventory = () => {
     setCurrentEditItem(null);
     await fetchData();
     toast.success("Cập nhật điều chỉnh tồn kho thành công");
-  };
-
-  const handleDelete = async (item) => {
-    if (window.confirm("Bạn có chắc muốn xóa điều chỉnh này?")) {
-      try {
-        await deleteInventoryAdjustment(item.id);
-        await fetchData();
-        toast.success("Xóa điều chỉnh thành công");
-      } catch (error) {
-        console.error("Lỗi khi xóa điều chỉnh:", error);
-        toast.error("Lỗi khi xóa điều chỉnh");
-      }
-    }
   };
 
   const handleExportExcel = () => {
@@ -198,21 +186,30 @@ const AdjustInventory = () => {
             Danh sách điều chỉnh tồn kho
           </h1>
           <div className="flex items-center space-x-4">
-            <div className="relative flex-grow w-64">
+            <div className="relative w-64">
               <input
                 type="text"
-                placeholder="Tìm kiếm..."
+                placeholder="Tìm kiếm sản phẩm..."
                 value={searchValue}
-                onChange={handleSearchChange}
-                className="w-full px-4 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                onChange={(e) => setSearchValue(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
               />
-              <button
-                onClick={handleSearch}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-              >
-                <FaSearch className="h-4 w-4" />
-              </button>
+              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             </div>
+
+            <select
+              value={selectedReason}
+              onChange={(e) => setSelectedReason(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm min-w-[180px]"
+            >
+              <option value="all">Lý do điều chỉnh</option>
+              {adjustType.map((adjust) => (
+                <option key={adjust.id} value={adjust.id}>
+                  {adjust.name}
+                </option>
+              ))}
+            </select>
+
             <div className="flex items-center space-x-4">
               <button
                 onClick={handleExportExcel}

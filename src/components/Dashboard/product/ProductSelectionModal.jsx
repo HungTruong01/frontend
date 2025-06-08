@@ -9,7 +9,7 @@ const ProductSelectionModal = ({
   onClose,
   onSelect,
   selectedProducts,
-  orderTypes,
+  orderTypeId,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isOpenAddProduct, setIsOpenAddProduct] = useState(false);
@@ -113,7 +113,7 @@ const ProductSelectionModal = ({
 
         <div className="flex justify-between items-center mb-4">
           <div>
-            {orderTypes === "Đơn mua" && (
+            {orderTypeId === 1 && (
               <button
                 type="button"
                 onClick={handleAddProduct}
